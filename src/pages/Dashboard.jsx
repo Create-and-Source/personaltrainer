@@ -263,7 +263,7 @@ function MobileTodayView({ s, nav, settings, patients, appointments, services, p
           </div>
           <div style={{ display: 'flex', gap: 12, overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 8 }}>
             {needsAttention.slice(0, 8).map(p => (
-              <div key={p.id} onClick={() => nav('/admin/members')} style={{
+              <div key={p.id} onClick={() => nav(`/admin/members?client=${p.id}`)} style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer', flexShrink: 0, minWidth: 64,
               }}>
                 <div style={{

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useStyles } from '../theme';
 import {
   getAppointments,
-  getInventory,
   getRetentionAlerts,
 } from '../data/store';
 
@@ -108,21 +107,7 @@ function generateNotifications() {
     }
   });
 
-  // 2. Low stock — check ms_inventory for items at or below reorderAt
-  const inventory = getInventory();
-  inventory.forEach(item => {
-    if (item.quantity <= item.reorderAt) {
-      notifications.push({
-        id: `notif-stock-${item.id}`,
-        type: 'stock',
-        icon: 'stock',
-        text: `Low stock: ${item.name} (${item.quantity} remaining)`,
-        link: '/admin/inventory',
-        time: now,
-        color: '#D97706',
-      });
-    }
-  });
+  // 2. Low stock — removed (no inventory page)
 
   // 3. Retention alerts — check for pending
   const retentionAlerts = getRetentionAlerts();

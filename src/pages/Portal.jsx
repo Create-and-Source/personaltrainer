@@ -1244,7 +1244,7 @@ export default function Portal() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F5F3F0', fontFamily: s.FONT, position: 'relative', overflow: 'hidden' }}>
+    <div className="portal-page" style={{ minHeight: '100vh', background: '#F5F3F0', fontFamily: s.FONT, position: 'relative', overflow: 'hidden' }}>
       {/* Background orbs */}
       <div className="bg-orbs" style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
         <div style={{
