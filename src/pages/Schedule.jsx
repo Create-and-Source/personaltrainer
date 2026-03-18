@@ -14,7 +14,7 @@ export default function Schedule() {
   const [currentDate, setCurrentDate] = useState(new Date().toISOString().slice(0, 10));
   const [showForm, setShowForm] = useState(false);
   const [editAppt, setEditAppt] = useState(null);
-  const [form, setForm] = useState({ patientId: '', serviceId: '', providerId: '', date: '', time: '', duration: 30, notes: '' });
+  const [form, setForm] = useState({ patientId: '', serviceId: '', providerId: 'PRV-1', date: '', time: '', duration: 30, notes: '' });
   const [gridDetail, setGridDetail] = useState(null);
 
   const appointments = getAppointments();
@@ -94,7 +94,7 @@ export default function Schedule() {
           time: a.time,
           serviceId: a.serviceId,
           serviceName: svc?.name || 'Class',
-          category: svc?.category || 'Pilates',
+          category: svc?.category || 'Strength',
           instructor: prov?.name?.split(',')[0] || 'TBD',
           duration: a.duration || svc?.duration || 55,
           attendees: [],
@@ -115,7 +115,7 @@ export default function Schedule() {
 
   const openNew = (date, time) => {
     setEditAppt(null);
-    setForm({ patientId: '', serviceId: '', providerId: '', date: date || currentDate, time: time || '09:00', duration: 30, notes: '' });
+    setForm({ patientId: '', serviceId: '', providerId: 'PRV-1', date: date || currentDate, time: time || '09:00', duration: 30, notes: '' });
     setShowForm(true);
   };
 
@@ -543,17 +543,6 @@ export default function Schedule() {
                 <select value={form.serviceId} onChange={e => { const svc = services.find(sv => sv.id === e.target.value); setForm({ ...form, serviceId: e.target.value, duration: svc?.duration || 30 }); }} style={{ ...s.input, cursor: 'pointer' }}>
                   <option value="">Select session...</option>
                   {services.map(sv => <option key={sv.id} value={sv.id}>{sv.name} ({sv.duration}min)</option>)}
-                </select>
-              </div>
-              <div>
-                <label style={s.label}>Trainer</label>
-                <select value={form.providerId} onChange={e => setForm({ ...form, providerId: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
-                  <option value="">Select...</option>
-                  {(() => {
-                    const svc = services.find(sv => sv.id === form.serviceId);
-                    const filtered = svc ? providers.filter(p => p.specialties?.some(sp => svc.name.includes(sp) || sp.includes(svc.name) || svc.category === 'Consultation')) : providers;
-                    return (filtered.length > 0 ? filtered : providers).map(p => <option key={p.id} value={p.id}>{p.name}</option>);
-                  })()}
                 </select>
               </div>
               <div>

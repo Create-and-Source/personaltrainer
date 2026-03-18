@@ -20,15 +20,15 @@ function getPatients() {
 }
 
 const TIERS = {
-  '10-Session Pack': { price: 149, color: '#94A3B8', bg: '#F8FAFC', allocations: [{ service: 'Group Sessions', units: 10, unit: 'sessions' }] },
-  'Unlimited Monthly': { price: 199, color: '#A68A4C', bg: '#FAF7F2', allocations: [{ service: 'Group Sessions', units: 99, unit: 'unlimited' }, { service: 'Recovery + Stretch', units: 4, unit: 'sessions' }] },
-  'Premium Monthly': { price: 179, color: '#7C3AED', bg: '#F5F3FF', allocations: [{ service: 'Group Sessions', units: 99, unit: 'unlimited' }, { service: 'Private Session', units: 1, unit: 'session' }, { service: 'Recovery + Stretch', units: 4, unit: 'sessions' }] },
+  '10-Session Pack': { price: 890, color: '#94A3B8', bg: '#F8FAFC', allocations: [{ service: '1-on-1 Training', units: 10, unit: 'sessions' }] },
+  'Unlimited Monthly': { price: 499, color: '#A68A4C', bg: '#FAF7F2', allocations: [{ service: '1-on-1 Training', units: 99, unit: 'unlimited' }, { service: 'Nutrition Coaching', units: 4, unit: 'sessions' }] },
+  'Premium Monthly': { price: 699, color: '#7C3AED', bg: '#F5F3FF', allocations: [{ service: '1-on-1 Training', units: 99, unit: 'unlimited' }, { service: 'Nutrition Coaching', units: 99, unit: 'unlimited' }, { service: 'Progress Tracking', units: 99, unit: 'unlimited' }] },
 };
 
 const TIER_FEATURES = {
-  '10-Session Pack': ['10 group sessions per month', '10% off retail', 'Online booking priority'],
-  'Unlimited Monthly': ['Unlimited group sessions', '4 Recovery + Stretch sessions', '15% off retail', 'Priority booking', 'Free towel service'],
-  'Premium Monthly': ['Unlimited group sessions', '1 Private Session per month', '4 Recovery + Stretch sessions', '20% off retail', 'VIP priority booking', 'Guest passes (2/month)', 'Exclusive client events'],
+  '10-Session Pack': ['10 one-on-one training sessions', 'Valid for 3 months', 'Online booking priority'],
+  'Unlimited Monthly': ['Unlimited 1-on-1 sessions', '4 nutrition coaching sessions', 'Priority booking', 'Workout programming'],
+  'Premium Monthly': ['Unlimited 1-on-1 sessions', 'Unlimited nutrition coaching', 'Priority booking', 'Custom meal plans', 'Progress tracking & body composition', 'Monthly fitness assessments'],
 };
 
 function seedMemberships() {
@@ -40,16 +40,16 @@ function seedMemberships() {
   const d = (offset) => { const dt = new Date(now); dt.setDate(dt.getDate() + offset); return dt.toISOString().slice(0, 10); };
 
   const memberships = [
-    { id: 'MEM-1', patientId: patients[0].id, patientName: `${patients[0].firstName} ${patients[0].lastName}`, tier: 'Unlimited Monthly', startDate: d(-60), nextBilling: d(0), credits: 25, status: 'active', wallet: [{ service: 'Group Sessions', remaining: 99, total: 99 }, { service: 'Recovery + Stretch', remaining: 2, total: 4 }] },
-    { id: 'MEM-2', patientId: patients[1].id, patientName: `${patients[1].firstName} ${patients[1].lastName}`, tier: 'Premium Monthly', startDate: d(-90), nextBilling: d(5), credits: 0, status: 'active', wallet: [{ service: 'Group Sessions', remaining: 99, total: 99 }, { service: 'Private Session', remaining: 1, total: 1 }, { service: 'Recovery + Stretch', remaining: 3, total: 4 }] },
-    { id: 'MEM-3', patientId: patients[2].id, patientName: `${patients[2].firstName} ${patients[2].lastName}`, tier: '10-Session Pack', startDate: d(-30), nextBilling: d(1), credits: 50, status: 'active', wallet: [{ service: 'Group Sessions', remaining: 7, total: 10 }] },
-    { id: 'MEM-4', patientId: patients[3].id, patientName: `${patients[3].firstName} ${patients[3].lastName}`, tier: 'Unlimited Monthly', startDate: d(-120), nextBilling: d(10), credits: 0, status: 'active', wallet: [{ service: 'Group Sessions', remaining: 99, total: 99 }, { service: 'Recovery + Stretch', remaining: 4, total: 4 }] },
-    { id: 'MEM-5', patientId: patients[4].id, patientName: `${patients[4].firstName} ${patients[4].lastName}`, tier: 'Premium Monthly', startDate: d(-45), nextBilling: d(15), credits: 100, status: 'active', wallet: [{ service: 'Group Sessions', remaining: 99, total: 99 }, { service: 'Private Session', remaining: 0, total: 1 }, { service: 'Recovery + Stretch', remaining: 1, total: 4 }] },
-    { id: 'MEM-6', patientId: patients[5].id, patientName: `${patients[5].firstName} ${patients[5].lastName}`, tier: '10-Session Pack', startDate: d(-15), nextBilling: d(15), credits: 0, status: 'active', wallet: [{ service: 'Group Sessions', remaining: 10, total: 10 }] },
-    { id: 'MEM-7', patientId: patients[6].id, patientName: `${patients[6].firstName} ${patients[6].lastName}`, tier: 'Unlimited Monthly', startDate: d(-75), nextBilling: d(14), credits: 75, status: 'active', wallet: [{ service: 'Group Sessions', remaining: 99, total: 99 }, { service: 'Recovery + Stretch', remaining: 0, total: 4 }] },
-    { id: 'MEM-8', patientId: patients[7].id, patientName: `${patients[7].firstName} ${patients[7].lastName}`, tier: 'Premium Monthly', startDate: d(-180), nextBilling: d(3), credits: 0, status: 'active', wallet: [{ service: 'Group Sessions', remaining: 99, total: 99 }, { service: 'Private Session', remaining: 1, total: 1 }, { service: 'Recovery + Stretch', remaining: 4, total: 4 }] },
-    { id: 'MEM-9', patientId: patients[8].id, patientName: `${patients[8].firstName} ${patients[8].lastName}`, tier: 'Unlimited Monthly', startDate: d(-200), nextBilling: d(-5), credits: 0, status: 'paused', wallet: [{ service: 'Group Sessions', remaining: 99, total: 99 }, { service: 'Recovery + Stretch', remaining: 3, total: 4 }] },
-    { id: 'MEM-10', patientId: patients[9].id, patientName: `${patients[9].firstName} ${patients[9].lastName}`, tier: '10-Session Pack', startDate: d(-10), nextBilling: d(20), credits: 0, status: 'active', wallet: [{ service: 'Group Sessions', remaining: 8, total: 10 }] },
+    { id: 'MEM-1', patientId: patients[0].id, patientName: `${patients[0].firstName} ${patients[0].lastName}`, tier: 'Unlimited Monthly', startDate: d(-60), nextBilling: d(0), credits: 25, status: 'active', wallet: [{ service: '1-on-1 Training', remaining: 99, total: 99 }, { service: 'Nutrition Coaching', remaining: 2, total: 4 }] },
+    { id: 'MEM-2', patientId: patients[1].id, patientName: `${patients[1].firstName} ${patients[1].lastName}`, tier: 'Premium Monthly', startDate: d(-90), nextBilling: d(5), credits: 0, status: 'active', wallet: [{ service: '1-on-1 Training', remaining: 99, total: 99 }, { service: 'Nutrition Coaching', remaining: 99, total: 99 }, { service: 'Progress Tracking', remaining: 99, total: 99 }] },
+    { id: 'MEM-3', patientId: patients[2].id, patientName: `${patients[2].firstName} ${patients[2].lastName}`, tier: '10-Session Pack', startDate: d(-30), nextBilling: d(1), credits: 50, status: 'active', wallet: [{ service: '1-on-1 Training', remaining: 7, total: 10 }] },
+    { id: 'MEM-4', patientId: patients[3].id, patientName: `${patients[3].firstName} ${patients[3].lastName}`, tier: 'Unlimited Monthly', startDate: d(-120), nextBilling: d(10), credits: 0, status: 'active', wallet: [{ service: '1-on-1 Training', remaining: 99, total: 99 }, { service: 'Nutrition Coaching', remaining: 4, total: 4 }] },
+    { id: 'MEM-5', patientId: patients[4].id, patientName: `${patients[4].firstName} ${patients[4].lastName}`, tier: 'Premium Monthly', startDate: d(-45), nextBilling: d(15), credits: 100, status: 'active', wallet: [{ service: '1-on-1 Training', remaining: 99, total: 99 }, { service: 'Nutrition Coaching', remaining: 99, total: 99 }, { service: 'Progress Tracking', remaining: 99, total: 99 }] },
+    { id: 'MEM-6', patientId: patients[5].id, patientName: `${patients[5].firstName} ${patients[5].lastName}`, tier: '10-Session Pack', startDate: d(-15), nextBilling: d(15), credits: 0, status: 'active', wallet: [{ service: '1-on-1 Training', remaining: 10, total: 10 }] },
+    { id: 'MEM-7', patientId: patients[6].id, patientName: `${patients[6].firstName} ${patients[6].lastName}`, tier: 'Unlimited Monthly', startDate: d(-75), nextBilling: d(14), credits: 75, status: 'active', wallet: [{ service: '1-on-1 Training', remaining: 99, total: 99 }, { service: 'Nutrition Coaching', remaining: 0, total: 4 }] },
+    { id: 'MEM-8', patientId: patients[7].id, patientName: `${patients[7].firstName} ${patients[7].lastName}`, tier: 'Premium Monthly', startDate: d(-180), nextBilling: d(3), credits: 0, status: 'active', wallet: [{ service: '1-on-1 Training', remaining: 99, total: 99 }, { service: 'Nutrition Coaching', remaining: 99, total: 99 }, { service: 'Progress Tracking', remaining: 99, total: 99 }] },
+    { id: 'MEM-9', patientId: patients[8].id, patientName: `${patients[8].firstName} ${patients[8].lastName}`, tier: 'Unlimited Monthly', startDate: d(-200), nextBilling: d(-5), credits: 0, status: 'paused', wallet: [{ service: '1-on-1 Training', remaining: 99, total: 99 }, { service: 'Nutrition Coaching', remaining: 3, total: 4 }] },
+    { id: 'MEM-10', patientId: patients[9].id, patientName: `${patients[9].firstName} ${patients[9].lastName}`, tier: '10-Session Pack', startDate: d(-10), nextBilling: d(20), credits: 0, status: 'active', wallet: [{ service: '1-on-1 Training', remaining: 8, total: 10 }] },
   ];
 
   const packages = [
@@ -294,7 +294,7 @@ export default function Memberships() {
                     ${tier.price}
                   </span>
                   <span style={{ font: `400 14px ${s.FONT}`, color: s.text3 }}>
-                    / month
+                    {name === '10-Session Pack' ? '/ pack' : '/ month'}
                   </span>
                 </div>
 

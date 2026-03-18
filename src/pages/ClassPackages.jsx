@@ -12,9 +12,8 @@ export default function ClassPackages() {
   const [expandedId, setExpandedId] = useState(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [instructorFilter, setInstructorFilter] = useState('all');
   const [view, setView] = useState('plans'); // 'plans' | 'timeline'
-  const [form, setForm] = useState({ patientId: '', name: '', providerId: '', sessions: [] });
+  const [form, setForm] = useState({ patientId: '', name: '', providerId: 'PRV-1', sessions: [] });
   const [sessionForm, setSessionForm] = useState({ serviceId: '', name: '', date: '', notes: '' });
 
   const plans = getClassPackages();
@@ -69,7 +68,6 @@ export default function ClassPackages() {
       const status = getPlanStatus(plan);
       if (statusFilter !== status) return false;
     }
-    if (instructorFilter !== 'all' && plan.providerId !== instructorFilter) return false;
     return true;
   });
 
@@ -81,13 +79,13 @@ export default function ClassPackages() {
 
   const openNew = () => {
     setEditPlan(null);
-    setForm({ patientId: '', name: '', providerId: '', sessions: [] });
+    setForm({ patientId: '', name: '', providerId: 'PRV-1', sessions: [] });
     setShowForm(true);
   };
 
   const openEdit = (plan) => {
     setEditPlan(plan);
-    setForm({ patientId: plan.patientId, name: plan.name, providerId: plan.providerId, sessions: [...plan.sessions] });
+    setForm({ patientId: plan.patientId, name: plan.name, providerId: 'PRV-1', sessions: [...plan.sessions] });
     setShowForm(true);
   };
 
@@ -154,10 +152,6 @@ export default function ClassPackages() {
             <option value="active">Active</option>
             <option value="upcoming">Upcoming</option>
             <option value="completed">Completed</option>
-          </select>
-          <select value={instructorFilter} onChange={e => setInstructorFilter(e.target.value)} style={{ ...s.input, width: 'auto', cursor: 'pointer' }}>
-            <option value="all">All Trainers</option>
-            {providers.map(p => <option key={p.id} value={p.id}>{p.name.split(',')[0]}</option>)}
           </select>
         </div>
         <div style={{ display: 'flex', gap: 0, background: 'rgba(0,0,0,0.04)', borderRadius: 10, overflow: 'hidden' }}>
@@ -374,16 +368,9 @@ export default function ClassPackages() {
                   {patients.map(p => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}
                 </select>
               </div>
-              <div>
+              <div style={{ gridColumn: '1 / -1' }}>
                 <label style={s.label}>Program Name</label>
                 <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} style={s.input} placeholder="e.g., 12-Week Muscle Builder" />
-              </div>
-              <div>
-                <label style={s.label}>Trainer</label>
-                <select value={form.providerId} onChange={e => setForm({ ...form, providerId: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
-                  <option value="">Select...</option>
-                  {providers.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
               </div>
             </div>
 

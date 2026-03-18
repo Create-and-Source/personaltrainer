@@ -90,12 +90,20 @@ export function updateSettings(updates) { set('ms_settings', { ...getSettings(),
 
 // ── Init seed data ──
 export function initStore() {
-  const alreadyInit = localStorage.getItem('pt_initialized_v1');
+  const alreadyInit = localStorage.getItem('pt_initialized_v2');
 
   // Clear old pilates data if present
-  if (!alreadyInit && localStorage.getItem('ms_initialized')) {
-    ['ms_patients','ms_appointments','ms_class_packages','ms_inventory','ms_providers','ms_services','ms_locations','ms_retention_alerts','ms_settings','ms_emails','ms_texts','ms_social_posts','ms_checkins','ms_social_connections','ms_prs'].forEach(k => localStorage.removeItem(k));
-    localStorage.removeItem('ms_initialized');
+  if (!alreadyInit) {
+    // Clear ALL old data for clean re-seed
+    ['ms_patients','ms_appointments','ms_class_packages','ms_inventory','ms_providers','ms_services','ms_locations','ms_retention_alerts','ms_settings','ms_emails','ms_texts','ms_social_posts','ms_checkins','ms_social_connections','ms_prs','ms_initialized','pt_initialized_v1','ms_workouts','ms_workout_assignments'].forEach(k => localStorage.removeItem(k));
+    // Also clear progress data
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('ms_progress_') || key.startsWith('ms_measurements_'))) {
+        localStorage.removeItem(key);
+        i--;
+      }
+    }
   }
 
   const today = new Date();
@@ -110,11 +118,6 @@ export function initStore() {
   // Trainers
   set('ms_providers', [
     { id: 'PRV-1', name: 'Marcus Cole', title: 'Head Trainer / Owner', specialties: ['Strength & Conditioning', 'Olympic Lifting', 'Nutrition Coaching', 'Body Recomposition'], color: '#111', certifications: ['NASM-CPT', 'CSCS', 'Precision Nutrition L2'] },
-    { id: 'PRV-2', name: 'Jess Rivera', title: 'Senior Trainer', specialties: ['HIIT', 'Fat Loss', 'Functional Training', 'Boxing'], color: '#DC2626', certifications: ['ACE-CPT', 'Kettlebell Specialist'] },
-    { id: 'PRV-3', name: 'Derek Okafor', title: 'Strength Coach', specialties: ['Powerlifting', 'Hypertrophy', 'Athletic Performance', 'Olympic Lifting'], color: '#2563EB', certifications: ['NSCA-CSCS', 'USAW L1'] },
-    { id: 'PRV-4', name: 'Alana Kim', title: 'Wellness & Mobility Coach', specialties: ['Mobility & Recovery', 'Yoga', 'Corrective Exercise', 'Post-Rehab'], color: '#059669', certifications: ['NASM-CES', 'RYT-200', 'FMS L2'] },
-    { id: 'PRV-5', name: 'Trey Washington', title: 'Performance Trainer', specialties: ['Athletic Performance', 'Speed & Agility', 'Boot Camp', 'TRX'], color: '#D97706', certifications: ['ISSA-CPT', 'TRX Certified'] },
-    { id: 'PRV-6', name: 'Sofia Reyes', title: 'Nutrition & Fitness Coach', specialties: ['Nutrition Coaching', 'Weight Management', 'Prenatal Fitness', 'Women\'s Strength'], color: '#7C3AED', certifications: ['NASM-CPT', 'Precision Nutrition L1', 'Pre/Postnatal Certified'] },
   ]);
 
   // Session Types (Services)
@@ -163,7 +166,7 @@ export function initStore() {
 
   // Sessions (next 14 days + past 7 days)
   const svcIds = ['SVC-1', 'SVC-2', 'SVC-3', 'SVC-4', 'SVC-6', 'SVC-7', 'SVC-8', 'SVC-10', 'SVC-11'];
-  const provIds = ['PRV-1', 'PRV-2', 'PRV-3', 'PRV-4', 'PRV-5', 'PRV-6'];
+  const provIds = ['PRV-1'];
   const statuses = ['confirmed', 'confirmed', 'confirmed', 'pending', 'completed'];
   const appts = [];
   for (let dayOff = -7; dayOff <= 14; dayOff++) {
@@ -201,7 +204,7 @@ export function initStore() {
       { serviceId: 'SVC-4', name: 'Upper Body Push #2', status: 'upcoming', date: d(3), notes: '' },
       { serviceId: 'SVC-4', name: 'Lower Body #2', status: 'upcoming', date: d(6), notes: '' },
       { serviceId: 'SVC-4', name: 'Upper Body Pull #2', status: 'upcoming', date: d(10), notes: '' },
-    ], createdAt: d(-45), providerId: 'PRV-3' },
+    ], createdAt: d(-45), providerId: 'PRV-1' },
     { id: 'TP-2', patientId: 'CLT-1001', patientName: 'Sarah Chen', name: '8-Week Fat Loss Accelerator', sessions: [
       { serviceId: 'SVC-3', name: 'HIIT Circuit #1', status: 'completed', date: d(-28), notes: 'Great energy, hit all rounds' },
       { serviceId: 'SVC-4', name: 'Full Body Strength #1', status: 'completed', date: d(-25), notes: 'Progressive overload on all lifts' },
@@ -211,7 +214,7 @@ export function initStore() {
       { serviceId: 'SVC-4', name: 'Full Body Strength #2', status: 'upcoming', date: d(4), notes: '' },
       { serviceId: 'SVC-3', name: 'HIIT Circuit #4', status: 'upcoming', date: d(8), notes: '' },
       { serviceId: 'SVC-9', name: 'Nutrition Check-in #2', status: 'upcoming', date: d(15), notes: '' },
-    ], createdAt: d(-30), providerId: 'PRV-2' },
+    ], createdAt: d(-30), providerId: 'PRV-1' },
     { id: 'TP-3', patientId: 'CLT-1003', patientName: 'Emily Patel', name: 'Prenatal Fitness Program', sessions: [
       { serviceId: 'SVC-15', name: 'Prenatal Strength — Month 4', status: 'completed', date: d(-56), notes: 'Gentle intro, focus on core stability' },
       { serviceId: 'SVC-15', name: 'Prenatal Mobility — Month 4', status: 'completed', date: d(-49), notes: 'Hip mobility and pelvic floor work' },
@@ -225,7 +228,7 @@ export function initStore() {
       { serviceId: 'SVC-15', name: 'Prenatal Strength — Month 7', status: 'upcoming', date: d(21), notes: '' },
       { serviceId: 'SVC-15', name: 'Prenatal Mobility — Month 7', status: 'upcoming', date: d(28), notes: '' },
       { serviceId: 'SVC-8', name: 'Recovery Session — Final', status: 'upcoming', date: d(35), notes: '' },
-    ], createdAt: d(-60), providerId: 'PRV-6' },
+    ], createdAt: d(-60), providerId: 'PRV-1' },
     { id: 'TP-4', patientId: 'CLT-1004', patientName: 'David Garcia', name: 'Post-Rehab Return to Training', sessions: [
       { serviceId: 'SVC-8', name: 'Mobility Assessment', status: 'completed', date: d(-35), notes: 'Post-ACL surgery, limited ROM in right knee' },
       { serviceId: 'SVC-10', name: 'Functional Basics #1', status: 'completed', date: d(-28), notes: 'Bodyweight movements, no impact' },
@@ -235,7 +238,7 @@ export function initStore() {
       { serviceId: 'SVC-4', name: 'Strength Building #1', status: 'upcoming', date: d(7), notes: '' },
       { serviceId: 'SVC-8', name: 'Mobility Check-in', status: 'upcoming', date: d(14), notes: '' },
       { serviceId: 'SVC-4', name: 'Strength Building #2', status: 'upcoming', date: d(28), notes: '' },
-    ], createdAt: d(-40), providerId: 'PRV-4' },
+    ], createdAt: d(-40), providerId: 'PRV-1' },
     { id: 'TP-5', patientId: 'CLT-1005', patientName: 'Priya Singh', name: '30-Day Kickstart Challenge', sessions: [
       { serviceId: 'SVC-3', name: 'Day 1 — HIIT Intro', status: 'completed', date: d(-21), notes: 'Challenge kickoff! Great energy' },
       { serviceId: 'SVC-4', name: 'Day 3 — Upper Body', status: 'completed', date: d(-19), notes: 'First time with dumbbells over 15lbs' },
@@ -248,7 +251,7 @@ export function initStore() {
       { serviceId: 'SVC-4', name: 'Day 24 — Full Body', status: 'upcoming', date: d(2), notes: '' },
       { serviceId: 'SVC-11', name: 'Day 27 — Performance', status: 'upcoming', date: d(5), notes: '' },
       { serviceId: 'SVC-3', name: 'Day 30 — Final HIIT', status: 'upcoming', date: d(8), notes: '' },
-    ], createdAt: d(-22), providerId: 'PRV-5' },
+    ], createdAt: d(-22), providerId: 'PRV-1' },
     { id: 'TP-6', patientId: 'CLT-1010', patientName: 'Lauren Johnson', name: 'Marathon Prep Program', sessions: [
       { serviceId: 'SVC-4', name: 'Strength for Runners #1', status: 'completed', date: d(-60), notes: 'Lower body emphasis, single-leg work' },
       { serviceId: 'SVC-11', name: 'Speed & Agility #1', status: 'completed', date: d(-45), notes: 'Ladder drills, sprint intervals' },
@@ -256,25 +259,9 @@ export function initStore() {
       { serviceId: 'SVC-4', name: 'Strength for Runners #2', status: 'in-progress', date: d(-7), notes: 'Added plyometrics, hill simulation' },
       { serviceId: 'SVC-11', name: 'Speed & Agility #2', status: 'upcoming', date: d(14), notes: '' },
       { serviceId: 'SVC-9', name: 'Race Day Nutrition Plan', status: 'upcoming', date: d(45), notes: '' },
-    ], createdAt: d(-65), providerId: 'PRV-5' },
+    ], createdAt: d(-65), providerId: 'PRV-1' },
   ];
   set('ms_class_packages', programs);
-
-  // Inventory (equipment and retail)
-  set('ms_inventory', [
-    { id: 'INV-1', name: 'Adjustable Dumbbell Set (5-90lb)', category: 'Equipment', sku: 'DB-ADJ', quantity: 20, reorderAt: 0, unitCost: 45000, adjustmentLog: [] },
-    { id: 'INV-2', name: 'Olympic Barbell (45lb)', category: 'Equipment', sku: 'BAR-OLY', quantity: 8, reorderAt: 0, unitCost: 35000, adjustmentLog: [] },
-    { id: 'INV-3', name: 'Bumper Plate Set (10-55lb)', category: 'Equipment', sku: 'PLT-BMP', quantity: 12, reorderAt: 0, unitCost: 28000, adjustmentLog: [] },
-    { id: 'INV-4', name: 'Kettlebell Set (15-70lb)', category: 'Equipment', sku: 'KB-SET', quantity: 10, reorderAt: 2, unitCost: 22000, adjustmentLog: [] },
-    { id: 'INV-5', name: 'Resistance Bands (Assorted)', category: 'Equipment', sku: 'RB-AST', quantity: 40, reorderAt: 15, unitCost: 1200, adjustmentLog: [] },
-    { id: 'INV-6', name: 'TRX Suspension Trainer', category: 'Equipment', sku: 'TRX-PRO', quantity: 12, reorderAt: 4, unitCost: 15000, adjustmentLog: [] },
-    { id: 'INV-7', name: 'Boxing Gloves (pair)', category: 'Equipment', sku: 'BOX-GL', quantity: 20, reorderAt: 8, unitCost: 4500, adjustmentLog: [] },
-    { id: 'INV-8', name: 'Foam Roller', category: 'Equipment', sku: 'FR-36', quantity: 25, reorderAt: 10, unitCost: 1800, adjustmentLog: [] },
-    { id: 'INV-9', name: 'Branded Shaker Bottle', category: 'Retail', sku: 'SB-BRD', quantity: 60, reorderAt: 20, unitCost: 500, adjustmentLog: [] },
-    { id: 'INV-10', name: 'Lifting Belt', category: 'Retail', sku: 'LB-STD', quantity: 15, reorderAt: 5, unitCost: 3500, adjustmentLog: [] },
-    { id: 'INV-11', name: 'Gym Towel', category: 'Supplies', sku: 'TW-STD', quantity: 80, reorderAt: 30, unitCost: 400, adjustmentLog: [] },
-    { id: 'INV-12', name: 'Cable Machine', category: 'Equipment', sku: 'CM-01', quantity: 4, reorderAt: 0, unitCost: 250000, adjustmentLog: [] },
-  ]);
 
   // Retention Alerts
   const alerts = [];
@@ -318,7 +305,7 @@ export function initStore() {
     founder: 'Marcus Cole',
   });
 
-  localStorage.setItem('pt_initialized_v1', 'true');
+  localStorage.setItem('pt_initialized_v2', 'true');
 }
 
 // Seeds data for keys that are empty — runs every load to fill gaps

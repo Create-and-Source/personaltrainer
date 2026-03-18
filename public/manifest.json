@@ -1,7 +1,7 @@
 {
-  "name": "MedSpa Platform",
-  "short_name": "MedSpa",
-  "description": "Premium medspa management platform",
+  "name": "FORGE Performance Training",
+  "short_name": "FORGE",
+  "description": "Personal training management platform",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FAFAFA",

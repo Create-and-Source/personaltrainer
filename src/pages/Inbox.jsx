@@ -100,7 +100,7 @@ function saveConversations(c) { localStorage.setItem(INBOX_KEY, JSON.stringify(c
 function loadAssignments() { try { return JSON.parse(localStorage.getItem(ASSIGN_KEY)) || {}; } catch { return {}; } }
 function saveAssignments(a) { localStorage.setItem(ASSIGN_KEY, JSON.stringify(a)); }
 
-const INBOX_VERSION = 'remedy-v3';
+const INBOX_VERSION = 'forge-v1';
 function initInbox() {
   if (localStorage.getItem('ms_inbox_version') === INBOX_VERSION) return;
   localStorage.setItem('ms_inbox_version', INBOX_VERSION);
@@ -111,102 +111,102 @@ function initInbox() {
   const ago = (min) => new Date(now - min * 60000).toISOString();
 
   saveConversations([
-    { id: 'DM-1', handle: '@emma.reformer', name: 'Emma Johnson', avatar: 'EJ', patientId: 'PAT-1000', platform: 'instagram', unread: 2, lastActivity: ago(5), avgResponseTime: 3, messages: [
-      { id: 'm1', from: 'them', text: 'Hi! I saw your reformer class on Instagram. How much are drop-in classes?', time: ago(120), read: true },
-      { id: 'm2', from: 'us', text: 'Hi Emma! Drop-in reformer classes are $35. We also have class packs — our 8-Class Pack is a great value! Would you like to try an intro offer first?', time: ago(90), read: true, sentBy: 'PRV-2' },
-      { id: 'm3', from: 'them', text: 'Ooh yes! What intro offers do you have?', time: ago(85), read: true },
-      { id: 'm4', from: 'us', text: 'We have $49 unlimited for your first month, or a $35 intro private session with one of our instructors. Both are amazing ways to get started!', time: ago(82), read: true, sentBy: 'PRV-2' },
-      { id: 'm5', from: 'them', text: 'The unlimited first month sounds perfect! How do I sign up?', time: ago(30), read: false },
-      { id: 'm6', from: 'them', text: 'Also what should I wear to my first class?', time: ago(5), read: false },
+    { id: 'DM-1', handle: '@emma.gains', name: 'Emma Johnson', avatar: 'EJ', patientId: 'PAT-1000', platform: 'instagram', unread: 2, lastActivity: ago(5), avgResponseTime: 3, messages: [
+      { id: 'm1', from: 'them', text: 'Hi! I saw your strength training post on Instagram. How much are individual sessions?', time: ago(120), read: true },
+      { id: 'm2', from: 'us', text: 'Hi Emma! Single sessions are $99. We also have a 10-Session Pack for $890 which is a great value! Would you like to try a complimentary consultation first?', time: ago(90), read: true, sentBy: 'PRV-1' },
+      { id: 'm3', from: 'them', text: 'Ooh yes! What does the consultation include?', time: ago(85), read: true },
+      { id: 'm4', from: 'us', text: 'It is a free 30-minute session where I assess your fitness level, talk through your goals, and build a custom plan. It is a great way to see if we are a good fit!', time: ago(82), read: true, sentBy: 'PRV-1' },
+      { id: 'm5', from: 'them', text: 'The 10-Session Pack sounds perfect! How do I sign up?', time: ago(30), read: false },
+      { id: 'm6', from: 'them', text: 'Also what should I bring to my first session?', time: ago(5), read: false },
     ]},
     { id: 'DM-2', handle: '@sophia.fitlife', name: 'Sophia Brown', avatar: 'SB', patientId: 'PAT-1002', platform: 'instagram', unread: 1, lastActivity: ago(15), avgResponseTime: 8, messages: [
-      { id: 'm7', from: 'them', text: 'I just had a baby 3 months ago. Is it safe to come back to reformer classes?', time: ago(180), read: true },
-      { id: 'm8', from: 'us', text: 'Hi Sophia! Congrats on the new baby! We recommend getting clearance from your OB first. Once cleared, our postnatal classes with Kelly are a perfect way to ease back in. She focuses on core rehab and pelvic floor.', time: ago(150), read: true, sentBy: 'PRV-3' },
-      { id: 'm9', from: 'them', text: 'My doctor said I am cleared! What days does Kelly teach?', time: ago(140), read: true },
-      { id: 'm10', from: 'us', text: 'Kelly teaches Tuesday and Thursday mornings at 9:30am. We also recommend starting with a private session so she can assess where you are and modify as needed!', time: ago(132), read: true, sentBy: 'PRV-3' },
-      { id: 'm11', from: 'them', text: 'That sounds great! Can I book a private with Kelly for next week?', time: ago(15), read: false },
+      { id: 'm7', from: 'them', text: 'I just had a baby 3 months ago. Is it safe to start training again?', time: ago(180), read: true },
+      { id: 'm8', from: 'us', text: 'Hi Sophia! Congrats on the new baby! I recommend getting clearance from your OB first. Once cleared, we can start with a postnatal-focused program — I focus on core rehab, pelvic floor recovery, and gradually rebuilding strength.', time: ago(150), read: true, sentBy: 'PRV-1' },
+      { id: 'm9', from: 'them', text: 'My doctor said I am cleared! What days do you have available?', time: ago(140), read: true },
+      { id: 'm10', from: 'us', text: 'I have openings Tuesday and Thursday mornings at 9:30am. I also recommend starting with an assessment session so I can see where you are and build a safe program for you!', time: ago(132), read: true, sentBy: 'PRV-1' },
+      { id: 'm11', from: 'them', text: 'That sounds great! Can I book an assessment for next week?', time: ago(15), read: false },
     ]},
-    { id: 'DM-3', handle: '@ava.pilates.lover', name: 'Ava Jones', avatar: 'AJ', patientId: 'PAT-1003', platform: 'instagram', unread: 0, lastActivity: ago(60), avgResponseTime: 18, messages: [
-      { id: 'm12', from: 'them', text: 'Do you offer a teacher training program? I have been practicing for 5 years and want to get certified.', time: ago(300), read: true },
-      { id: 'm13', from: 'us', text: 'Hi Ava! Yes we do! Our comprehensive teacher training is led by Kelly Snailum. It covers mat and reformer certification. Want me to send you the program details and schedule?', time: ago(240), read: true, sentBy: 'PRV-1' },
+    { id: 'DM-3', handle: '@ava.fitjourney', name: 'Ava Jones', avatar: 'AJ', patientId: 'PAT-1003', platform: 'instagram', unread: 0, lastActivity: ago(60), avgResponseTime: 18, messages: [
+      { id: 'm12', from: 'them', text: 'Do you offer any certifications or mentorship for aspiring trainers? I have been training for 5 years and want to level up.', time: ago(300), read: true },
+      { id: 'm13', from: 'us', text: 'Hi Ava! I do offer a mentorship program for aspiring trainers. It covers programming, client assessment, and business fundamentals. Want me to send you the details?', time: ago(240), read: true, sentBy: 'PRV-1' },
       { id: 'm14', from: 'them', text: 'Yes please! How long is the program?', time: ago(200), read: true },
-      { id: 'm15', from: 'us', text: 'The full certification is a 6-month program with weekend intensives. I will email you the full breakdown, pricing, and next cohort start date!', time: ago(60), read: true, sentBy: 'PRV-1' },
+      { id: 'm15', from: 'us', text: 'It is a 6-month mentorship with weekly check-ins. I will email you the full breakdown, pricing, and next start date!', time: ago(60), read: true, sentBy: 'PRV-1' },
     ]},
     { id: 'DM-4', handle: '@charlotte.active', name: 'Charlotte Davis', avatar: 'CD', patientId: null, platform: 'instagram', unread: 1, lastActivity: ago(8), avgResponseTime: null, messages: [
-      { id: 'm16', from: 'them', text: 'I am pregnant (16 weeks) and want to start prenatal pilates. Is it safe if I have never done pilates before?', time: ago(8), read: false },
+      { id: 'm16', from: 'them', text: 'I am pregnant (16 weeks) and want to start prenatal fitness training. Is it safe if I have never worked with a trainer before?', time: ago(8), read: false },
     ]},
     { id: 'DM-5', handle: '@isabella.moves', name: 'Isabella Martinez', avatar: 'IM', patientId: 'PAT-1004', platform: 'instagram', unread: 0, lastActivity: ago(1440), avgResponseTime: 4, messages: [
-      { id: 'm17', from: 'them', text: 'What time is the Saturday morning barre class?', time: ago(2880), read: true },
-      { id: 'm18', from: 'us', text: 'Hi Isabella! Saturday barre is at 9am and 10:15am. Both are with Jamie — she is amazing! Want me to save you a spot?', time: ago(1440), read: true, sentBy: 'PRV-2' },
+      { id: 'm17', from: 'them', text: 'What time is the Saturday morning HIIT session?', time: ago(2880), read: true },
+      { id: 'm18', from: 'us', text: 'Hi Isabella! Saturday HIIT is at 9am and 10:15am. Want me to save you a spot?', time: ago(1440), read: true, sentBy: 'PRV-1' },
     ]},
     { id: 'DM-6', handle: '@mia.wellness', name: 'Mia Garcia', avatar: 'MG', patientId: 'PAT-1005', platform: 'instagram', unread: 3, lastActivity: ago(2), avgResponseTime: null, messages: [
-      { id: 'm19', from: 'them', text: 'I need to reschedule my reformer class tomorrow morning', time: ago(45), read: false },
-      { id: 'm20', from: 'them', text: 'Can I switch to the 5:30pm class instead?', time: ago(30), read: false },
-      { id: 'm21', from: 'them', text: 'Hello?? The class is in the morning and I need to know asap', time: ago(2), read: false },
+      { id: 'm19', from: 'them', text: 'I need to reschedule my training session tomorrow morning', time: ago(45), read: false },
+      { id: 'm20', from: 'them', text: 'Can I switch to the 5:30pm slot instead?', time: ago(30), read: false },
+      { id: 'm21', from: 'them', text: 'Hello?? The session is in the morning and I need to know asap', time: ago(2), read: false },
     ]},
     { id: 'DM-7', handle: '@harper.fit', name: 'Harper Anderson', avatar: 'HA', patientId: null, platform: 'facebook', unread: 1, lastActivity: ago(20), avgResponseTime: null, messages: [
-      { id: 'm22', from: 'them', text: 'Hi! I just found your page. Do you offer online training packages? I am looking for something I can do from home.', time: ago(20), read: false },
+      { id: 'm22', from: 'them', text: 'Hi! I just found your page. Do you offer online training programs? I am looking for something I can do from home.', time: ago(20), read: false },
     ]},
-    { id: 'DM-8', handle: '@grace.trx', name: 'Grace Taylor', avatar: 'GT', patientId: null, platform: 'tiktok', unread: 2, lastActivity: ago(3), avgResponseTime: null, messages: [
-      { id: 'm23', from: 'them', text: 'I just saw your TRX class video! That looks so hard but so fun. Is it good for beginners?', time: ago(10), read: false },
-      { id: 'm24', from: 'them', text: 'also do I need to bring my own straps or do you have them at the studio?', time: ago(3), read: false },
+    { id: 'DM-8', handle: '@grace.lifting', name: 'Grace Taylor', avatar: 'GT', patientId: null, platform: 'tiktok', unread: 2, lastActivity: ago(3), avgResponseTime: null, messages: [
+      { id: 'm23', from: 'them', text: 'I just saw your HIIT workout video! That looks so hard but so fun. Is it good for beginners?', time: ago(10), read: false },
+      { id: 'm24', from: 'them', text: 'also do I need to bring my own equipment or do you have everything at the gym?', time: ago(3), read: false },
     ]},
     { id: 'DM-9', handle: '@chloe.balance', name: 'Chloe Martinez', avatar: 'CM', patientId: 'PAT-1014', platform: 'tiktok', unread: 1, lastActivity: ago(12), avgResponseTime: 12, messages: [
-      { id: 'm25', from: 'them', text: 'I have a herniated disc and my PT recommended pilates for rehab. Do you offer private sessions for injury recovery?', time: ago(45), read: true },
-      { id: 'm26', from: 'us', text: 'Hi Chloe! Absolutely — private sessions are perfect for injury rehab. Steve Mazich specializes in rehab-focused pilates and works closely with PTs. Would you like to book an intro private for $35?', time: ago(30), read: true, sentBy: 'PRV-1' },
-      { id: 'm27', from: 'them', text: 'yes that would be amazing! does he have anything next week?', time: ago(12), read: false },
+      { id: 'm25', from: 'them', text: 'I have a herniated disc and my physical therapist recommended strength training for rehab. Do you offer sessions for injury recovery?', time: ago(45), read: true },
+      { id: 'm26', from: 'us', text: 'Hi Chloe! Absolutely — I work with a lot of rehab clients. I specialize in corrective exercise and work closely with PTs to build safe programs. Would you like to book an intro assessment?', time: ago(30), read: true, sentBy: 'PRV-1' },
+      { id: 'm27', from: 'them', text: 'yes that would be amazing! do you have anything next week?', time: ago(12), read: false },
     ]},
     { id: 'DM-10', handle: '@riley.gifter', name: 'Riley Thompson', avatar: 'RT', patientId: null, platform: 'facebook', unread: 1, lastActivity: ago(35), avgResponseTime: null, messages: [
-      { id: 'm28', from: 'them', text: 'Hi! I want to get my mom a gift card for her birthday. She has been wanting to try pilates forever. Do you sell them online?', time: ago(35), read: false },
+      { id: 'm28', from: 'them', text: 'Hi! I want to get my mom a gift card for her birthday. She has been wanting to try personal training forever. Do you sell them online?', time: ago(35), read: false },
     ]},
-    { id: 'DM-11', handle: '@aria.barre', name: 'Aria Hernandez', avatar: 'AH', patientId: 'PAT-1017', platform: 'instagram', unread: 0, lastActivity: ago(180), avgResponseTime: 6, messages: [
-      { id: 'm29', from: 'them', text: 'Just wanted to say I am OBSESSED with the barre classes! Jamie is the best instructor I have ever had. My legs are so much stronger!', time: ago(240), read: true },
-      { id: 'm30', from: 'us', text: 'Aria that makes our day!! We will let Jamie know — she loves hearing that! Would you be open to sharing a testimonial on our page? We would love to feature you!', time: ago(180), read: true, sentBy: 'PRV-3' },
+    { id: 'DM-11', handle: '@aria.strong', name: 'Aria Hernandez', avatar: 'AH', patientId: 'PAT-1017', platform: 'instagram', unread: 0, lastActivity: ago(180), avgResponseTime: 6, messages: [
+      { id: 'm29', from: 'them', text: 'Just wanted to say I am OBSESSED with my training program! Marcus is the best trainer I have ever had. My strength has gone through the roof!', time: ago(240), read: true },
+      { id: 'm30', from: 'us', text: 'Aria that makes my day!! Would you be open to sharing a testimonial on our page? I would love to feature your progress!', time: ago(180), read: true, sentBy: 'PRV-1' },
     ]},
     { id: 'DM-12', handle: '@luna.newmember', name: 'Luna Chen', avatar: 'LC', patientId: 'PAT-1020', platform: 'instagram', unread: 0, lastActivity: ago(90), avgResponseTime: 2, messages: [
-      { id: 'm31', from: 'them', text: 'Hi! I just signed up for the unlimited membership. What should I bring to my first class? I am so nervous!', time: ago(150), read: true },
-      { id: 'm32', from: 'us', text: 'Welcome Luna! Just wear fitted workout clothes (no loose fabric near the springs), bring grip socks and a water bottle. We have everything else! No need to be nervous — our instructors will walk you through everything.', time: ago(148), read: true, sentBy: 'PRV-2' },
-      { id: 'm33', from: 'them', text: 'Grip socks?? Where do I get those?', time: ago(140), read: true },
-      { id: 'm34', from: 'us', text: 'We sell them at the front desk! Or you can grab a pair on Amazon. They just have little grips on the bottom so you do not slip on the reformer. See you in class!', time: ago(138), read: true, sentBy: 'PRV-2' },
-      { id: 'm35', from: 'them', text: 'Thank you so much! Booking my first class now!', time: ago(90), read: true },
+      { id: 'm31', from: 'them', text: 'Hi! I just signed up for the unlimited membership. What should I bring to my first session? I am so nervous!', time: ago(150), read: true },
+      { id: 'm32', from: 'us', text: 'Welcome Luna! Just wear comfortable workout clothes and athletic shoes, bring a water bottle and a towel. I have all the equipment here! No need to be nervous — I will walk you through everything.', time: ago(148), read: true, sentBy: 'PRV-1' },
+      { id: 'm33', from: 'them', text: 'Do I need lifting gloves or anything like that?', time: ago(140), read: true },
+      { id: 'm34', from: 'us', text: 'Totally optional! Some people like them but they are not required. I have chalk at the gym if you need grip help. See you at your first session!', time: ago(138), read: true, sentBy: 'PRV-1' },
+      { id: 'm35', from: 'them', text: 'Thank you so much! Booking my first session now!', time: ago(90), read: true },
     ]},
     { id: 'DM-13', handle: '@zoe.strongmom', name: 'Zoe Williams', avatar: 'ZW', patientId: 'PAT-1021', platform: 'tiktok', unread: 1, lastActivity: ago(7), avgResponseTime: 5, messages: [
-      { id: 'm36', from: 'them', text: 'Hey! What is the difference between the 8-Class Pack and the Unlimited membership?', time: ago(60), read: true },
-      { id: 'm37', from: 'us', text: 'Hi Zoe! The 8-Class Pack is great if you come 1-2x a week — you get 8 classes to use within 2 months. Unlimited is best if you want to come 3+ times a week with no limits!', time: ago(55), read: true, sentBy: 'PRV-2' },
+      { id: 'm36', from: 'them', text: 'Hey! What is the difference between the 10-Session Pack and the Unlimited Monthly membership?', time: ago(60), read: true },
+      { id: 'm37', from: 'us', text: 'Hi Zoe! The 10-Session Pack is great if you train 2-3x a week — you get 10 sessions valid for 3 months. Unlimited Monthly is best if you want to train daily with no limits, plus you get nutrition coaching!', time: ago(55), read: true, sentBy: 'PRV-1' },
       { id: 'm38', from: 'them', text: 'What are the prices for each?', time: ago(50), read: true },
-      { id: 'm39', from: 'us', text: 'The 8-Class Pack is $200 and the Unlimited is $249/month. We also have a 4-Class Pack for $110 if you want to start smaller. And remember, new members get $49 unlimited for the first month!', time: ago(47), read: true, sentBy: 'PRV-2' },
-      { id: 'm40', from: 'them', text: 'Love it! I think I will do the intro offer first and then upgrade to unlimited. Can I sign up online?', time: ago(7), read: false },
+      { id: 'm39', from: 'us', text: 'The 10-Session Pack is $890 and the Unlimited Monthly is $499/month. We also have the Premium at $699/month which includes meal plans and progress tracking. Want to start with a free consultation?', time: ago(47), read: true, sentBy: 'PRV-1' },
+      { id: 'm40', from: 'them', text: 'Love it! I think I will do the consultation first and then decide. Can I sign up online?', time: ago(7), read: false },
     ]},
     { id: 'DM-14', handle: '@nadia.flex', name: 'Nadia Patel', avatar: 'NP', patientId: 'PAT-1022', platform: 'facebook', unread: 0, lastActivity: ago(200), avgResponseTime: 10, messages: [
-      { id: 'm41', from: 'them', text: 'Do you have a full class schedule I can see? I work 9-5 so I need early morning or evening classes.', time: ago(260), read: true },
-      { id: 'm42', from: 'us', text: 'Hi Nadia! Yes — we have 6am and 7am reformer classes every weekday, and evening classes at 5:30pm and 6:45pm. You can see the full schedule on our website or the MindBody app!', time: ago(250), read: true, sentBy: 'PRV-1' },
-      { id: 'm43', from: 'them', text: 'Oh perfect! Who teaches the 6am classes? I need someone who brings the energy that early haha', time: ago(245), read: true },
-      { id: 'm44', from: 'us', text: 'Hannah Reisman teaches most 6am slots and she is a total powerhouse! You will love her energy. Julie Valenzuela covers some mornings too and she is equally amazing.', time: ago(200), read: true, sentBy: 'PRV-1' },
+      { id: 'm41', from: 'them', text: 'Do you have a full schedule I can see? I work 9-5 so I need early morning or evening sessions.', time: ago(260), read: true },
+      { id: 'm42', from: 'us', text: 'Hi Nadia! Yes — I have 6am and 7am slots every weekday, and evening availability at 5:30pm and 6:45pm. You can see the full schedule on our website or book directly through the app!', time: ago(250), read: true, sentBy: 'PRV-1' },
+      { id: 'm43', from: 'them', text: 'Oh perfect! Are the 6am sessions as intense as the later ones? I need someone who brings the energy that early haha', time: ago(245), read: true },
+      { id: 'm44', from: 'us', text: 'Ha! I bring the same energy no matter what time it is. Early morning clients always say it is the best way to start the day. You will love it!', time: ago(200), read: true, sentBy: 'PRV-1' },
     ]},
-    { id: 'DM-15', handle: '@sam.yogamom', name: 'Samantha Reed', avatar: 'SR', patientId: null, platform: 'instagram', unread: 2, lastActivity: ago(1), avgResponseTime: null, messages: [
-      { id: 'm45', from: 'them', text: 'Hi! Do you offer any kids or youth classes? My 13 year old daughter is interested in pilates!', time: ago(4), read: false },
-      { id: 'm46', from: 'them', text: 'She does competitive dance so I think it would really help with her flexibility and strength', time: ago(1), read: false },
+    { id: 'DM-15', handle: '@sam.fitmom', name: 'Samantha Reed', avatar: 'SR', patientId: null, platform: 'instagram', unread: 2, lastActivity: ago(1), avgResponseTime: null, messages: [
+      { id: 'm45', from: 'them', text: 'Hi! Do you offer any youth training programs? My 13 year old daughter is interested in strength and conditioning!', time: ago(4), read: false },
+      { id: 'm46', from: 'them', text: 'She does competitive dance so I think it would really help with her performance and injury prevention', time: ago(1), read: false },
     ]},
-    { id: 'DM-16', handle: '@taylor.pilates', name: 'Taylor Brooks', avatar: 'TB', patientId: 'PAT-1025', platform: 'instagram', unread: 0, lastActivity: ago(500), avgResponseTime: 7, messages: [
-      { id: 'm47', from: 'them', text: 'I have been coming for 6 months and I am LOVING IT. Kaitlin is the best! I want to start doing privates too — how do I book those?', time: ago(550), read: true },
-      { id: 'm48', from: 'us', text: 'So glad you are loving it, Taylor! Kaitlin is amazing. For privates, you can book directly through the app or call us. Single privates are $85, or you can get a 5-pack for $375!', time: ago(543), read: true, sentBy: 'PRV-3' },
-      { id: 'm49', from: 'them', text: 'The 5-pack sounds great. Can I specifically request Kaitlin?', time: ago(540), read: true },
-      { id: 'm50', from: 'us', text: 'Absolutely! Just select Kaitlin Geiss when booking. She has availability Tuesday and Thursday afternoons. Let us know if you need help booking!', time: ago(500), read: true, sentBy: 'PRV-3' },
+    { id: 'DM-16', handle: '@taylor.strength', name: 'Taylor Brooks', avatar: 'TB', patientId: 'PAT-1025', platform: 'instagram', unread: 0, lastActivity: ago(500), avgResponseTime: 7, messages: [
+      { id: 'm47', from: 'them', text: 'I have been training for 6 months and I am LOVING IT. Marcus is the best! I want to add nutrition coaching too — how does that work?', time: ago(550), read: true },
+      { id: 'm48', from: 'us', text: 'So glad you are loving it, Taylor! Nutrition coaching can be added as part of the Unlimited Monthly or Premium Monthly plans, or as a standalone add-on. Want me to walk you through the options?', time: ago(543), read: true, sentBy: 'PRV-1' },
+      { id: 'm49', from: 'them', text: 'The Premium Monthly sounds great. Does that include meal plans?', time: ago(540), read: true },
+      { id: 'm50', from: 'us', text: 'Absolutely! Premium includes custom meal plans, unlimited nutrition coaching, progress tracking, and monthly body composition assessments. It is the full package. Want me to get you set up?', time: ago(500), read: true, sentBy: 'PRV-1' },
     ]},
   ]);
 
   saveAssignments({
-    'DM-1': 'PRV-2',
-    'DM-2': 'PRV-3',
+    'DM-1': 'PRV-1',
+    'DM-2': 'PRV-1',
     'DM-3': 'PRV-1',
-    'DM-5': 'PRV-2',
+    'DM-5': 'PRV-1',
     'DM-6': null,
     'DM-9': 'PRV-1',
-    'DM-11': 'PRV-3',
-    'DM-12': 'PRV-2',
-    'DM-13': 'PRV-2',
+    'DM-11': 'PRV-1',
+    'DM-12': 'PRV-1',
+    'DM-13': 'PRV-1',
     'DM-14': 'PRV-1',
-    'DM-16': 'PRV-3',
+    'DM-16': 'PRV-1',
   });
 }
 
@@ -290,7 +290,7 @@ export default function Inbox() {
   const [reply, setReply] = useState('');
   const [filter, setFilter] = useState('all'); // 'all' | 'unread' | 'unassigned' | provider id
   const [search, setSearch] = useState('');
-  const [currentStaff, setCurrentStaff] = useState('PRV-2'); // who is "logged in"
+  const [currentStaff, setCurrentStaff] = useState('PRV-1'); // who is "logged in"
   const [activeTab, setActiveTab] = useState('inbox'); // 'inbox' | 'leaderboard'
   const [leaderboardPeriod, setLeaderboardPeriod] = useState('week'); // 'week' | 'alltime'
   const [metricsCollapsed, setMetricsCollapsed] = useState(false);

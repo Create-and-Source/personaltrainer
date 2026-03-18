@@ -87,8 +87,7 @@ export default function Settings() {
     { id: 'payments', label: 'Payments' },
     { id: 'integrations', label: 'Integrations' },
     { id: 'services', label: 'Services' },
-    { id: 'providers', label: 'Trainers' },
-    
+
   ];
 
   return (

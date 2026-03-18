@@ -54,6 +54,23 @@ if (!document.getElementById(ANIM_ID)) {
    ══════════════════════════════════════════════════════════════════ */
 const WK_KEY = 'ms_workouts';
 const WK_ASSIGN_KEY = 'ms_workout_assignments';
+const CX_KEY = 'ms_custom_exercises';
+
+function getCustomExercises() {
+  try { return JSON.parse(localStorage.getItem(CX_KEY)) || []; } catch { return []; }
+}
+function setCustomExercises(data) { localStorage.setItem(CX_KEY, JSON.stringify(data)); }
+function addCustomExercise(ex) {
+  const all = getCustomExercises();
+  ex.id = `CX-${Date.now()}`;
+  ex.createdAt = new Date().toISOString();
+  all.unshift(ex);
+  setCustomExercises(all);
+  return ex;
+}
+function deleteCustomExercise(id) {
+  setCustomExercises(getCustomExercises().filter(ex => ex.id !== id));
+}
 
 function getWorkouts() {
   try { return JSON.parse(localStorage.getItem(WK_KEY)) || []; } catch { return []; }
@@ -152,6 +169,8 @@ const API_PAGE_SIZE = 25;
 
 function capitalize(str) {
   if (!str) return '';
+  if (Array.isArray(str)) str = str[0] || '';
+  if (typeof str !== 'string') return String(str);
   return str.replace(/\b\w/g, c => c.toUpperCase());
 }
 
@@ -375,7 +394,7 @@ function ExerciseImage({ gifUrl, gradient, icon }) {
    ══════════════════════════════════════════════════════════════════ */
 export default function WorkoutBuilder() {
   const s = useStyles();
-  const [view, setView] = useState('templates'); // 'templates' | 'library'
+  const [view, setView] = useState('templates'); // 'templates' | 'library' | 'myExercises'
   const [workouts, setWorkoutsState] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
   const [showBuilder, setShowBuilder] = useState(false);
@@ -384,6 +403,22 @@ export default function WorkoutBuilder() {
   const [assignClient, setAssignClient] = useState('');
   const [assignDate, setAssignDate] = useState(new Date().toISOString().slice(0, 10));
   const [assignSuccess, setAssignSuccess] = useState(false);
+
+  // Custom exercises state
+  const [customExercises, setCustomExercisesState] = useState([]);
+  const [showCreateExercise, setShowCreateExercise] = useState(false);
+  const [cxName, setCxName] = useState('');
+  const [cxBodyPart, setCxBodyPart] = useState('Chest');
+  const [cxEquipment, setCxEquipment] = useState('Barbell');
+  const [cxTargetMuscle, setCxTargetMuscle] = useState('');
+  const [cxInstructions, setCxInstructions] = useState('');
+  const [cxMediaUrl, setCxMediaUrl] = useState('');
+  const [cxMediaType, setCxMediaType] = useState('');
+  const [cxMediaName, setCxMediaName] = useState('');
+  const [cxMediaSize, setCxMediaSize] = useState(0);
+  const [cxDragOver, setCxDragOver] = useState(false);
+  const [cxToast, setCxToast] = useState('');
+  const cxFileRef = useRef(null);
 
   // Library state
   const [libSearch, setLibSearch] = useState('');
@@ -413,9 +448,11 @@ export default function WorkoutBuilder() {
   useEffect(() => {
     ensureSeedData();
     setWorkoutsState(getWorkouts());
+    setCustomExercisesState(getCustomExercises());
   }, []);
 
   const refresh = () => setWorkoutsState(getWorkouts());
+  const refreshCustom = () => setCustomExercisesState(getCustomExercises());
 
   // Debounce search input (skip initial mount)
   const isFirstRender = useRef(true);
@@ -630,6 +667,67 @@ export default function WorkoutBuilder() {
     }, 1500);
   };
 
+  /* ── Custom exercise helpers ── */
+  const openCreateExercise = () => {
+    setCxName(''); setCxBodyPart('Chest'); setCxEquipment('Barbell');
+    setCxTargetMuscle(''); setCxInstructions('');
+    setCxMediaUrl(''); setCxMediaType(''); setCxMediaName(''); setCxMediaSize(0);
+    setShowCreateExercise(true);
+  };
+
+  const handleCxFileSelect = (file) => {
+    if (!file) return;
+    const isVideo = file.type.startsWith('video/');
+    const isImage = file.type.startsWith('image/');
+    if (!isVideo && !isImage) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setCxMediaUrl(e.target.result);
+      setCxMediaType(isVideo ? 'video' : 'image');
+      setCxMediaName(file.name);
+      setCxMediaSize(file.size);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCxDrop = (e) => {
+    e.preventDefault();
+    setCxDragOver(false);
+    const file = e.dataTransfer.files[0];
+    handleCxFileSelect(file);
+  };
+
+  const saveCustomExercise = () => {
+    if (!cxName.trim()) return;
+    addCustomExercise({
+      name: cxName.trim(),
+      bodyPart: cxBodyPart,
+      equipment: cxEquipment,
+      targetMuscle: cxTargetMuscle.trim(),
+      instructions: cxInstructions.trim() ? cxInstructions.trim().split('\n').filter(Boolean) : [],
+      mediaUrl: cxMediaUrl,
+      mediaType: cxMediaType,
+    });
+    setShowCreateExercise(false);
+    refreshCustom();
+  };
+
+  const handleDeleteCustomExercise = (id) => {
+    deleteCustomExercise(id);
+    refreshCustom();
+  };
+
+  const showToast = (msg) => {
+    setCxToast(msg);
+    setTimeout(() => setCxToast(''), 2500);
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  };
+
   /* ── Filtered library (API with local fallback) ── */
   const filteredLocalLibrary = useMemo(() => {
     return EXERCISE_LIBRARY.filter(ex => {
@@ -695,6 +793,7 @@ export default function WorkoutBuilder() {
         {[
           { key: 'templates', label: 'Templates', count: workouts.length },
           { key: 'library', label: 'Exercise Library', count: apiTotalExercises || displayExercises.length || EXERCISE_LIBRARY.length },
+          { key: 'myExercises', label: 'My Exercises', count: customExercises.length },
         ].map(tab => (
           <button key={tab.key} onClick={() => setView(tab.key)} style={{
             ...(view === tab.key ? s.pillAccent : s.pillGhost),
@@ -872,6 +971,69 @@ export default function WorkoutBuilder() {
             </div>
           </div>
 
+          {/* Your Exercises — horizontal scroll */}
+          {customExercises.length > 0 && (
+            <div style={{
+              marginBottom: 20,
+              animation: 'wbFadeInUp 0.4s cubic-bezier(0.16,1,0.3,1) 180ms backwards',
+            }}>
+              <div style={{ font: `600 13px ${s.FONT}`, color: s.text2, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 1 }}>
+                Your Exercises
+              </div>
+              <div style={{
+                display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8,
+                scrollbarWidth: 'thin',
+              }}>
+                {customExercises.map((ex) => {
+                  const gradient = BODY_PART_GRADIENTS[ex.bodyPart] || 'linear-gradient(135deg, #B2BEC3, #636E72)';
+                  const icon = BODY_PART_ICONS[ex.bodyPart] || null;
+                  return (
+                    <div key={ex.id} style={{
+                      ...glass, width: 120, minWidth: 120, overflow: 'hidden', cursor: 'pointer',
+                      flexShrink: 0,
+                    }}>
+                      {/* Thumbnail */}
+                      {ex.mediaUrl && ex.mediaType === 'video' ? (
+                        <video src={ex.mediaUrl} muted autoPlay loop playsInline
+                          style={{ width: 120, height: 80, objectFit: 'cover', borderRadius: '12px 12px 0 0', display: 'block' }} />
+                      ) : ex.mediaUrl && ex.mediaType === 'image' ? (
+                        <img src={ex.mediaUrl} alt={ex.name}
+                          style={{ width: 120, height: 80, objectFit: 'cover', borderRadius: '12px 12px 0 0', display: 'block' }} />
+                      ) : (
+                        <div style={{
+                          width: 120, height: 80, background: gradient,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          borderRadius: '12px 12px 0 0',
+                        }}>
+                          {icon}
+                        </div>
+                      )}
+                      <div style={{ padding: '8px 10px' }}>
+                        <div style={{ font: `600 11px ${s.FONT}`, color: s.text, marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {ex.name}
+                        </div>
+                        <button onClick={(e) => {
+                          e.stopPropagation();
+                          const exName = ex.name;
+                          if (!showBuilder) {
+                            openBuilder();
+                            setTimeout(() => addExerciseRow(exName), 100);
+                          } else {
+                            addExerciseRow(exName);
+                          }
+                        }} style={{
+                          ...s.pillOutline, width: '100%', padding: '4px 6px', fontSize: 9, textAlign: 'center',
+                        }}>
+                          + Add
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Results count + loading indicator */}
           <div style={{
             font: `400 13px ${s.FONT}`, color: s.text3, marginBottom: 14,
@@ -1030,6 +1192,305 @@ export default function WorkoutBuilder() {
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ═══════════════════════ MY EXERCISES VIEW ═══════════════════════ */}
+      {view === 'myExercises' && (
+        <div>
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20,
+            animation: 'wbFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) 160ms backwards',
+          }}>
+            <div style={{ font: `400 13px ${s.FONT}`, color: s.text3 }}>
+              {customExercises.length} custom exercise{customExercises.length !== 1 ? 's' : ''}
+            </div>
+            <button onClick={openCreateExercise} style={s.pillAccent}>
+              + Create Exercise
+            </button>
+          </div>
+
+          {customExercises.length === 0 ? (
+            <div style={{ ...glass, padding: 60, textAlign: 'center', animation: 'wbFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) 240ms backwards' }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={s.text3} strokeWidth="1.2" strokeLinecap="round" style={{ marginBottom: 16, opacity: 0.5 }}>
+                <path d="M14.5 4h-5L7 7H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>
+              </svg>
+              <div style={{ font: `500 16px ${s.FONT}`, color: s.text, marginBottom: 6 }}>No custom exercises yet</div>
+              <div style={{ font: `400 13px ${s.FONT}`, color: s.text3, marginBottom: 20 }}>Upload your own exercise demos with video or images</div>
+              <button onClick={openCreateExercise} style={s.pillAccent}>Create Your First Exercise</button>
+            </div>
+          ) : (
+            <div className="wb-custom-grid" style={{
+              display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16,
+            }}>
+              {customExercises.map((ex, idx) => {
+                const bodyPartKey = ex.bodyPart || '';
+                const colors = BODY_PART_COLORS[bodyPartKey] || { bg: '#F3F4F6', text: '#374151' };
+                const gradient = BODY_PART_GRADIENTS[bodyPartKey] || 'linear-gradient(135deg, #B2BEC3, #636E72)';
+                const icon = BODY_PART_ICONS[bodyPartKey] || null;
+                return (
+                  <div key={ex.id} className="wb-lib-card" style={{
+                    ...glass, overflow: 'hidden',
+                    animation: `wbFadeInUp 0.4s cubic-bezier(0.16,1,0.3,1) ${160 + idx * 40}ms backwards`,
+                  }}>
+                    {/* Media header */}
+                    {ex.mediaUrl && ex.mediaType === 'video' ? (
+                      <video
+                        src={ex.mediaUrl} muted autoPlay loop playsInline
+                        style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: '12px 12px 0 0', display: 'block' }}
+                      />
+                    ) : ex.mediaUrl && ex.mediaType === 'image' ? (
+                      <img
+                        src={ex.mediaUrl} alt={ex.name}
+                        style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: '12px 12px 0 0', display: 'block' }}
+                      />
+                    ) : (
+                      <div style={{
+                        height: 160, background: gradient,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        position: 'relative', overflow: 'hidden',
+                        borderRadius: '12px 12px 0 0',
+                      }}>
+                        <div style={{ opacity: 0.35, position: 'absolute', right: -8, bottom: -8, transform: 'scale(3)' }}>{icon}</div>
+                        <div style={{ position: 'relative', zIndex: 1 }}>{icon}</div>
+                      </div>
+                    )}
+                    {/* Content */}
+                    <div style={{ padding: '16px 18px' }}>
+                      <h4 style={{ font: `600 15px ${s.FONT}`, color: s.text, margin: '0 0 8px' }}>{ex.name}</h4>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                        <span style={{ padding: '2px 8px', borderRadius: 100, font: `500 10px ${s.FONT}`, background: colors.bg, color: colors.text }}>{ex.bodyPart}</span>
+                        <span style={{ padding: '2px 8px', borderRadius: 100, font: `500 10px ${s.FONT}`, background: '#F3F4F6', color: '#374151' }}>{ex.equipment}</span>
+                      </div>
+                      {ex.targetMuscle && (
+                        <div style={{ font: `400 12px ${s.FONT}`, color: s.text2, marginBottom: 4 }}>Target: {ex.targetMuscle}</div>
+                      )}
+                      {ex.instructions && ex.instructions.length > 0 && (
+                        <div style={{ font: `400 11px ${s.FONT}`, color: s.text3, marginBottom: 4 }}>
+                          {ex.instructions.length} step{ex.instructions.length !== 1 ? 's' : ''}
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                        <button onClick={() => {
+                          const exName = ex.name;
+                          if (!showBuilder) {
+                            openBuilder();
+                            setTimeout(() => addExerciseRow(exName), 100);
+                          } else {
+                            addExerciseRow(exName);
+                          }
+                        }} style={{ ...s.pillOutline, flex: 1, textAlign: 'center', fontSize: 12, padding: '8px 14px' }}>
+                          + Add to Workout
+                        </button>
+                        <button onClick={() => handleDeleteCustomExercise(ex.id)} style={{
+                          background: 'none', border: `1px solid ${s.danger}25`, borderRadius: 10,
+                          width: 34, height: 34, cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={s.danger} strokeWidth="2" strokeLinecap="round">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ═══════════════════════ CREATE EXERCISE MODAL ═══════════════════════ */}
+      {showCreateExercise && (
+        <div className="wb-modal-overlay" onClick={() => setShowCreateExercise(false)} style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)',
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+          padding: '40px 20px', overflowY: 'auto',
+        }}>
+          <div className="wb-modal-content" onClick={e => e.stopPropagation()} style={{
+            width: '100%', maxWidth: 560,
+            background: '#fff', borderRadius: 20,
+            boxShadow: '0 24px 80px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.06)',
+            overflow: 'hidden',
+          }}>
+            {/* Modal header */}
+            <div style={{
+              padding: '24px 28px', borderBottom: '1px solid rgba(0,0,0,0.06)',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              background: `linear-gradient(135deg, #fff 0%, ${s.accentLight} 100%)`,
+            }}>
+              <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, margin: 0 }}>Create Exercise</h2>
+              <button onClick={() => setShowCreateExercise(false)} style={{
+                background: 'none', border: 'none', cursor: 'pointer', color: s.text3, padding: 4,
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            <div style={{ padding: '24px 28px', maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+              {/* Exercise Name */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={s.label}>Exercise Name</label>
+                <input type="text" placeholder="e.g. Bulgarian Split Squat, Cable Face Pull..."
+                  value={cxName} onChange={e => setCxName(e.target.value)} style={s.input} />
+              </div>
+
+              {/* Body Part + Equipment row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+                <div>
+                  <label style={s.label}>Body Part</label>
+                  <select value={cxBodyPart} onChange={e => setCxBodyPart(e.target.value)}
+                    style={{ ...s.input, appearance: 'auto' }}>
+                    {['Chest', 'Back', 'Shoulders', 'Arms', 'Legs', 'Core', 'Cardio', 'Full Body'].map(bp => (
+                      <option key={bp} value={bp}>{bp}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={s.label}>Equipment</label>
+                  <select value={cxEquipment} onChange={e => setCxEquipment(e.target.value)}
+                    style={{ ...s.input, appearance: 'auto' }}>
+                    {['Barbell', 'Dumbbell', 'Kettlebell', 'Cable', 'Bodyweight', 'Machine', 'Band', 'None'].map(eq => (
+                      <option key={eq} value={eq}>{eq}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Target Muscle */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={s.label}>Target Muscle</label>
+                <input type="text" placeholder="e.g. Quadriceps, Rear Delts..."
+                  value={cxTargetMuscle} onChange={e => setCxTargetMuscle(e.target.value)} style={s.input} />
+              </div>
+
+              {/* Instructions */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={s.label}>Instructions (one step per line)</label>
+                <textarea
+                  placeholder={"Step 1: Set up the equipment\nStep 2: Position your body\nStep 3: Perform the movement"}
+                  value={cxInstructions} onChange={e => setCxInstructions(e.target.value)}
+                  rows={4}
+                  style={{ ...s.input, resize: 'vertical', minHeight: 80, lineHeight: '1.5' }}
+                />
+              </div>
+
+              {/* Video/Image Upload */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={s.label}>Video / Image Demo</label>
+
+                {!cxMediaUrl ? (
+                  <div>
+                    {/* Drop zone */}
+                    <div
+                      onDragOver={(e) => { e.preventDefault(); setCxDragOver(true); }}
+                      onDragLeave={() => setCxDragOver(false)}
+                      onDrop={handleCxDrop}
+                      onClick={() => cxFileRef.current?.click()}
+                      style={{
+                        height: 200, borderRadius: 14,
+                        border: `2px dashed ${cxDragOver ? s.accent : 'rgba(0,0,0,0.15)'}`,
+                        background: cxDragOver ? `${s.accent}08` : 'rgba(0,0,0,0.015)',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', transition: 'all 0.2s ease',
+                        boxShadow: cxDragOver ? `0 0 20px ${s.accent}15` : 'none',
+                      }}
+                    >
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={cxDragOver ? s.accent : s.text3} strokeWidth="1.2" strokeLinecap="round" style={{ marginBottom: 12, opacity: 0.6 }}>
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                      </svg>
+                      <div style={{ font: `500 14px ${s.FONT}`, color: s.text2, marginBottom: 4 }}>
+                        Drop video or image here, or click to browse
+                      </div>
+                      <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>
+                        Files stored locally for demo
+                      </div>
+                      <input
+                        ref={cxFileRef}
+                        type="file"
+                        accept="video/*,image/*"
+                        onChange={(e) => handleCxFileSelect(e.target.files[0])}
+                        style={{ display: 'none' }}
+                      />
+                    </div>
+                    {/* Record Video placeholder */}
+                    <button onClick={() => showToast('Camera recording coming soon!')} style={{
+                      ...s.pillGhost, marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 6,
+                      border: `1px solid rgba(0,0,0,0.1)`,
+                    }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                        <path d="M14.5 4h-5L7 7H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>
+                      </svg>
+                      Record Video
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{
+                    borderRadius: 14, overflow: 'hidden',
+                    border: '1px solid rgba(0,0,0,0.08)',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+                  }}>
+                    {/* Preview */}
+                    {cxMediaType === 'video' ? (
+                      <video src={cxMediaUrl} controls style={{ width: '100%', maxHeight: 260, display: 'block', borderRadius: '14px 14px 0 0' }} />
+                    ) : (
+                      <img src={cxMediaUrl} alt="Preview" style={{ width: '100%', maxHeight: 260, objectFit: 'cover', display: 'block', borderRadius: '14px 14px 0 0' }} />
+                    )}
+                    {/* File info + delete */}
+                    <div style={{
+                      padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      background: 'rgba(0,0,0,0.02)',
+                    }}>
+                      <div>
+                        <div style={{ font: `500 12px ${s.FONT}`, color: s.text2 }}>{cxMediaName}</div>
+                        <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>{formatFileSize(cxMediaSize)}</div>
+                      </div>
+                      <button onClick={() => { setCxMediaUrl(''); setCxMediaType(''); setCxMediaName(''); setCxMediaSize(0); }} style={{
+                        ...s.pillGhost, padding: '6px 12px', fontSize: 11, color: s.danger,
+                        border: `1px solid ${s.danger}25`,
+                      }}>
+                        Replace
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal footer */}
+            <div style={{
+              padding: '16px 28px', borderTop: '1px solid rgba(0,0,0,0.06)',
+              display: 'flex', justifyContent: 'flex-end', gap: 10,
+              background: 'rgba(0,0,0,0.015)',
+            }}>
+              <button onClick={() => setShowCreateExercise(false)} style={s.pillGhost}>Cancel</button>
+              <button onClick={saveCustomExercise} disabled={!cxName.trim()} style={{
+                ...s.pillAccent,
+                opacity: cxName.trim() ? 1 : 0.5,
+                cursor: cxName.trim() ? 'pointer' : 'default',
+              }}>
+                Save Exercise
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ Toast notification ═══ */}
+      {cxToast && (
+        <div style={{
+          position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 2000, padding: '12px 24px', borderRadius: 12,
+          background: 'rgba(0,0,0,0.85)', color: '#fff',
+          font: `500 13px ${s.FONT}`,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          animation: 'wbFadeInUp 0.3s cubic-bezier(0.16,1,0.3,1)',
+        }}>
+          {cxToast}
         </div>
       )}
 
@@ -1451,6 +1912,9 @@ export default function WorkoutBuilder() {
             grid-template-columns: 1fr !important;
           }
           .wb-library-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .wb-custom-grid {
             grid-template-columns: 1fr !important;
           }
           .wb-modal-content {

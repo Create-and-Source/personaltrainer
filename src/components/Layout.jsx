@@ -32,10 +32,8 @@ const NAV_ITEMS = [
     { path: '/admin/wallet', label: 'Client Wallet', icon: 'package' },
     { path: '/admin/referrals', label: 'Referrals', icon: 'share' },
   ]},
-  { section: 'Operations', items: [
-    { path: '/admin/inventory', label: 'Inventory', icon: 'package' },
+  { section: 'Client Success', items: [
     { path: '/admin/retention', label: 'Retention', icon: 'heart' },
-    { path: '/admin/waitlist', label: 'Waitlist', icon: 'calendar' },
     { path: '/admin/reviews', label: 'Reviews', icon: 'heart' },
   ]},
   { section: 'Marketing', items: [

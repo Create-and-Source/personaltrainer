@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStyles, getAvatarGradient } from '../theme';
-import { getPatients, getAppointments, getInventory, getRetentionAlerts, getServices, getProviders, subscribe } from '../data/store';
+import { getPatients, getAppointments, getRetentionAlerts, getServices, getProviders, getSettings, subscribe } from '../data/store';
 
 const fmt = (cents) => `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 0 })}`;
 
@@ -125,10 +125,10 @@ export default function Dashboard() {
 
   const patients = getPatients();
   const appointments = getAppointments();
-  const inventory = getInventory();
   const alerts = getRetentionAlerts();
   const services = getServices();
   const providers = getProviders();
+  const settings = getSettings();
 
   const today = new Date().toISOString().slice(0, 10);
   const todayAppts = appointments.filter(a => a.date === today);
@@ -145,9 +145,6 @@ export default function Dashboard() {
 
   // New members this month
   const newPatientsMonth = patients.filter(p => p.createdAt?.startsWith(thisMonth)).length;
-
-  // Low stock
-  const lowStock = inventory.filter(i => i.quantity <= i.reorderAt);
 
   // Pending retention
   const pendingAlerts = alerts.filter(a => a.status === 'pending');
@@ -203,7 +200,7 @@ export default function Dashboard() {
             <h1 style={{
               font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4, letterSpacing: '-0.3px',
             }}>
-              {greeting}, team
+              {greeting}, {settings.founder || 'Marcus'}
             </h1>
             <p style={{ font: `400 13px ${s.FONT}`, color: s.text2, margin: 0 }}>{dateStr}</p>
           </div>
@@ -339,49 +336,6 @@ export default function Dashboard() {
               }}>+12%</div>
             </div>
             <MiniSparkline accent={s.accent} />
-          </div>
-
-          {/* Low Stock Alerts */}
-          <div style={{
-            ...glass, overflow: 'hidden',
-            animation: 'dashFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) 560ms backwards',
-          }}>
-            <div style={{
-              padding: '16px 22px', borderBottom: '1px solid rgba(0,0,0,0.04)',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <BoxIcon color={lowStock.length > 0 ? s.warning : s.text3} />
-                <span style={{ font: `600 14px ${s.FONT}`, color: s.text }}>Low Stock</span>
-                {lowStock.length > 0 && (
-                  <span style={{
-                    width: 20, height: 20, borderRadius: '50%', background: s.warning,
-                    color: '#fff', font: `600 10px ${s.FONT}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>{lowStock.length}</span>
-                )}
-              </div>
-              <button onClick={() => nav('/inventory')} style={{ ...s.pillGhost, padding: '5px 12px', fontSize: 11 }}>Inventory</button>
-            </div>
-            {lowStock.length === 0 ? (
-              <div style={{ padding: 28, textAlign: 'center', font: `400 13px ${s.FONT}`, color: s.text3 }}>All stock levels healthy</div>
-            ) : lowStock.slice(0, 4).map((item, idx) => (
-              <div key={item.id} style={{
-                padding: '12px 22px', borderBottom: '1px solid rgba(0,0,0,0.03)',
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                animation: `dashFadeInUp 0.3s ease ${600 + idx * 40}ms backwards`,
-              }}>
-                <div>
-                  <div style={{ font: `500 13px ${s.FONT}`, color: s.text }}>{item.name}</div>
-                  <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>{item.category}</div>
-                </div>
-                <span style={{
-                  padding: '3px 10px', borderRadius: 100,
-                  font: `600 11px ${s.MONO}`,
-                  background: item.quantity <= item.reorderAt / 2 ? '#FEF2F2' : '#FFFBEB',
-                  color: item.quantity <= item.reorderAt / 2 ? s.danger : s.warning,
-                }}>{item.quantity} left</span>
-              </div>
-            ))}
           </div>
 
           {/* Quick Actions */}

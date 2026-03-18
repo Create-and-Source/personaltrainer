@@ -11,7 +11,6 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Members = lazy(() => import('./pages/Members'));
 const Schedule = lazy(() => import('./pages/Schedule'));
 const ClassPackages = lazy(() => import('./pages/ClassPackages'));
-const Inventory = lazy(() => import('./pages/Inventory'));
 const Retention = lazy(() => import('./pages/Retention'));
 const Email = lazy(() => import('./pages/Email'));
 const TextMessages = lazy(() => import('./pages/TextMessages'));
@@ -22,7 +21,6 @@ const CheckIn = lazy(() => import('./pages/CheckIn'));
 const Referrals = lazy(() => import('./pages/Referrals'));
 const Memberships = lazy(() => import('./pages/Memberships'));
 const Reviews = lazy(() => import('./pages/Reviews'));
-const Waitlist = lazy(() => import('./pages/Waitlist'));
 const Wallet = lazy(() => import('./pages/Wallet'));
 const Reports = lazy(() => import('./pages/Reports'));
 const Settings = lazy(() => import('./pages/Settings'));
@@ -62,9 +60,7 @@ export default function App() {
                 <Route path="/memberships" element={<Memberships />} />
                 <Route path="/wallet" element={<Wallet />} />
                 <Route path="/referrals" element={<Referrals />} />
-                <Route path="/inventory" element={<Inventory />} />
                 <Route path="/retention" element={<Retention />} />
-                <Route path="/waitlist" element={<Waitlist />} />
                 <Route path="/reviews" element={<Reviews />} />
                 <Route path="/inbox" element={<Inbox />} />
                 <Route path="/email" element={<Email />} />
