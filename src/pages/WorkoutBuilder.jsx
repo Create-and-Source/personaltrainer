@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useStyles } from '../theme';
 import { getPatients } from '../data/store';
 
@@ -36,6 +36,14 @@ if (!document.getElementById(ANIM_ID)) {
     @keyframes wbModalSlideUp {
       from { opacity: 0; transform: translateY(24px) scale(0.97); }
       to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes wbPulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.7; }
+    }
+    @keyframes wbSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
   `;
   document.head.appendChild(sheet);
@@ -135,6 +143,33 @@ const EXERCISE_LIBRARY = [
   { name: 'Jump Rope', bodyPart: 'Cardio', equipment: 'Bodyweight', targetMuscle: 'Calves', secondaryMuscles: ['Cardio Endurance'] },
   { name: 'Rowing Machine', bodyPart: 'Cardio', equipment: 'Machine', targetMuscle: 'Full Body', secondaryMuscles: ['Lats', 'Legs'] },
 ];
+
+/* ══════════════════════════════════════════════════════════════════
+   EXERCISEDB API
+   ══════════════════════════════════════════════════════════════════ */
+const API_BASE = 'https://exercisedb.dev/api/v1';
+const API_PAGE_SIZE = 25;
+
+function capitalize(str) {
+  if (!str) return '';
+  return str.replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function mapApiExercise(ex) {
+  return {
+    exerciseId: ex.exerciseId,
+    name: ex.name || '',
+    gifUrl: ex.gifUrl || '',
+    bodyPart: (ex.bodyParts && ex.bodyParts[0]) || '',
+    bodyParts: ex.bodyParts || [],
+    equipment: (ex.equipments && ex.equipments[0]) || '',
+    equipments: ex.equipments || [],
+    targetMuscle: (ex.targetMuscles && ex.targetMuscles[0]) || '',
+    targetMuscles: ex.targetMuscles || [],
+    secondaryMuscles: ex.secondaryMuscles || [],
+    instructions: ex.instructions || [],
+  };
+}
 
 /* ── Seed templates ── */
 const SEED_TEMPLATES = [
@@ -285,6 +320,57 @@ const DIFFICULTY_COLORS = {
 };
 
 /* ══════════════════════════════════════════════════════════════════
+   EXERCISE IMAGE — with loading skeleton + error fallback
+   ══════════════════════════════════════════════════════════════════ */
+function ExerciseImage({ gifUrl, gradient, icon }) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+
+  if (error) {
+    return (
+      <div style={{
+        height: 160, background: gradient,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        position: 'relative', overflow: 'hidden',
+        borderRadius: '12px 12px 0 0',
+      }}>
+        <div style={{ opacity: 0.35, position: 'absolute', right: -8, bottom: -8, transform: 'scale(3)' }}>
+          {icon}
+        </div>
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {icon}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ position: 'relative', height: 160, borderRadius: '12px 12px 0 0', overflow: 'hidden' }}>
+      {!loaded && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: '#E5E7EB',
+          animation: 'wbPulse 1.5s ease-in-out infinite',
+        }} />
+      )}
+      <img
+        src={gifUrl}
+        alt=""
+        loading="lazy"
+        onLoad={() => setLoaded(true)}
+        onError={() => setError(true)}
+        style={{
+          width: '100%', height: 160, objectFit: 'cover',
+          borderRadius: '12px 12px 0 0',
+          opacity: loaded ? 1 : 0,
+          transition: 'opacity 0.3s ease',
+        }}
+      />
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
    COMPONENT
    ══════════════════════════════════════════════════════════════════ */
 export default function WorkoutBuilder() {
@@ -304,6 +390,19 @@ export default function WorkoutBuilder() {
   const [libBodyPart, setLibBodyPart] = useState('All');
   const [libEquipment, setLibEquipment] = useState('All');
 
+  // API state
+  const [apiExercises, setApiExercises] = useState([]);
+  const [apiLoading, setApiLoading] = useState(false);
+  const [apiError, setApiError] = useState(null);
+  const [apiPage, setApiPage] = useState(0);
+  const [apiTotalExercises, setApiTotalExercises] = useState(0);
+  const [apiTotalPages, setApiTotalPages] = useState(0);
+  const [apiBodyParts, setApiBodyParts] = useState([]);
+  const [apiEquipments, setApiEquipments] = useState([]);
+  const [detailExercise, setDetailExercise] = useState(null);
+  const searchTimerRef = useRef(null);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
   // Builder state
   const [bName, setBName] = useState('');
   const [bTargetAreas, setBTargetAreas] = useState([]);
@@ -317,6 +416,112 @@ export default function WorkoutBuilder() {
   }, []);
 
   const refresh = () => setWorkoutsState(getWorkouts());
+
+  // Debounce search input
+  useEffect(() => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      setDebouncedSearch(libSearch);
+      setApiPage(0);
+      setApiExercises([]);
+    }, 300);
+    return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); };
+  }, [libSearch]);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setApiPage(0);
+    setApiExercises([]);
+  }, [libBodyPart, libEquipment]);
+
+  // Fetch body parts and equipment lists on mount
+  useEffect(() => {
+    async function fetchFilterOptions() {
+      try {
+        const [bpRes, eqRes] = await Promise.all([
+          fetch(`${API_BASE}/bodyparts`),
+          fetch(`${API_BASE}/equipments`),
+        ]);
+        if (bpRes.ok) {
+          const bpData = await bpRes.json();
+          if (bpData.success && Array.isArray(bpData.data)) {
+            setApiBodyParts(bpData.data);
+          }
+        }
+        if (eqRes.ok) {
+          const eqData = await eqRes.json();
+          if (eqData.success && Array.isArray(eqData.data)) {
+            setApiEquipments(eqData.data);
+          }
+        }
+      } catch (err) {
+        // Silently fail — we have hardcoded fallbacks
+      }
+    }
+    fetchFilterOptions();
+  }, []);
+
+  // Fetch exercises from API
+  const fetchExercises = useCallback(async (page, append = false) => {
+    setApiLoading(true);
+    setApiError(null);
+    try {
+      let url;
+      const offset = page * API_PAGE_SIZE;
+
+      if (debouncedSearch.trim()) {
+        url = `${API_BASE}/exercises/search?q=${encodeURIComponent(debouncedSearch.trim())}&limit=${API_PAGE_SIZE}&offset=${offset}`;
+      } else if (libBodyPart !== 'All' && libEquipment !== 'All') {
+        // Both filters — use body part endpoint then client-side filter equipment
+        url = `${API_BASE}/bodyparts/${encodeURIComponent(libBodyPart.toLowerCase())}/exercises?limit=100&offset=0`;
+      } else if (libBodyPart !== 'All') {
+        url = `${API_BASE}/bodyparts/${encodeURIComponent(libBodyPart.toLowerCase())}/exercises?limit=${API_PAGE_SIZE}&offset=${offset}`;
+      } else if (libEquipment !== 'All') {
+        url = `${API_BASE}/equipments/${encodeURIComponent(libEquipment.toLowerCase())}/exercises?limit=${API_PAGE_SIZE}&offset=${offset}`;
+      } else {
+        url = `${API_BASE}/exercises?limit=${API_PAGE_SIZE}&offset=${offset}`;
+      }
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`API error: ${res.status}`);
+      const json = await res.json();
+
+      if (!json.success) throw new Error('API returned unsuccessful response');
+
+      let exercises = (json.data || []).map(mapApiExercise);
+
+      // Client-side equipment filter when both filters are active
+      if (libBodyPart !== 'All' && libEquipment !== 'All') {
+        exercises = exercises.filter(ex =>
+          ex.equipments.some(eq => eq.toLowerCase() === libEquipment.toLowerCase())
+        );
+      }
+
+      const meta = json.metadata || {};
+      setApiTotalExercises(meta.totalExercises || exercises.length);
+      setApiTotalPages(meta.totalPages || 1);
+
+      if (append) {
+        setApiExercises(prev => [...prev, ...exercises]);
+      } else {
+        setApiExercises(exercises);
+      }
+    } catch (err) {
+      setApiError(err.message);
+      if (!append) setApiExercises([]);
+    } finally {
+      setApiLoading(false);
+    }
+  }, [debouncedSearch, libBodyPart, libEquipment]);
+
+  // Trigger fetch when dependencies change
+  useEffect(() => {
+    fetchExercises(apiPage, apiPage > 0);
+  }, [fetchExercises, apiPage]);
+
+  const handleLoadMore = () => {
+    setApiPage(prev => prev + 1);
+  };
 
   const glass = {
     background: 'rgba(255,255,255,0.6)',
@@ -420,8 +625,8 @@ export default function WorkoutBuilder() {
     }, 1500);
   };
 
-  /* ── Filtered library ── */
-  const filteredLibrary = useMemo(() => {
+  /* ── Filtered library (API with local fallback) ── */
+  const filteredLocalLibrary = useMemo(() => {
     return EXERCISE_LIBRARY.filter(ex => {
       if (libBodyPart !== 'All' && ex.bodyPart !== libBodyPart) return false;
       if (libEquipment !== 'All' && ex.equipment !== libEquipment) return false;
@@ -429,6 +634,21 @@ export default function WorkoutBuilder() {
       return true;
     });
   }, [libSearch, libBodyPart, libEquipment]);
+
+  // Use API data when available, fall back to local
+  const useApiData = apiExercises.length > 0 || (apiLoading && apiPage === 0);
+  const displayExercises = useApiData ? apiExercises : (apiError ? filteredLocalLibrary : (apiLoading ? [] : filteredLocalLibrary));
+
+  // Dynamic filter lists (API with fallback)
+  const bodyPartFilters = useMemo(() => {
+    if (apiBodyParts.length > 0) return ['All', ...apiBodyParts.map(bp => capitalize(bp))];
+    return BODY_PART_FILTERS;
+  }, [apiBodyParts]);
+
+  const equipmentFilters = useMemo(() => {
+    if (apiEquipments.length > 0) return ['All', ...apiEquipments.map(eq => capitalize(eq))];
+    return EQUIPMENT_FILTERS;
+  }, [apiEquipments]);
 
   const clients = getPatients();
 
@@ -470,7 +690,7 @@ export default function WorkoutBuilder() {
       }}>
         {[
           { key: 'templates', label: 'Templates', count: workouts.length },
-          { key: 'library', label: 'Exercise Library', count: EXERCISE_LIBRARY.length },
+          { key: 'library', label: 'Exercise Library', count: apiTotalExercises || displayExercises.length || EXERCISE_LIBRARY.length },
         ].map(tab => (
           <button key={tab.key} onClick={() => setView(tab.key)} style={{
             ...(view === tab.key ? s.pillAccent : s.pillGhost),
@@ -626,7 +846,7 @@ export default function WorkoutBuilder() {
             <div style={{ marginBottom: 12 }}>
               <span style={s.label}>Body Part</span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {BODY_PART_FILTERS.map(bp => (
+                {bodyPartFilters.map(bp => (
                   <button key={bp} onClick={() => setLibBodyPart(bp)} style={{
                     ...(libBodyPart === bp ? s.pillAccent : s.pillGhost),
                     padding: '6px 14px', fontSize: 12,
@@ -638,7 +858,7 @@ export default function WorkoutBuilder() {
             <div>
               <span style={s.label}>Equipment</span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {EQUIPMENT_FILTERS.map(eq => (
+                {equipmentFilters.map(eq => (
                   <button key={eq} onClick={() => setLibEquipment(eq)} style={{
                     ...(libEquipment === eq ? s.pillAccent : s.pillGhost),
                     padding: '6px 14px', fontSize: 12,
@@ -648,67 +868,128 @@ export default function WorkoutBuilder() {
             </div>
           </div>
 
-          {/* Results count */}
+          {/* Results count + loading indicator */}
           <div style={{
             font: `400 13px ${s.FONT}`, color: s.text3, marginBottom: 14,
+            display: 'flex', alignItems: 'center', gap: 10,
             animation: 'wbFadeInUp 0.3s ease 200ms backwards',
           }}>
-            {filteredLibrary.length} exercise{filteredLibrary.length !== 1 ? 's' : ''} found
+            {apiLoading && apiPage === 0 ? (
+              <>
+                <div style={{
+                  width: 16, height: 16, border: `2px solid ${s.accent}30`, borderTopColor: s.accent,
+                  borderRadius: '50%', animation: 'wbSpin 0.8s linear infinite',
+                }} />
+                Loading exercises...
+              </>
+            ) : (
+              <>
+                {apiError && <span style={{ color: '#D97706' }}>API unavailable — showing local exercises. </span>}
+                {displayExercises.length} exercise{displayExercises.length !== 1 ? 's' : ''} found
+                {apiTotalExercises > 0 && !apiError && ` of ${apiTotalExercises} total`}
+              </>
+            )}
           </div>
 
           {/* Exercise grid */}
           <div className="wb-library-grid" style={{
             display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16,
           }}>
-            {filteredLibrary.map((ex, idx) => {
-              const colors = BODY_PART_COLORS[ex.bodyPart] || { bg: '#F3F4F6', text: '#374151' };
-              const gradient = BODY_PART_GRADIENTS[ex.bodyPart] || 'linear-gradient(135deg, #B2BEC3, #636E72)';
-              const icon = BODY_PART_ICONS[ex.bodyPart] || null;
-              return (
-                <div key={ex.name} className="wb-lib-card" style={{
-                  ...glass, overflow: 'hidden', cursor: 'default',
-                  animation: `wbFadeInUp 0.4s cubic-bezier(0.16,1,0.3,1) ${240 + idx * 30}ms backwards`,
+            {/* Loading skeletons */}
+            {apiLoading && apiPage === 0 && displayExercises.length === 0 && (
+              Array.from({ length: 8 }).map((_, idx) => (
+                <div key={`skel-${idx}`} style={{
+                  ...glass, overflow: 'hidden',
+                  animation: `wbFadeInUp 0.4s cubic-bezier(0.16,1,0.3,1) ${idx * 40}ms backwards`,
                 }}>
-                  {/* Gradient header with icon */}
                   <div style={{
-                    height: 80, background: gradient,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    position: 'relative', overflow: 'hidden',
-                  }}>
-                    <div style={{ opacity: 0.35, position: 'absolute', right: -8, bottom: -8, transform: 'scale(3)' }}>
-                      {icon}
-                    </div>
-                    <div style={{ position: 'relative', zIndex: 1 }}>
-                      {icon}
-                    </div>
+                    height: 160, background: '#E5E7EB',
+                    animation: 'wbPulse 1.5s ease-in-out infinite',
+                    borderRadius: '12px 12px 0 0',
+                  }} />
+                  <div style={{ padding: '16px 18px' }}>
+                    <div style={{ height: 16, background: '#E5E7EB', borderRadius: 8, width: '70%', marginBottom: 10, animation: 'wbPulse 1.5s ease-in-out infinite' }} />
+                    <div style={{ height: 12, background: '#F3F4F6', borderRadius: 6, width: '50%', marginBottom: 8, animation: 'wbPulse 1.5s ease-in-out infinite 200ms' }} />
+                    <div style={{ height: 12, background: '#F3F4F6', borderRadius: 6, width: '40%', animation: 'wbPulse 1.5s ease-in-out infinite 400ms' }} />
                   </div>
+                </div>
+              ))
+            )}
+
+            {displayExercises.map((ex, idx) => {
+              const bodyPartKey = capitalize(ex.bodyPart || '');
+              const colors = BODY_PART_COLORS[bodyPartKey] || { bg: '#F3F4F6', text: '#374151' };
+              const gradient = BODY_PART_GRADIENTS[bodyPartKey] || 'linear-gradient(135deg, #B2BEC3, #636E72)';
+              const icon = BODY_PART_ICONS[bodyPartKey] || null;
+              const hasGif = !!ex.gifUrl;
+              return (
+                <div key={ex.exerciseId || ex.name || idx} className="wb-lib-card" style={{
+                  ...glass, overflow: 'hidden', cursor: 'pointer',
+                  animation: `wbFadeInUp 0.4s cubic-bezier(0.16,1,0.3,1) ${240 + (idx % API_PAGE_SIZE) * 30}ms backwards`,
+                }} onClick={() => setDetailExercise(ex)}>
+                  {/* Image header with GIF or gradient fallback */}
+                  {hasGif ? (
+                    <ExerciseImage gifUrl={ex.gifUrl} gradient={gradient} icon={icon} />
+                  ) : (
+                    <div style={{
+                      height: 160, background: gradient,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      position: 'relative', overflow: 'hidden',
+                      borderRadius: '12px 12px 0 0',
+                    }}>
+                      <div style={{ opacity: 0.35, position: 'absolute', right: -8, bottom: -8, transform: 'scale(3)' }}>
+                        {icon}
+                      </div>
+                      <div style={{ position: 'relative', zIndex: 1 }}>
+                        {icon}
+                      </div>
+                    </div>
+                  )}
                   {/* Content */}
                   <div style={{ padding: '16px 18px' }}>
-                    <h4 style={{ font: `600 15px ${s.FONT}`, color: s.text, margin: '0 0 8px' }}>{ex.name}</h4>
+                    <h4 style={{ font: `600 15px ${s.FONT}`, color: s.text, margin: '0 0 8px' }}>{capitalize(ex.name)}</h4>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-                      <span style={{
-                        padding: '2px 8px', borderRadius: 100,
-                        font: `500 10px ${s.FONT}`, background: colors.bg, color: colors.text,
-                      }}>{ex.bodyPart}</span>
-                      <span style={{
-                        padding: '2px 8px', borderRadius: 100,
-                        font: `500 10px ${s.FONT}`, background: '#F3F4F6', color: '#374151',
-                      }}>{ex.equipment}</span>
+                      {ex.bodyPart && (
+                        <span style={{
+                          padding: '2px 8px', borderRadius: 100,
+                          font: `500 10px ${s.FONT}`, background: colors.bg, color: colors.text,
+                        }}>{capitalize(ex.bodyPart)}</span>
+                      )}
+                      {(ex.bodyParts || []).slice(1).map(bp => (
+                        <span key={bp} style={{
+                          padding: '2px 8px', borderRadius: 100,
+                          font: `500 10px ${s.FONT}`, background: BODY_PART_COLORS[capitalize(bp)]?.bg || '#F3F4F6', color: BODY_PART_COLORS[capitalize(bp)]?.text || '#374151',
+                        }}>{capitalize(bp)}</span>
+                      ))}
+                      {ex.equipment && (
+                        <span style={{
+                          padding: '2px 8px', borderRadius: 100,
+                          font: `500 10px ${s.FONT}`, background: '#F3F4F6', color: '#374151',
+                        }}>{capitalize(ex.equipment)}</span>
+                      )}
+                      {(ex.equipments || []).slice(1).map(eq => (
+                        <span key={eq} style={{
+                          padding: '2px 8px', borderRadius: 100,
+                          font: `500 10px ${s.FONT}`, background: '#F3F4F6', color: '#374151',
+                        }}>{capitalize(eq)}</span>
+                      ))}
                     </div>
                     <div style={{ font: `400 12px ${s.FONT}`, color: s.text2, marginBottom: 4 }}>
-                      Target: {ex.targetMuscle}
+                      Target: {capitalize(ex.targetMuscle)}
                     </div>
-                    {ex.secondaryMuscles.length > 0 && (
+                    {ex.secondaryMuscles && ex.secondaryMuscles.length > 0 && (
                       <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>
-                        Secondary: {ex.secondaryMuscles.join(', ')}
+                        Secondary: {ex.secondaryMuscles.map(m => capitalize(m)).join(', ')}
                       </div>
                     )}
-                    <button onClick={() => {
+                    <button onClick={(e) => {
+                      e.stopPropagation();
+                      const exName = capitalize(ex.name);
                       if (!showBuilder) {
                         openBuilder();
-                        setTimeout(() => addExerciseRow(ex.name), 100);
+                        setTimeout(() => addExerciseRow(exName), 100);
                       } else {
-                        addExerciseRow(ex.name);
+                        addExerciseRow(exName);
                       }
                     }} style={{
                       ...s.pillOutline, width: '100%', marginTop: 12, padding: '8px 14px',
@@ -720,6 +1001,151 @@ export default function WorkoutBuilder() {
                 </div>
               );
             })}
+          </div>
+
+          {/* Load More button */}
+          {!apiError && apiTotalExercises > 0 && displayExercises.length < apiTotalExercises && (
+            <div style={{ textAlign: 'center', marginTop: 24 }}>
+              <button onClick={handleLoadMore} disabled={apiLoading} style={{
+                ...s.pillOutline,
+                padding: '12px 32px', fontSize: 14,
+                display: 'inline-flex', alignItems: 'center', gap: 10,
+                opacity: apiLoading ? 0.6 : 1,
+              }}>
+                {apiLoading && apiPage > 0 ? (
+                  <>
+                    <div style={{
+                      width: 14, height: 14, border: `2px solid ${s.accent}30`, borderTopColor: s.accent,
+                      borderRadius: '50%', animation: 'wbSpin 0.8s linear infinite',
+                    }} />
+                    Loading...
+                  </>
+                ) : (
+                  `Load More (${displayExercises.length} of ${apiTotalExercises})`
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ═══════════════════════ EXERCISE DETAIL MODAL ═══════════════════════ */}
+      {detailExercise && (
+        <div className="wb-modal-overlay" onClick={() => setDetailExercise(null)} style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)',
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+          padding: '40px 20px', overflowY: 'auto',
+        }}>
+          <div className="wb-modal-content" onClick={e => e.stopPropagation()} style={{
+            width: '100%', maxWidth: 560,
+            background: '#fff', borderRadius: 20,
+            boxShadow: '0 24px 80px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.06)',
+            overflow: 'hidden',
+          }}>
+            {/* GIF */}
+            {detailExercise.gifUrl ? (
+              <img
+                src={detailExercise.gifUrl}
+                alt={detailExercise.name}
+                style={{ width: '100%', height: 300, objectFit: 'cover', display: 'block' }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling && (e.target.nextSibling.style.display = 'flex');
+                }}
+              />
+            ) : null}
+            <div style={{
+              height: 300,
+              background: BODY_PART_GRADIENTS[capitalize(detailExercise.bodyPart)] || 'linear-gradient(135deg, #B2BEC3, #636E72)',
+              display: detailExercise.gifUrl ? 'none' : 'flex',
+              alignItems: 'center', justifyContent: 'center',
+            }}>
+              {BODY_PART_ICONS[capitalize(detailExercise.bodyPart)] || null}
+            </div>
+
+            {/* Content */}
+            <div style={{ padding: '24px 28px' }}>
+              {/* Close button */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+                <h2 style={{ font: `600 22px ${s.FONT}`, color: s.text, margin: 0 }}>
+                  {capitalize(detailExercise.name)}
+                </h2>
+                <button onClick={() => setDetailExercise(null)} style={{
+                  background: 'none', border: 'none', cursor: 'pointer', color: s.text3, padding: 4,
+                }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+
+              {/* Pills: target muscles, body parts, equipment */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+                {(detailExercise.targetMuscles || [detailExercise.targetMuscle]).filter(Boolean).map(m => (
+                  <span key={m} style={{
+                    padding: '4px 12px', borderRadius: 100,
+                    font: `500 12px ${s.FONT}`, background: '#DBEAFE', color: '#1D4ED8',
+                  }}>{capitalize(m)}</span>
+                ))}
+                {(detailExercise.bodyParts || [detailExercise.bodyPart]).filter(Boolean).map(bp => (
+                  <span key={bp} style={{
+                    padding: '4px 12px', borderRadius: 100,
+                    font: `500 12px ${s.FONT}`,
+                    background: BODY_PART_COLORS[capitalize(bp)]?.bg || '#F3F4F6',
+                    color: BODY_PART_COLORS[capitalize(bp)]?.text || '#374151',
+                  }}>{capitalize(bp)}</span>
+                ))}
+                {(detailExercise.equipments || [detailExercise.equipment]).filter(Boolean).map(eq => (
+                  <span key={eq} style={{
+                    padding: '4px 12px', borderRadius: 100,
+                    font: `500 12px ${s.FONT}`, background: '#F3F4F6', color: '#374151',
+                  }}>{capitalize(eq)}</span>
+                ))}
+              </div>
+
+              {/* Secondary muscles */}
+              {detailExercise.secondaryMuscles && detailExercise.secondaryMuscles.length > 0 && (
+                <div style={{ marginBottom: 20 }}>
+                  <span style={{ font: `500 12px ${s.FONT}`, color: s.text2 }}>Secondary Muscles: </span>
+                  <span style={{ font: `400 12px ${s.FONT}`, color: s.text3 }}>
+                    {detailExercise.secondaryMuscles.map(m => capitalize(m)).join(', ')}
+                  </span>
+                </div>
+              )}
+
+              {/* Instructions */}
+              {detailExercise.instructions && detailExercise.instructions.length > 0 && (
+                <div style={{ marginBottom: 24 }}>
+                  <h4 style={{ font: `600 14px ${s.FONT}`, color: s.text, margin: '0 0 12px' }}>Instructions</h4>
+                  <ol style={{ margin: 0, paddingLeft: 20 }}>
+                    {detailExercise.instructions.map((step, i) => (
+                      <li key={i} style={{
+                        font: `400 13px/1.6 ${s.FONT}`, color: s.text2,
+                        marginBottom: 8,
+                      }}>{step}</li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
+              {/* Add to Workout button */}
+              <button onClick={() => {
+                const exName = capitalize(detailExercise.name);
+                setDetailExercise(null);
+                if (!showBuilder) {
+                  openBuilder();
+                  setTimeout(() => addExerciseRow(exName), 100);
+                } else {
+                  addExerciseRow(exName);
+                }
+              }} style={{
+                ...s.pillAccent, width: '100%', padding: '12px 20px',
+                textAlign: 'center', fontSize: 14,
+              }}>
+                + Add to Workout
+              </button>
+            </div>
           </div>
         </div>
       )}
