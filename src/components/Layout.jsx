@@ -125,6 +125,9 @@ export default function Layout({ children }) {
   const location = useLocation();
   const settings = getSettings();
 
+  // Scroll to top on route change
+  useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
+
   // Global Cmd+K / Ctrl+K listener
   useEffect(() => {
     const handler = (e) => {
@@ -335,31 +338,30 @@ export default function Layout({ children }) {
           </div>
         </div>
 
-        {/* Mobile Topbar — native app feel */}
+        {/* Mobile Topbar — dark native app feel */}
         <div className="mobile-topbar" style={{
           display: 'none', position: 'sticky', top: 0, zIndex: 50,
-          background: 'rgba(245,243,240,0.88)',
-          backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(0,0,0,0.06)',
-          padding: '0 16px', height: 48,
+          background: '#0D0D0F',
+          borderBottom: '1px solid #2A2A2E',
+          padding: '0 16px', height: 52,
           alignItems: 'center', justifyContent: 'space-between',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{
-              width: 28, height: 28, borderRadius: '50%', background: theme.accent,
+              width: 30, height: 30, borderRadius: 8, background: '#4ADE80',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: theme.accentText || '#fff', font: "700 11px 'Inter', sans-serif", flexShrink: 0,
+              color: '#0D0D0F', font: "700 12px 'Inter', sans-serif", flexShrink: 0,
             }}>
               {(settings.businessName || 'F')[0]}
             </div>
-            <span style={{ font: "700 14px 'Inter', sans-serif", color: '#111', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+            <span style={{ font: "700 15px 'Inter', sans-serif", color: '#F5F5F7', letterSpacing: '1px', textTransform: 'uppercase' }}>
               {settings.businessName || 'FORGE'}
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <NavLink to="/admin/settings" style={{
-              width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'transparent', color: '#888', textDecoration: 'none',
+              width: 34, height: 34, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'transparent', color: '#6B6B73', textDecoration: 'none',
             }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
             </NavLink>
@@ -368,31 +370,31 @@ export default function Layout({ children }) {
         </div>
 
         {/* Page content */}
-        <div className="layout-content" style={{ padding: '32px 36px', maxWidth: 1400, animation: 'fadeIn 0.4s cubic-bezier(0.16,1,0.3,1)' }}>
+        <div className={`layout-content${isMobile ? ' mobile-dark-wrapper' : ''}`} style={{ padding: '32px 36px', maxWidth: 1400, animation: 'fadeIn 0.4s cubic-bezier(0.16,1,0.3,1)' }}>
           {children}
         </div>
       </div>
 
-      {/* ═══ MOBILE BOTTOM TAB BAR — ultra-minimal Trainerize style ═══ */}
+      {/* ═══ MOBILE BOTTOM TAB BAR — dark fitness app style ═══ */}
       <div className="mobile-bottom-tabs" style={{
         display: 'none', position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 150,
         height: 48, paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        background: 'rgba(255,255,255,0.7)',
+        background: 'rgba(13,13,15,0.92)',
         backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-        borderTop: '1px solid rgba(0,0,0,0.04)',
+        borderTop: '1px solid #2A2A2E',
         alignItems: 'center', justifyContent: 'space-around',
       }}>
         {BOTTOM_TAB_ITEMS.map(tab => (
           <NavLink key={tab.path} to={tab.path} end={tab.path === '/admin'}
             style={({ isActive }) => ({
               flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              gap: 2, textDecoration: 'none', padding: '4px 0',
-              color: isActive ? theme.accent : '#C0C0C0',
+              gap: 3, textDecoration: 'none', padding: '4px 0',
+              color: isActive ? '#4ADE80' : '#6B6B73',
               transition: 'color 0.15s ease',
             })}
           >
-            <span style={{ display: 'flex', opacity: isActive ? 1 : 0.6 }}>{TAB_ICONS[tab.icon]}</span>
-            <span style={{ font: "500 9px 'Inter', sans-serif", letterSpacing: '0.3px' }}>{tab.label}</span>
+            <span style={{ display: 'flex' }}>{TAB_ICONS[tab.icon]}</span>
+            <span style={{ font: "500 10px 'Inter', sans-serif", letterSpacing: '0.3px' }}>{tab.label}</span>
           </NavLink>
         ))}
       </div>
@@ -415,15 +417,60 @@ export default function Layout({ children }) {
         @media (max-width: 860px) {
           .sidebar-desktop { display: none !important; }
           .mobile-menu-btn { display: none !important; }
-          .layout-main { margin-left: 0 !important; }
+          .layout-main { margin-left: 0 !important; background: #0D0D0F !important; }
           .desktop-topbar { display: none !important; }
           .mobile-topbar { display: flex !important; }
           .mobile-bottom-tabs { display: flex !important; }
+          body, html, #root { background: #0D0D0F !important; }
           .layout-content {
             padding: 20px 16px 68px 16px !important;
             max-width: 100% !important;
             animation-duration: 0.2s !important;
+            background: #0D0D0F !important;
           }
+          .mobile-dark-wrapper {
+            --mobile-bg: #0D0D0F;
+            --mobile-card: #1A1A1E;
+            --mobile-text: #F5F5F7;
+            --mobile-text2: #A0A0A8;
+            --mobile-text3: #6B6B73;
+            --mobile-border: #2A2A2E;
+            --mobile-accent: #4ADE80;
+            color: #F5F5F7 !important;
+          }
+          /* Global dark overrides for pages without custom mobile rendering */
+          .mobile-dark-wrapper h1,
+          .mobile-dark-wrapper h2,
+          .mobile-dark-wrapper h3 { color: #F5F5F7 !important; }
+          .mobile-dark-wrapper p { color: #A0A0A8 !important; }
+          .mobile-dark-wrapper .glass-card {
+            background: #1A1A1E !important;
+            border-color: #2A2A2E !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+          }
+          .mobile-dark-wrapper .glass-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4) !important;
+          }
+          .mobile-dark-wrapper input,
+          .mobile-dark-wrapper textarea,
+          .mobile-dark-wrapper select {
+            background: #1A1A1E !important;
+            border-color: #2A2A2E !important;
+            color: #F5F5F7 !important;
+          }
+          .mobile-dark-wrapper input::placeholder,
+          .mobile-dark-wrapper textarea::placeholder {
+            color: #6B6B73 !important;
+          }
+          .mobile-dark-wrapper table { color: #F5F5F7 !important; }
+          .mobile-dark-wrapper table th { color: #6B6B73 !important; }
+          .mobile-dark-wrapper table td { color: #A0A0A8 !important; border-color: #2A2A2E !important; }
+          .mobile-dark-wrapper table tbody tr:hover { background: rgba(255,255,255,0.03) !important; }
+          /* Override notification bell for dark topbar */
+          .mobile-topbar .notification-bell,
+          .mobile-topbar button { color: #6B6B73 !important; }
           h1 { font-size: 24px !important; }
           h2 { font-size: 20px !important; }
         }

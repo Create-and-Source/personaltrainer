@@ -146,12 +146,24 @@ function MobileTodayView({ s, nav, settings, patients, appointments, services, p
 
   const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
+  // Dark mobile card style
   const mobileGlass = {
-    background: 'rgba(255,255,255,0.65)',
-    backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-    border: '1px solid rgba(255,255,255,0.7)',
+    background: '#1A1A1E',
+    border: '1px solid #2A2A2E',
     borderRadius: 16,
-    boxShadow: '0 2px 16px rgba(0,0,0,0.04)',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+  };
+
+  // Dark mobile color tokens
+  const dm = {
+    text: '#F5F5F7',
+    text2: '#A0A0A8',
+    text3: '#6B6B73',
+    accent: '#4ADE80',
+    accentBg: '#252529',
+    card: '#1A1A1E',
+    border: '#2A2A2E',
+    bg: '#0D0D0F',
   };
 
   const timeSince = (dateStr) => {
@@ -166,31 +178,31 @@ function MobileTodayView({ s, nav, settings, patients, appointments, services, p
 
   return (
     <div style={{ paddingTop: 8 }}>
-      {/* Greeting — big, airy, Trainerize-style */}
+      {/* Greeting — big, airy, dark fitness style */}
       <div style={{ marginBottom: 32, padding: '0 4px' }}>
-        <h1 style={{ font: `700 32px ${s.FONT}`, color: s.text, margin: '0 0 4px', letterSpacing: '-0.8px', lineHeight: 1.1 }}>
+        <h1 style={{ font: `700 32px ${s.FONT}`, color: dm.text, margin: '0 0 6px', letterSpacing: '-0.8px', lineHeight: 1.1 }}>
           Hey {settings.founder?.split(' ')[0] || 'Marcus'} 👋
         </h1>
-        <p style={{ font: `400 15px ${s.FONT}`, color: s.text3, margin: 0, lineHeight: 1.4 }}>{dateStr}</p>
+        <p style={{ font: `400 15px ${s.FONT}`, color: dm.text2, margin: 0, lineHeight: 1.4 }}>{dateStr}</p>
       </div>
 
       {/* Today's Sessions — the hero content */}
       <div style={{ marginBottom: 28 }}>
-        <div style={{ font: `600 13px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.5, color: s.text3, marginBottom: 14, padding: '0 4px' }}>
+        <div style={{ font: `600 13px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.5, color: dm.text3, marginBottom: 14, padding: '0 4px' }}>
           Today's Sessions · {todayAppts.length}
         </div>
         {todayAppts.length === 0 ? (
           <div style={{ ...mobileGlass, padding: '40px 24px', textAlign: 'center' }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>☀️</div>
-            <div style={{ font: `500 16px ${s.FONT}`, color: s.text, marginBottom: 4 }}>No sessions today</div>
-            <div style={{ font: `400 14px ${s.FONT}`, color: s.text3 }}>Enjoy the rest!</div>
+            <div style={{ font: `500 16px ${s.FONT}`, color: dm.text, marginBottom: 4 }}>No sessions today</div>
+            <div style={{ font: `400 14px ${s.FONT}`, color: dm.text3 }}>Enjoy the rest!</div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {todayAppts.sort((a, b) => (a.time || '').localeCompare(b.time || '')).map(a => {
               const svc = services.find(sv => sv.id === a.serviceId);
-              const statusColor = a.status === 'confirmed' ? '#16A34A' : a.status === 'pending' ? '#D97706' : '#999';
-              const statusBg = a.status === 'confirmed' ? '#F0FDF4' : a.status === 'pending' ? '#FFFBEB' : '#F5F5F5';
+              const statusColor = a.status === 'confirmed' ? '#4ADE80' : a.status === 'pending' ? '#FBBF24' : '#6B6B73';
+              const statusBg = a.status === 'confirmed' ? 'rgba(74,222,128,0.12)' : a.status === 'pending' ? 'rgba(251,191,36,0.12)' : 'rgba(107,107,115,0.12)';
               return (
                 <div key={a.id} onClick={() => nav('/admin/schedule')} style={{
                   ...mobileGlass, padding: '18px 20px', cursor: 'pointer',
@@ -198,20 +210,20 @@ function MobileTodayView({ s, nav, settings, patients, appointments, services, p
                 }}>
                   {/* Time block */}
                   <div style={{
-                    width: 56, height: 56, borderRadius: 14, background: s.accentLight,
+                    width: 56, height: 56, borderRadius: 14, background: dm.accentBg,
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                   }}>
-                    <div style={{ font: `700 16px ${s.MONO}`, color: s.accent, lineHeight: 1 }}>
+                    <div style={{ font: `700 16px ${s.MONO}`, color: dm.accent, lineHeight: 1 }}>
                       {(a.time || '--:--').split(':')[0] > 12 ? a.time.split(':')[0] - 12 : a.time.split(':')[0]}:{(a.time || '--:--').split(':')[1]}
                     </div>
-                    <div style={{ font: `500 9px ${s.MONO}`, color: s.accent, opacity: 0.7 }}>
+                    <div style={{ font: `500 9px ${s.MONO}`, color: dm.accent, opacity: 0.7 }}>
                       {parseInt((a.time || '0').split(':')[0]) >= 12 ? 'PM' : 'AM'}
                     </div>
                   </div>
                   {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ font: `600 16px ${s.FONT}`, color: s.text, marginBottom: 3 }}>{a.patientName}</div>
-                    <div style={{ font: `400 13px ${s.FONT}`, color: s.text3 }}>{svc?.name || 'Session'}</div>
+                    <div style={{ font: `600 16px ${s.FONT}`, color: dm.text, marginBottom: 3 }}>{a.patientName}</div>
+                    <div style={{ font: `400 13px ${s.FONT}`, color: dm.text2 }}>{svc?.name || 'Session'}</div>
                   </div>
                   {/* Status */}
                   <span style={{
@@ -226,9 +238,9 @@ function MobileTodayView({ s, nav, settings, patients, appointments, services, p
         )}
       </div>
 
-      {/* Quick Access — clean 2x4 grid */}
+      {/* Quick Access — clean 2x4 grid, dark cards */}
       <div style={{ marginBottom: 28 }}>
-        <div style={{ font: `600 13px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.5, color: s.text3, marginBottom: 14, padding: '0 4px' }}>
+        <div style={{ font: `600 13px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.5, color: dm.text3, marginBottom: 14, padding: '0 4px' }}>
           Quick Access
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
@@ -244,12 +256,12 @@ function MobileTodayView({ s, nav, settings, patients, appointments, services, p
           ].map(item => (
             <button key={item.path} onClick={() => nav(item.path)} style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-              padding: '16px 4px', borderRadius: 16, border: 'none', cursor: 'pointer',
-              background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(12px)',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+              padding: '16px 4px', borderRadius: 16, border: `1px solid ${dm.border}`, cursor: 'pointer',
+              background: dm.card,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
             }}>
               <span style={{ fontSize: 24 }}>{item.emoji}</span>
-              <span style={{ font: `500 10px ${s.FONT}`, color: s.text2 }}>{item.label}</span>
+              <span style={{ font: `500 10px ${s.FONT}`, color: dm.text2 }}>{item.label}</span>
             </button>
           ))}
         </div>
@@ -258,7 +270,7 @@ function MobileTodayView({ s, nav, settings, patients, appointments, services, p
       {/* Needs Attention — only if there are any */}
       {needsAttention.length > 0 && (
         <div style={{ marginBottom: 28 }}>
-          <div style={{ font: `600 13px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.5, color: s.text3, marginBottom: 14, padding: '0 4px' }}>
+          <div style={{ font: `600 13px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.5, color: dm.text3, marginBottom: 14, padding: '0 4px' }}>
             Needs Attention · {needsAttention.length}
           </div>
           <div style={{ display: 'flex', gap: 12, overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 8 }}>
@@ -268,14 +280,14 @@ function MobileTodayView({ s, nav, settings, patients, appointments, services, p
               }}>
                 <div style={{
                   width: 48, height: 48, borderRadius: '50%',
-                  background: `linear-gradient(135deg, ${s.accentLight}, ${s.accent}18)`,
+                  background: `linear-gradient(135deg, ${dm.card}, ${dm.accent}18)`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  font: `600 14px ${s.FONT}`, color: s.accent,
-                  border: '2px solid rgba(220,38,38,0.2)',
+                  font: `600 14px ${s.FONT}`, color: dm.accent,
+                  border: '2px solid rgba(220,38,38,0.3)',
                 }}>
                   {p.firstName?.[0]}{p.lastName?.[0]}
                 </div>
-                <span style={{ font: `500 11px ${s.FONT}`, color: s.text2, textAlign: 'center' }}>
+                <span style={{ font: `500 11px ${s.FONT}`, color: dm.text2, textAlign: 'center' }}>
                   {p.firstName}
                 </span>
               </div>

@@ -164,48 +164,54 @@ export default function Members() {
     };
     const statusColors = { green: '#16A34A', yellow: '#D97706', red: '#DC2626' };
 
-    // Mobile full-screen detail view
+    // Dark mobile color tokens
+    const dm = {
+      text: '#F5F5F7', text2: '#A0A0A8', text3: '#6B6B73',
+      accent: '#4ADE80', accentBg: '#252529',
+      card: '#1A1A1E', border: '#2A2A2E', bg: '#0D0D0F',
+    };
+
+    // Mobile full-screen detail view — dark
     if (mobileDetail) {
       const p = mobileDetail;
       const tier = TIER_BADGE[p.membershipTier || 'None'];
       const pClasses = memberClasses(p.id);
       return (
         <div style={{
-          position: 'fixed', inset: 0, zIndex: 250, background: '#F5F3F0',
+          position: 'fixed', inset: 0, zIndex: 250, background: dm.bg,
           overflowY: 'auto', WebkitOverflowScrolling: 'touch',
           animation: 'memMobileSlideIn 0.2s cubic-bezier(0.16,1,0.3,1) both',
         }}>
-          {/* Top bar */}
+          {/* Top bar — dark */}
           <div style={{
-            position: 'sticky', top: 0, zIndex: 2, padding: '0 16px', height: 48,
-            background: 'rgba(245,243,240,0.9)', backdropFilter: 'blur(12px)',
+            position: 'sticky', top: 0, zIndex: 2, padding: '0 16px', height: 52,
+            background: dm.bg, borderBottom: `1px solid ${dm.border}`,
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            borderBottom: '1px solid rgba(0,0,0,0.06)',
           }}>
             <button onClick={() => setMobileDetail(null)} style={{
-              background: 'none', border: 'none', cursor: 'pointer', color: s.accent,
+              background: 'none', border: 'none', cursor: 'pointer', color: dm.accent,
               font: `500 14px ${s.FONT}`, display: 'flex', alignItems: 'center', gap: 4, padding: 0,
             }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
               Clients
             </button>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => handleEdit(p)} style={{ ...s.pillGhost, padding: '6px 14px', fontSize: 12 }}>Edit</button>
-              <button onClick={() => { handleDelete(p.id); setMobileDetail(null); }} style={{ ...s.pillGhost, padding: '6px 14px', fontSize: 12, color: s.danger, borderColor: `${s.danger}40` }}>Delete</button>
+              <button onClick={() => handleEdit(p)} style={{ padding: '6px 14px', fontSize: 12, borderRadius: 100, border: `1px solid ${dm.border}`, background: dm.card, color: dm.text2, cursor: 'pointer' }}>Edit</button>
+              <button onClick={() => { handleDelete(p.id); setMobileDetail(null); }} style={{ padding: '6px 14px', fontSize: 12, borderRadius: 100, border: '1px solid rgba(220,38,38,0.3)', background: dm.card, color: '#EF4444', cursor: 'pointer' }}>Delete</button>
             </div>
           </div>
 
-          {/* Profile header */}
-          <div style={{ padding: '24px 20px', textAlign: 'center', background: `linear-gradient(135deg, ${s.accent}08, ${s.accent}04)` }}>
+          {/* Profile header — dark */}
+          <div style={{ padding: '24px 20px', textAlign: 'center', background: `linear-gradient(135deg, ${dm.card}, ${dm.bg})` }}>
             <div style={{
               width: 72, height: 72, borderRadius: '50%', margin: '0 auto 12px',
-              background: `linear-gradient(135deg, ${s.accentLight}, ${s.accent}18)`,
+              background: `linear-gradient(135deg, ${dm.card}, ${dm.accent}18)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              font: `600 22px ${s.FONT}`, color: s.accent, border: `3px solid ${s.accent}25`,
+              font: `600 22px ${s.FONT}`, color: dm.accent, border: `3px solid ${dm.border}`,
             }}>
               {p.firstName[0]}{p.lastName[0]}
             </div>
-            <div style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 4 }}>{p.firstName} {p.lastName}</div>
+            <div style={{ font: `600 20px ${s.FONT}`, color: dm.text, marginBottom: 4 }}>{p.firstName} {p.lastName}</div>
             {tier && (
               <span style={{
                 display: 'inline-block', padding: '4px 14px', borderRadius: 100,
@@ -215,21 +221,21 @@ export default function Members() {
             )}
           </div>
 
-          {/* Stats row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1, background: 'rgba(0,0,0,0.04)', margin: '0 0 16px' }}>
+          {/* Stats row — dark */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1, background: dm.border, margin: '0 0 16px' }}>
             {[
               { label: 'Sessions', value: p.visitCount },
               { label: 'Spent', value: fmt(p.totalSpent) },
               { label: 'Last Session', value: p.lastVisit ? new Date(p.lastVisit + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '---' },
             ].map(item => (
-              <div key={item.label} style={{ background: '#fff', padding: '14px 12px', textAlign: 'center' }}>
-                <div style={{ font: `500 9px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: s.text3, marginBottom: 4 }}>{item.label}</div>
-                <div style={{ font: `600 16px ${s.FONT}`, color: s.text }}>{item.value}</div>
+              <div key={item.label} style={{ background: dm.card, padding: '14px 12px', textAlign: 'center' }}>
+                <div style={{ font: `500 9px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: dm.text3, marginBottom: 4 }}>{item.label}</div>
+                <div style={{ font: `600 16px ${s.FONT}`, color: dm.text }}>{item.value}</div>
               </div>
             ))}
           </div>
 
-          {/* Info */}
+          {/* Info — dark */}
           <div style={{ padding: '0 20px 20px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
               {[
@@ -239,41 +245,42 @@ export default function Members() {
                 { label: 'Gender', value: p.gender },
               ].map(f => (
                 <div key={f.label}>
-                  <div style={{ font: `500 9px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.5, color: s.text3, marginBottom: 4 }}>{f.label}</div>
-                  <div style={{ font: `400 13px ${s.FONT}`, color: s.text, wordBreak: 'break-word' }}>{f.value}</div>
+                  <div style={{ font: `500 9px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.5, color: dm.text3, marginBottom: 4 }}>{f.label}</div>
+                  <div style={{ font: `400 13px ${s.FONT}`, color: dm.text, wordBreak: 'break-word' }}>{f.value}</div>
                 </div>
               ))}
             </div>
             {(p.goals || p.allergies) && (
               <div style={{
-                padding: '10px 14px', background: s.accentLight, borderRadius: 10, marginBottom: 16,
-                font: `400 12px ${s.FONT}`, color: s.accent, border: `1px solid ${s.accent}20`,
+                padding: '10px 14px', background: dm.accentBg, borderRadius: 10, marginBottom: 16,
+                font: `400 12px ${s.FONT}`, color: dm.accent, border: `1px solid ${dm.accent}30`,
               }}>
                 Goals: {p.goals || p.allergies}
               </div>
             )}
-            <div style={{ font: `600 14px ${s.FONT}`, color: s.text, marginBottom: 10 }}>Recent Sessions</div>
+            <div style={{ font: `600 14px ${s.FONT}`, color: dm.text, marginBottom: 10 }}>Recent Sessions</div>
             {pClasses.length === 0 ? (
-              <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, padding: '8px 0' }}>No sessions yet</div>
+              <div style={{ font: `400 12px ${s.FONT}`, color: dm.text3, padding: '8px 0' }}>No sessions yet</div>
             ) : pClasses.map(a => {
               const svc = services.find(sv => sv.id === a.serviceId);
-              const statusColor = a.status === 'completed' ? s.success : a.status === 'confirmed' ? s.accent : s.warning;
+              const statusColor = a.status === 'completed' ? '#4ADE80' : a.status === 'confirmed' ? '#60A5FA' : '#FBBF24';
+              const statusBg = a.status === 'completed' ? 'rgba(74,222,128,0.12)' : a.status === 'confirmed' ? 'rgba(96,165,250,0.12)' : 'rgba(251,191,36,0.12)';
               return (
                 <div key={a.id} style={{
                   padding: '10px 12px', marginBottom: 6, borderRadius: 10,
-                  background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(0,0,0,0.03)',
+                  background: dm.card, border: `1px solid ${dm.border}`,
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 }}>
                   <div>
-                    <div style={{ font: `500 12px ${s.FONT}`, color: s.text }}>{svc?.name || 'Session'}</div>
-                    <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>
+                    <div style={{ font: `500 12px ${s.FONT}`, color: dm.text }}>{svc?.name || 'Session'}</div>
+                    <div style={{ font: `400 11px ${s.FONT}`, color: dm.text3 }}>
                       {new Date(a.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </div>
                   </div>
                   <span style={{
                     padding: '2px 8px', borderRadius: 100,
                     font: `500 9px ${s.FONT}`, textTransform: 'uppercase', color: statusColor,
-                    background: a.status === 'completed' ? '#F0FDF4' : a.status === 'confirmed' ? s.accentLight : '#FFFBEB',
+                    background: statusBg,
                   }}>{a.status}</span>
                 </div>
               );
@@ -292,38 +299,38 @@ export default function Members() {
 
     return (
       <div style={{ paddingTop: 12 }}>
-        {/* Mobile header - just title, no add button (FAB handles it) */}
+        {/* Mobile header — dark */}
         <div style={{ marginBottom: 14 }}>
-          <h1 style={{ font: `600 24px ${s.FONT}`, color: s.text, margin: '0 0 2px', letterSpacing: '-0.3px' }}>Clients</h1>
-          <p style={{ font: `400 13px ${s.FONT}`, color: s.text3, margin: 0 }}>{members.length} total</p>
+          <h1 style={{ font: `600 24px ${s.FONT}`, color: dm.text, margin: '0 0 2px', letterSpacing: '-0.3px' }}>Clients</h1>
+          <p style={{ font: `400 13px ${s.FONT}`, color: dm.text3, margin: 0 }}>{members.length} total</p>
         </div>
 
-        {/* Search input - full width, rounded */}
+        {/* Search input — dark */}
         <div style={{ position: 'relative', marginBottom: 14 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={s.text3} strokeWidth="2" strokeLinecap="round"
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={dm.text3} strokeWidth="2" strokeLinecap="round"
             style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)' }}>
             <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients..."
             style={{
               width: '100%', padding: '14px 16px 14px 44px', height: 48,
-              background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(0,0,0,0.06)',
-              borderRadius: 100, font: `400 14px ${s.FONT}`, color: s.text, outline: 'none',
-              boxSizing: 'border-box', backdropFilter: 'blur(8px)',
+              background: dm.card, border: `1px solid ${dm.border}`,
+              borderRadius: 100, font: `400 14px ${s.FONT}`, color: dm.text, outline: 'none',
+              boxSizing: 'border-box',
             }} />
         </div>
 
-        {/* Client cards - mobile optimized */}
+        {/* Client cards — dark */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {mobileFiltered.map((p, idx) => {
             const status = getActivityStatus(p);
             const tier = TIER_BADGE[p.membershipTier || 'None'];
             return (
               <div key={p.id} onClick={() => setMobileDetail(p)} style={{
-                background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255,255,255,0.7)', borderRadius: 14,
+                background: dm.card,
+                border: `1px solid ${dm.border}`, borderRadius: 16,
                 padding: '16px', cursor: 'pointer',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.03)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
                 transition: 'all 0.2s ease',
                 animation: `memFadeInUp 0.2s ease ${idx * 30}ms backwards`,
               }}>
@@ -331,17 +338,17 @@ export default function Members() {
                   {/* Avatar */}
                   <div style={{
                     width: 48, height: 48, borderRadius: '50%', flexShrink: 0,
-                    background: `linear-gradient(135deg, ${s.accentLight}, ${s.accent}18)`,
+                    background: `linear-gradient(135deg, ${dm.card}, ${dm.accent}18)`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    font: `600 15px ${s.FONT}`, color: s.accent, border: `2px solid ${s.accent}20`,
+                    font: `600 15px ${s.FONT}`, color: dm.accent, border: `2px solid ${dm.border}`,
                   }}>
                     {p.firstName[0]}{p.lastName[0]}
                   </div>
                   {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ font: `600 16px ${s.FONT}`, color: s.text, marginBottom: 1 }}>{p.firstName} {p.lastName}</div>
-                    <div style={{ font: `400 13px ${s.FONT}`, color: s.text3, marginBottom: 2 }}>{p.goals || p.allergies || 'No goals set'}</div>
-                    <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>
+                    <div style={{ font: `600 16px ${s.FONT}`, color: dm.text, marginBottom: 1 }}>{p.firstName} {p.lastName}</div>
+                    <div style={{ font: `400 13px ${s.FONT}`, color: dm.text2, marginBottom: 2 }}>{p.goals || p.allergies || 'No goals set'}</div>
+                    <div style={{ font: `400 11px ${s.FONT}`, color: dm.text3 }}>
                       {p.lastVisit ? `Last: ${new Date(p.lastVisit + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : 'No sessions yet'}
                     </div>
                   </div>
@@ -349,7 +356,7 @@ export default function Members() {
                   <div style={{
                     width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
                     background: statusColors[status],
-                    boxShadow: `0 0 6px ${statusColors[status]}40`,
+                    boxShadow: `0 0 8px ${statusColors[status]}50`,
                   }} />
                 </div>
                 {/* Package pill at bottom */}
@@ -367,18 +374,18 @@ export default function Members() {
           })}
           {mobileFiltered.length === 0 && (
             <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-              <div style={{ font: `400 14px ${s.FONT}`, color: s.text3, marginBottom: 12 }}>No clients found</div>
+              <div style={{ font: `400 14px ${s.FONT}`, color: dm.text3, marginBottom: 12 }}>No clients found</div>
             </div>
           )}
         </div>
 
-        {/* Floating Action Button */}
+        {/* Floating Action Button — green accent */}
         <button onClick={() => { setSelected(null); setForm({ firstName: '', lastName: '', email: '', phone: '', dob: '', gender: 'Female', goals: '', notes: '', membershipTier: 'None' }); setShowForm(true); }} style={{
           position: 'fixed', bottom: 80, right: 20, zIndex: 140,
           width: 56, height: 56, borderRadius: '50%',
-          background: s.accent, color: s.accentText,
+          background: '#4ADE80', color: '#0D0D0F',
           border: 'none', cursor: 'pointer',
-          boxShadow: `0 4px 20px ${s.accent}40`,
+          boxShadow: '0 4px 20px rgba(74,222,128,0.35)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           transition: 'transform 0.2s ease',
           fontSize: 24, fontWeight: 300,
@@ -386,30 +393,30 @@ export default function Members() {
           +
         </button>
 
-        {/* Add/Edit Modal — same as desktop */}
+        {/* Add/Edit Modal — dark bottom sheet */}
         {showForm && (
           <div style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)',
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
             display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 300,
           }} onClick={() => { setShowForm(false); setAddedClient(null); }}>
             <div style={{
-              background: '#fff', borderRadius: '20px 20px 0 0', padding: '24px 20px', width: '100%',
+              background: dm.card, borderRadius: '20px 20px 0 0', padding: '24px 20px', width: '100%',
               maxHeight: '90vh', overflowY: 'auto',
               animation: 'memFadeInUp 0.2s cubic-bezier(0.16,1,0.3,1) both',
             }} onClick={e => e.stopPropagation()}>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
-                <div style={{ width: 36, height: 4, borderRadius: 100, background: 'rgba(0,0,0,0.15)' }} />
+                <div style={{ width: 36, height: 4, borderRadius: 100, background: dm.border }} />
               </div>
               {addedClient ? (
                 <div style={{ textAlign: 'center', padding: '20px 0' }}>
                   <div style={{
-                    width: 56, height: 56, borderRadius: '50%', background: `${s.accent}14`,
+                    width: 56, height: 56, borderRadius: '50%', background: 'rgba(74,222,128,0.12)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px',
                   }}>
-                    <span style={{ fontSize: 24 }}>&#10003;</span>
+                    <span style={{ fontSize: 24, color: dm.accent }}>&#10003;</span>
                   </div>
-                  <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 6 }}>Client Added!</h2>
-                  <p style={{ font: `400 14px ${s.FONT}`, color: s.text2, marginBottom: 24 }}>
+                  <h2 style={{ font: `600 20px ${s.FONT}`, color: dm.text, marginBottom: 6 }}>Client Added!</h2>
+                  <p style={{ font: `400 14px ${s.FONT}`, color: dm.text2, marginBottom: 24 }}>
                     {addedClient.firstName} {addedClient.lastName} has been added.
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -417,18 +424,18 @@ export default function Members() {
                       const email = addedClient.email || `${addedClient.firstName.toLowerCase()}@email.com`;
                       setIntakeToast(`Intake form sent to ${email}`);
                       setTimeout(() => setIntakeToast(null), 3000);
-                    }} style={{ ...s.pillOutline, padding: '14px', textAlign: 'center', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                    }} style={{ padding: '14px', textAlign: 'center', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, border: `1px solid ${dm.border}`, background: dm.bg, color: dm.text, cursor: 'pointer', font: `500 14px ${s.FONT}` }}>
                       <span style={{ fontSize: 16 }}>&#9993;</span>
                       Send Intake Form
                     </button>
-                    <button onClick={() => { setShowForm(false); setAddedClient(null); }} style={{ ...s.pillAccent, padding: '14px', textAlign: 'center', width: '100%' }}>
+                    <button onClick={() => { setShowForm(false); setAddedClient(null); }} style={{ padding: '14px', textAlign: 'center', width: '100%', borderRadius: 12, border: 'none', background: dm.accent, color: dm.bg, cursor: 'pointer', font: `600 14px ${s.FONT}` }}>
                       Done
                     </button>
                   </div>
                 </div>
               ) : (
                 <>
-                  <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 20 }}>{selected ? 'Edit Client' : 'New Client'}</h2>
+                  <h2 style={{ font: `600 20px ${s.FONT}`, color: dm.text, marginBottom: 20 }}>{selected ? 'Edit Client' : 'New Client'}</h2>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     {[
                       { key: 'firstName', label: 'First Name', type: 'text' },
@@ -438,24 +445,24 @@ export default function Members() {
                       { key: 'dob', label: 'Date of Birth', type: 'date' },
                     ].map(f => (
                       <div key={f.key}>
-                        <label style={s.label}>{f.label}</label>
-                        <input type={f.type} value={form[f.key]} onChange={e => setForm({ ...form, [f.key]: e.target.value })} style={s.input} />
+                        <label style={{ font: `500 10px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: dm.text3, marginBottom: 4, display: 'block' }}>{f.label}</label>
+                        <input type={f.type} value={form[f.key]} onChange={e => setForm({ ...form, [f.key]: e.target.value })} style={{ width: '100%', padding: '12px 14px', background: dm.bg, border: `1px solid ${dm.border}`, borderRadius: 10, color: dm.text, font: `400 14px ${s.FONT}`, outline: 'none', boxSizing: 'border-box' }} />
                       </div>
                     ))}
                     <div>
-                      <label style={s.label}>Membership</label>
-                      <select value={form.membershipTier} onChange={e => setForm({ ...form, membershipTier: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
+                      <label style={{ font: `500 10px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: dm.text3, marginBottom: 4, display: 'block' }}>Membership</label>
+                      <select value={form.membershipTier} onChange={e => setForm({ ...form, membershipTier: e.target.value })} style={{ width: '100%', padding: '12px 14px', background: dm.bg, border: `1px solid ${dm.border}`, borderRadius: 10, color: dm.text, font: `400 14px ${s.FONT}`, outline: 'none', cursor: 'pointer', boxSizing: 'border-box' }}>
                         <option>Drop-in</option><option>10-Session Pack</option><option>Unlimited Monthly</option><option>Premium Monthly</option>
                       </select>
                     </div>
                   </div>
                   <div style={{ marginTop: 12 }}>
-                    <label style={s.label}>Goals</label>
-                    <input value={form.goals} onChange={e => setForm({ ...form, goals: e.target.value })} style={s.input} placeholder="e.g., Build muscle, Lose weight" />
+                    <label style={{ font: `500 10px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: dm.text3, marginBottom: 4, display: 'block' }}>Goals</label>
+                    <input value={form.goals} onChange={e => setForm({ ...form, goals: e.target.value })} style={{ width: '100%', padding: '12px 14px', background: dm.bg, border: `1px solid ${dm.border}`, borderRadius: 10, color: dm.text, font: `400 14px ${s.FONT}`, outline: 'none', boxSizing: 'border-box' }} placeholder="e.g., Build muscle, Lose weight" />
                   </div>
                   <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-                    <button onClick={() => setShowForm(false)} style={{ ...s.pillGhost, flex: 1, padding: '14px', textAlign: 'center' }}>Cancel</button>
-                    <button onClick={handleSave} style={{ ...s.pillAccent, flex: 1, padding: '14px', textAlign: 'center' }}>{selected ? 'Save' : 'Add Client'}</button>
+                    <button onClick={() => setShowForm(false)} style={{ flex: 1, padding: '14px', textAlign: 'center', borderRadius: 12, border: `1px solid ${dm.border}`, background: dm.bg, color: dm.text2, cursor: 'pointer', font: `500 14px ${s.FONT}` }}>Cancel</button>
+                    <button onClick={handleSave} style={{ flex: 1, padding: '14px', textAlign: 'center', borderRadius: 12, border: 'none', background: dm.accent, color: dm.bg, cursor: 'pointer', font: `600 14px ${s.FONT}` }}>{selected ? 'Save' : 'Add Client'}</button>
                   </div>
                 </>
               )}
