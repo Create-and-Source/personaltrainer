@@ -1,1353 +1,885 @@
 import { useState, useEffect, useRef } from 'react';
-import { useStyles } from '../theme';
 import {
   getPatients, getAppointments, getServices, getProviders,
-  getClassPackages, getPhotos, updatePatient, subscribe,
+  getClassPackages, getPhotos, subscribe,
 } from '../data/store';
+
+/* ── Helpers ── */
+const FONT = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+const ACCENT = '#FF6B35'; // vibrant orange for fitness CTA
+const ACCENT_DARK = '#E55A28';
+const DARK_BG = '#1A1A2E';
+const DARK_GRAD = 'linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%)';
+const CARD_SHADOW = '0 2px 16px rgba(0,0,0,0.06)';
 
 const fmt = (cents) => `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 0 })}`;
 const fmtDate = (d) => {
   if (!d) return '';
   const dt = new Date(d + (d.length === 10 ? 'T12:00:00' : ''));
-  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 const fmtWeekday = (d) => {
   if (!d) return '';
   const dt = new Date(d + 'T12:00:00');
-  return dt.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  return dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+};
+const fmtTime = (t) => {
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
 };
 
-// localStorage helpers for non-store keys
 function lsGet(key, fallback = []) {
   try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; }
 }
 
-const WAIVER_TEMPLATES = {
-  general: 'General Liability Waiver',
-  health: 'Health Questionnaire',
-  photo: 'Photo & Marketing Consent',
-  cancel: 'Cancellation Policy',
-};
+const today = () => new Date().toISOString().slice(0, 10);
+const weeksAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n * 7); return d.toISOString().slice(0, 10); };
 
-const TIER_COLORS = {
-  '10-Session Pack': { color: '#94A3B8', bg: '#F8FAFC' },
-  'Unlimited Monthly': { color: '#D97706', bg: '#FFFBEB' },
-  'Premium Monthly': { color: '#7C3AED', bg: '#F5F3FF' },
-};
-
-/* --- keyframe injection (once) --- */
-const ANIM_ID = 'portal-luxury-anims';
-if (!document.getElementById(ANIM_ID)) {
+/* ── Keyframe Injection ── */
+const ANIM_ID = 'portal-client-anims';
+if (typeof document !== 'undefined' && !document.getElementById(ANIM_ID)) {
   const sheet = document.createElement('style');
   sheet.id = ANIM_ID;
   sheet.textContent = `
-    @keyframes portalFadeInUp {
-      from { opacity: 0; transform: translateY(18px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes portalOrb1 {
-      0%,100% { transform: translate(0,0) scale(1); }
-      50%     { transform: translate(40px,-30px) scale(1.15); }
-    }
-    @keyframes portalOrb2 {
-      0%,100% { transform: translate(0,0) scale(1); }
-      50%     { transform: translate(-50px,25px) scale(1.1); }
-    }
-    @keyframes portalRingSpin {
-      from { transform: rotate(-90deg); }
-      to   { transform: rotate(-90deg); }
-    }
-    @keyframes portalPillSlide {
-      from { opacity:0; transform: translateX(10px); }
-      to   { opacity:1; transform: translateX(0); }
-    }
-    .portal-fadeInUp { animation: portalFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) both; }
-    .portal-stagger-1 { animation-delay: 0.04s; }
-    .portal-stagger-2 { animation-delay: 0.08s; }
-    .portal-stagger-3 { animation-delay: 0.12s; }
-    .portal-stagger-4 { animation-delay: 0.16s; }
-    .portal-stagger-5 { animation-delay: 0.20s; }
-    .portal-stagger-6 { animation-delay: 0.24s; }
-    .portal-stagger-7 { animation-delay: 0.28s; }
-    .portal-stagger-8 { animation-delay: 0.32s; }
-    .portal-tabs::-webkit-scrollbar { display:none; }
-    @media (max-width: 860px) {
-      .portal-page h1, .portal-page h2 { font-size: 22px !important; margin-bottom: 4px !important; }
-      .portal-page p { font-size: 13px !important; }
-      .portal-page > div { margin-bottom: 20px !important; }
-      .portal-tabs {
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        flex-wrap: nowrap !important;
-      }
-      .portal-tabs > button {
-        flex-shrink: 0 !important;
-        min-height: 44px;
-      }
-      .portal-page div[style*="gridTemplateColumns"] { grid-template-columns: 1fr !important; }
-      .portal-page input, .portal-page select, .portal-page textarea { font-size: 16px !important; }
-      .portal-page button { min-height: 44px; }
-      .portal-page div[style*="borderRadius: 20"], .portal-page div[style*="border-radius: 20px"] { border-radius: 14px !important; }
-      .portal-page div[style*="padding: '24px 22px'"], .portal-page div[style*="padding: 24px"] { padding: 14px 16px !important; }
+    @keyframes ptFadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes ptSlideIn { from { opacity:0; transform:translateX(-12px); } to { opacity:1; transform:translateX(0); } }
+    @keyframes ptPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.05); } }
+    @keyframes ptStreakGlow { 0%,100% { filter:brightness(1); } 50% { filter:brightness(1.2); } }
+    @keyframes ptRingFill { from { stroke-dashoffset: var(--ring-circumference); } }
+    .pt-fadeUp { animation: ptFadeUp 0.45s cubic-bezier(0.16,1,0.3,1) both; }
+    .pt-fadeUp-1 { animation-delay: 0.05s; }
+    .pt-fadeUp-2 { animation-delay: 0.1s; }
+    .pt-fadeUp-3 { animation-delay: 0.15s; }
+    .pt-fadeUp-4 { animation-delay: 0.2s; }
+    .pt-fadeUp-5 { animation-delay: 0.25s; }
+    .pt-streak { animation: ptStreakGlow 2s ease-in-out infinite; }
+    .portal-client-scroll::-webkit-scrollbar { display:none; }
+    @media (max-width:640px) {
+      .portal-client-page { padding-bottom: 80px !important; }
+      .portal-grid-2 { grid-template-columns: 1fr !important; }
     }
   `;
   document.head.appendChild(sheet);
 }
 
-export default function Portal() {
-  const s = useStyles();
-  const [, setTick] = useState(0);
-  useEffect(() => subscribe(() => setTick(t => t + 1)), []);
-
-  const patients = getPatients();
-  const [selectedPatientId, setSelectedPatientId] = useState('PAT-1000');
-  const [section, setSection] = useState('home');
-  const [editInfo, setEditInfo] = useState(false);
-  const [editForm, setEditForm] = useState({});
-  const [copied, setCopied] = useState(false);
-  const [signingWaiver, setSigningWaiver] = useState(null);
-  const [signName, setSignName] = useState('');
-  const [msgInput, setMsgInput] = useState('');
-  const msgEndRef = useRef(null);
-
-  // Messages — seeded per client, stored in localStorage
-  const msgKey = `ms_portal_messages_${selectedPatientId}`;
-  const seedMessages = (clientId) => {
-    const clientP = patients.find(p => p.id === clientId);
-    const cName = clientP ? clientP.firstName : 'Client';
-    const now = Date.now();
-    return [
-      { id: 'm1', from: 'trainer', text: `Hey ${cName}! Welcome to FORGE. Excited to start training with you. How are you feeling about your goals?`, ts: now - 86400000 * 3 },
-      { id: 'm2', from: 'client', text: 'Hey Marcus! Really pumped to get started. Feeling motivated but a little nervous about the first session.', ts: now - 86400000 * 3 + 600000 },
-      { id: 'm3', from: 'trainer', text: 'That is totally normal. We will start with a movement assessment so I can see where you are at. No pressure, just building a baseline.', ts: now - 86400000 * 2 },
-      { id: 'm4', from: 'client', text: 'Sounds great. Also wanted to ask — should I change anything about my diet before we start?', ts: now - 86400000 * 1 },
-      { id: 'm5', from: 'trainer', text: 'Good question. For now, focus on hitting about 1g of protein per pound of bodyweight and staying hydrated. We will dial in the details after your first week of sessions.', ts: now - 3600000 },
-    ];
+/* ── Seed helpers for progress data ── */
+function getSeedProgress(clientId) {
+  const key = `ms_progress_${clientId}`;
+  const existing = localStorage.getItem(key);
+  if (existing) try { return JSON.parse(existing); } catch {}
+  const seeds = {
+    'CLT-1000': { start: 195, end: 183, bfStart: 22, bfEnd: 17 },
+    'CLT-1001': { start: 145, end: 138, bfStart: 28, bfEnd: 23 },
+    'CLT-1004': { start: 170, end: 175, bfStart: 18, bfEnd: 15 },
   };
-  const [messages, setMessages] = useState(() => {
-    const stored = lsGet(msgKey, null);
-    return stored || seedMessages(selectedPatientId);
-  });
-  useEffect(() => {
-    const stored = lsGet(msgKey, null);
-    setMessages(stored || seedMessages(selectedPatientId));
-    setMsgInput('');
-  }, [selectedPatientId]);
-  useEffect(() => {
-    if (msgEndRef.current) msgEndRef.current.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, section]);
+  const s = seeds[clientId];
+  if (!s) return null;
+  const data = [];
+  for (let i = 0; i <= 12; i++) {
+    const p = i / 12;
+    const w = s.start + (s.end - s.start) * p + (Math.sin(i * 1.5) * 0.8);
+    const bf = s.bfStart + (s.bfEnd - s.bfStart) * p + (Math.sin(i * 1.3) * 0.3);
+    data.push({ date: weeksAgo(12 - i), weight: Math.round(w * 10) / 10, bodyFat: Math.round(bf * 10) / 10 });
+  }
+  localStorage.setItem(key, JSON.stringify(data));
+  return data;
+}
 
-  const sendMessage = () => {
-    if (!msgInput.trim()) return;
-    const updated = [...messages, { id: `m-${Date.now()}`, from: 'client', text: msgInput.trim(), ts: Date.now() }];
-    setMessages(updated);
-    localStorage.setItem(msgKey, JSON.stringify(updated));
-    setMsgInput('');
-  };
-
-  const patient = patients.find(p => p.id === selectedPatientId);
-  const patientName = patient ? patient.firstName : 'Guest';
-  const today = new Date().toISOString().slice(0, 10);
-
-  // Data filtered by patient
-  const appointments = getAppointments().filter(a => a.patientId === selectedPatientId);
-  const services = getServices();
-  const providers = getProviders();
-  const treatmentPlans = getClassPackages().filter(t => t.patientId === selectedPatientId);
-  const photos = getPhotos().filter(p => p.patientId === selectedPatientId);
-  const memberships = lsGet('ms_memberships', []).filter(m => m.patientId === selectedPatientId);
-  const packages = lsGet('ms_packages', []).filter(p => p.patientId === selectedPatientId);
-  const walletEntries = lsGet('ms_wallet', []).filter(w => w.patientId === selectedPatientId);
-  const waivers = lsGet('ms_waivers', []).filter(w => w.patientId === selectedPatientId);
-  const referrals = lsGet('ms_referrals', []).filter(r => r.referrerId === selectedPatientId);
-
-  const upcomingAppts = appointments.filter(a => a.date >= today && a.status !== 'completed')
-    .sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
-  const pastAppts = appointments.filter(a => a.date < today || a.status === 'completed')
-    .sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`));
-  const nextAppt = upcomingAppts[0];
-
-  const membership = memberships[0];
-  const tierInfo = membership ? TIER_COLORS[membership.tier] || TIER_COLORS['Unlimited Monthly'] : null;
-
-  const giftCards = walletEntries.filter(w => w.type === 'gift_card' && w.balance > 0);
-  const credits = walletEntries.filter(w => w.type === 'credit' && w.balance > 0);
-  const loyalty = walletEntries.find(w => w.type === 'loyalty');
-
-  const referralCode = referrals[0]?.code || `REF-${patientName.toUpperCase()}-${selectedPatientId.replace('PAT-', '')}`;
-  const creditedReferrals = referrals.filter(r => r.status === 'credited');
-  const totalReferralCredits = creditedReferrals.reduce((sum, r) => sum + (r.referrerCredit || 0), 0);
-
-  const svcName = (id) => services.find(sv => sv.id === id)?.name || 'Service';
-  const provName = (id) => providers.find(p => p.id === id)?.name || 'Trainer';
-
-  // Photo pairs
-  const photoPairs = {};
-  photos.forEach(p => {
-    const key = `${p.serviceId}-${p.angle}`;
-    if (!photoPairs[key]) photoPairs[key] = {};
-    photoPairs[key][p.phase] = p;
-    photoPairs[key].serviceName = p.serviceName || svcName(p.serviceId);
-    photoPairs[key].angle = p.angle;
-  });
-
-  const handleEditInfo = () => {
-    setEditForm({
-      firstName: patient?.firstName || '',
-      lastName: patient?.lastName || '',
-      email: patient?.email || '',
-      phone: patient?.phone || '',
-      dob: patient?.dob || '',
-      allergies: patient?.allergies || '',
-    });
-    setEditInfo(true);
-  };
-
-  const saveInfo = () => {
-    updatePatient(selectedPatientId, editForm);
-    setEditInfo(false);
-    setTick(t => t + 1);
-  };
-
-  const handleSignWaiver = (waiverId) => {
-    const allWaivers = lsGet('ms_waivers', []);
-    const updated = allWaivers.map(w =>
-      w.id === waiverId ? { ...w, status: 'signed', signedAt: new Date().toISOString(), signatureData: signName } : w
-    );
-    localStorage.setItem('ms_waivers', JSON.stringify(updated));
-    setSigningWaiver(null);
-    setSignName('');
-    setTick(t => t + 1);
-  };
-
-  const copyReferralLink = () => {
-    navigator.clipboard.writeText(`https://forgetraining.com/refer/${referralCode}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  // -- Nav items --
-  const navItems = [
-    { id: 'home', label: 'Home', icon: '\u2302' },
-    { id: 'appointments', label: 'Sessions', icon: '\uD83D\uDCC5' },
-    { id: 'treatment', label: 'Training Programs', icon: '\u2728' },
-    { id: 'membership', label: 'Membership', icon: '\u2606' },
-    { id: 'wallet', label: 'Wallet', icon: '\uD83D\uDCB3' },
-    { id: 'photos', label: 'Photos', icon: '\uD83D\uDCF7' },
-    { id: 'waivers', label: 'Waivers', icon: '\uD83D\uDCDD' },
-    { id: 'referrals', label: 'Referrals', icon: '\uD83D\uDC96' },
-    { id: 'messages', label: 'Messages', icon: '\uD83D\uDCAC' },
-    { id: 'info', label: 'Profile', icon: '\uD83D\uDC64' },
+function getSeedPRs(clientId) {
+  const key = 'ms_prs';
+  const existing = localStorage.getItem(key);
+  let all;
+  try { all = existing ? JSON.parse(existing) : null; } catch { all = null; }
+  if (all) return all.filter(pr => pr.clientId === clientId);
+  const d = (off) => { const dt = new Date(); dt.setDate(dt.getDate() + off); return dt.toISOString().slice(0, 10); };
+  const allPRs = [
+    { id: 'PR-1', clientId: 'CLT-1000', exercise: 'Bench Press', value: 225, unit: 'lbs', date: d(-8), previousValue: 215 },
+    { id: 'PR-2', clientId: 'CLT-1000', exercise: 'Squat', value: 315, unit: 'lbs', date: d(-22), previousValue: 295 },
+    { id: 'PR-3', clientId: 'CLT-1000', exercise: 'Deadlift', value: 385, unit: 'lbs', date: d(-5), previousValue: 365 },
+    { id: 'PR-4', clientId: 'CLT-1000', exercise: 'Overhead Press', value: 155, unit: 'lbs', date: d(-45), previousValue: 145 },
+    { id: 'PR-5', clientId: 'CLT-1000', exercise: 'Pull-ups', value: 18, unit: 'reps', date: d(-12), previousValue: 15 },
+    { id: 'PR-7', clientId: 'CLT-1001', exercise: 'Bench Press', value: 95, unit: 'lbs', date: d(-10), previousValue: 85 },
+    { id: 'PR-8', clientId: 'CLT-1001', exercise: 'Squat', value: 155, unit: 'lbs', date: d(-15), previousValue: 135 },
+    { id: 'PR-9', clientId: 'CLT-1001', exercise: 'Deadlift', value: 185, unit: 'lbs', date: d(-3), previousValue: 165 },
+    { id: 'PR-13', clientId: 'CLT-1004', exercise: 'Bench Press', value: 185, unit: 'lbs', date: d(-18), previousValue: 165 },
+    { id: 'PR-14', clientId: 'CLT-1004', exercise: 'Squat', value: 225, unit: 'lbs', date: d(-6), previousValue: 205 },
+    { id: 'PR-15', clientId: 'CLT-1004', exercise: 'Deadlift', value: 275, unit: 'lbs', date: d(-28), previousValue: 255 },
   ];
+  localStorage.setItem(key, JSON.stringify(allPRs));
+  return allPRs.filter(pr => pr.clientId === clientId);
+}
 
-  // -- Shared luxury design tokens --
-  const glass = {
-    background: 'rgba(255,255,255,0.55)',
-    backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-    border: '1px solid rgba(255,255,255,0.7)',
-    borderRadius: 20,
-    boxShadow: '0 8px 32px rgba(0,0,0,0.06), 0 1.5px 4px rgba(0,0,0,0.03)',
-    transition: 'all 0.35s cubic-bezier(0.16,1,0.3,1)',
+function getSeedMeasurements(clientId) {
+  const key = `ms_measurements_${clientId}`;
+  const existing = localStorage.getItem(key);
+  if (existing) try { return JSON.parse(existing); } catch {}
+  const seeds = {
+    'CLT-1000': [
+      { date: weeksAgo(12), chest: 42, waist: 36, hips: 40, armL: 15, armR: 15.5 },
+      { date: weeksAgo(8), chest: 42.5, waist: 34.5, hips: 39.5, armL: 15.5, armR: 16 },
+      { date: weeksAgo(4), chest: 43, waist: 33, hips: 39, armL: 16, armR: 16 },
+      { date: weeksAgo(0), chest: 43.5, waist: 32, hips: 38.5, armL: 16, armR: 16.5 },
+    ],
+    'CLT-1001': [
+      { date: weeksAgo(12), chest: 36, waist: 30, hips: 38, armL: 11, armR: 11 },
+      { date: weeksAgo(8), chest: 35.5, waist: 29, hips: 37.5, armL: 11.5, armR: 11.5 },
+      { date: weeksAgo(4), chest: 35, waist: 28, hips: 37, armL: 11.5, armR: 12 },
+      { date: weeksAgo(0), chest: 34.5, waist: 27, hips: 36.5, armL: 12, armR: 12 },
+    ],
   };
+  const data = seeds[clientId] || null;
+  if (data) localStorage.setItem(key, JSON.stringify(data));
+  return data;
+}
 
-  const glassHover = (e) => {
-    e.currentTarget.style.transform = 'translateY(-2px)';
-    e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.04)';
-  };
-  const glassUnhover = (e) => {
-    e.currentTarget.style.transform = 'translateY(0)';
-    e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.06), 0 1.5px 4px rgba(0,0,0,0.03)';
-  };
+/* ── SVG Mini Weight Chart ── */
+function MiniWeightChart({ data }) {
+  if (!data || data.length < 2) return <div style={{ color: '#999', fontSize: 13, padding: 20, textAlign: 'center' }}>No weight data yet</div>;
+  const W = 320, H = 140, pad = { l: 40, r: 12, t: 12, b: 28 };
+  const cW = W - pad.l - pad.r, cH = H - pad.t - pad.b;
+  const weights = data.map(d => d.weight);
+  const minW = Math.floor(Math.min(...weights) - 2), maxW = Math.ceil(Math.max(...weights) + 2);
+  const range = maxW - minW || 1;
+  const pts = data.map((d, i) => ({
+    x: pad.l + (i / (data.length - 1)) * cW,
+    y: pad.t + cH - ((d.weight - minW) / range) * cH,
+  }));
+  const line = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+  const area = `${line} L${pts[pts.length - 1].x},${H - pad.b} L${pts[0].x},${H - pad.b} Z`;
 
-  const Card = ({ children, style, hover = false, className = '' }) => (
-    <div
-      className={className}
-      style={{ ...glass, ...style }}
-      onMouseEnter={hover ? glassHover : undefined}
-      onMouseLeave={hover ? glassUnhover : undefined}
-    >
-      {children}
-    </div>
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto' }}>
+      <defs>
+        <linearGradient id="wgFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={ACCENT} stopOpacity="0.2" />
+          <stop offset="100%" stopColor={ACCENT} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {[0, 0.25, 0.5, 0.75, 1].map((f, i) => {
+        const y = pad.t + cH * (1 - f);
+        const val = Math.round(minW + range * f);
+        return <g key={i}>
+          <line x1={pad.l} y1={y} x2={W - pad.r} y2={y} stroke="#EEE" strokeWidth="1" />
+          <text x={pad.l - 6} y={y + 4} textAnchor="end" fill="#999" fontSize="10" fontFamily={FONT}>{val}</text>
+        </g>;
+      })}
+      <path d={area} fill="url(#wgFill)" />
+      <path d={line} fill="none" stroke={ACCENT} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      {pts.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="#fff" stroke={ACCENT} strokeWidth="2" />)}
+      {data.filter((_, i) => i === 0 || i === data.length - 1 || i === Math.floor(data.length / 2)).map((d, i) => {
+        const idx = i === 0 ? 0 : i === 1 ? Math.floor(data.length / 2) : data.length - 1;
+        return <text key={i} x={pts[idx].x} y={H - 8} textAnchor="middle" fill="#999" fontSize="9" fontFamily={FONT}>{fmtDate(data[idx].date)}</text>;
+      })}
+    </svg>
   );
+}
 
-  const SectionLabel = ({ children }) => (
+/* ── Donut Ring (for macros) ── */
+function DonutRing({ value, max, color, size = 64, strokeWidth = 6 }) {
+  const r = (size - strokeWidth) / 2;
+  const circ = 2 * Math.PI * r;
+  const pct = Math.min(value / max, 1);
+  return (
+    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#F0F0F0" strokeWidth={strokeWidth} />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={strokeWidth}
+        strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)} strokeLinecap="round"
+        style={{ transition: 'stroke-dashoffset 0.8s ease' }} />
+    </svg>
+  );
+}
+
+/* ── Bottom Tab Bar ── */
+const TABS = [
+  { id: 'home', label: 'Home', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+  { id: 'workouts', label: 'Workouts', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
+  { id: 'progress', label: 'Progress', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+  { id: 'nutrition', label: 'Nutrition', icon: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z' },
+  { id: 'chat', label: 'Chat', icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
+];
+
+function BottomNav({ active, onNav }) {
+  return (
     <div style={{
-      fontFamily: s.MONO, fontSize: 10, textTransform: 'uppercase', letterSpacing: 2,
-      color: s.text3, marginBottom: 14, fontWeight: 500,
-    }}>{children}</div>
-  );
-
-  const SectionTitle = ({ children, sub }) => (
-    <div style={{ marginBottom: 28 }} className="portal-fadeInUp">
-      <h2 style={{ font: `300 28px ${s.FONT}`, color: s.text, margin: 0, letterSpacing: -0.5 }}>{children}</h2>
-      {sub && <p style={{ font: `400 14px ${s.FONT}`, color: s.text3, margin: '6px 0 0', letterSpacing: 0.1 }}>{sub}</p>}
-    </div>
-  );
-
-  const Badge = ({ text, color, bg }) => (
-    <span style={{
-      display: 'inline-block', padding: '5px 14px', borderRadius: 100,
-      font: `600 10px ${s.FONT}`, textTransform: 'uppercase', letterSpacing: 1,
-      color: color || '#fff', background: bg || s.accent,
-    }}>{text}</span>
-  );
-
-  const ProgressBar = ({ value, max, color }) => (
-    <div style={{ height: 6, borderRadius: 100, background: 'rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-      <div style={{
-        height: '100%', borderRadius: 100, width: `${Math.min(100, (value / max) * 100)}%`,
-        background: color || s.accent, transition: 'width 0.6s cubic-bezier(0.16,1,0.3,1)',
-      }} />
-    </div>
-  );
-
-  /* --- SVG progress ring for home dashboard --- */
-  const ProgressRing = ({ value, max, size = 56, stroke = 5 }) => {
-    const pct = max > 0 ? Math.min(1, value / max) : 0;
-    const r = (size - stroke) / 2;
-    const circ = 2 * Math.PI * r;
-    return (
-      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth={stroke} />
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={s.accent} strokeWidth={stroke}
-          strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)} strokeLinecap="round"
-          style={{ transition: 'stroke-dashoffset 0.8s cubic-bezier(0.16,1,0.3,1)' }} />
-      </svg>
-    );
-  };
-
-  // ------- SECTION RENDERERS -------
-
-  const renderHome = () => {
-    const firstPlan = treatmentPlans[0];
-    const planCompleted = firstPlan ? firstPlan.sessions.filter(ss => ss.status === 'completed').length : 0;
-    const planTotal = firstPlan ? firstPlan.sessions.length : 0;
-    const walletTotal = giftCards.reduce((sum, g) => sum + g.balance, 0) + credits.reduce((sum, c) => sum + c.balance, 0);
-
-    return (
-      <div>
-        {/* --- Hero Welcome Gradient --- */}
-        <div className="portal-fadeInUp" style={{
-          borderRadius: 24, padding: '40px 36px 36px',
-          background: `linear-gradient(135deg, ${s.accent}18 0%, ${s.accent}08 50%, rgba(255,255,255,0) 100%)`,
-          marginBottom: 28, position: 'relative', overflow: 'hidden',
-        }}>
-          {/* decorative accent circle */}
-          <div style={{
-            position: 'absolute', top: -40, right: -40, width: 160, height: 160,
-            borderRadius: '50%', background: `${s.accent}0A`, pointerEvents: 'none',
-          }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', position: 'relative' }}>
-            <div style={{
-              width: 60, height: 60, borderRadius: '50%',
-              background: `linear-gradient(135deg, ${s.accent}30, ${s.accent}10)`,
-              border: `2px solid ${s.accent}25`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              font: `500 22px ${s.FONT}`, color: s.accent, flexShrink: 0,
-              letterSpacing: -0.5,
-            }}>
-              {patient?.firstName?.[0]}{patient?.lastName?.[0]}
-            </div>
-            <div style={{ flex: 1 }}>
-              <h1 style={{ font: `300 32px ${s.FONT}`, color: s.text, margin: 0, letterSpacing: -0.8 }}>
-                Welcome back, {patientName}
-              </h1>
-              <p style={{ font: `400 14px ${s.FONT}`, color: s.text2, margin: '4px 0 0', letterSpacing: 0.1 }}>
-                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-              </p>
-            </div>
-            {membership && tierInfo && (
-              <span style={{
-                padding: '6px 18px', borderRadius: 100,
-                background: `${tierInfo.color}15`, border: `1.5px solid ${tierInfo.color}30`,
-                font: `600 11px ${s.FONT}`, textTransform: 'uppercase', letterSpacing: 1.2,
-                color: tierInfo.color,
-              }}>{membership.tier} Client</span>
-            )}
-          </div>
-
-          {/* Floating next-appointment glass card */}
-          {nextAppt && (
-            <div style={{
-              marginTop: 28, ...glass,
-              borderRadius: 16, padding: '22px 26px',
-              borderLeft: `3px solid ${s.accent}`,
-              background: 'rgba(255,255,255,0.65)',
-            }}>
-              <SectionLabel>Next Session</SectionLabel>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ font: `500 17px ${s.FONT}`, color: s.text, marginBottom: 3, letterSpacing: -0.2 }}>
-                    {svcName(nextAppt.serviceId)}
-                  </div>
-                  <div style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>
-                    {fmtWeekday(nextAppt.date)} at {nextAppt.time}
-                  </div>
-                  <div style={{ font: `400 13px ${s.FONT}`, color: s.text3, marginTop: 2 }}>
-                    with {provName(nextAppt.providerId)}
-                  </div>
-                </div>
-                <button onClick={() => setSection('appointments')} style={{
-                  ...s.pillOutline, padding: '10px 22px', borderRadius: 100,
-                }}>View All</button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* --- Dashboard Cards Grid --- */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16, marginBottom: 28 }}>
-          {/* Membership summary */}
-          <Card hover className="portal-fadeInUp portal-stagger-1" style={{ padding: '24px 22px', cursor: 'pointer' }}
-            onClick={() => setSection('membership')}>
-            <SectionLabel>Membership</SectionLabel>
-            {membership ? (
-              <>
-                <div style={{ font: `500 18px ${s.FONT}`, color: s.text, marginBottom: 4 }}>{membership.tier}</div>
-                {(membership.wallet || []).slice(0, 1).map((w, i) => (
-                  <div key={i} style={{ font: `400 13px ${s.FONT}`, color: s.text2 }}>
-                    {w.remaining} / {w.total} {w.service} remaining
-                  </div>
-                ))}
-              </>
-            ) : (
-              <div style={{ font: `400 14px ${s.FONT}`, color: s.text3 }}>No membership</div>
-            )}
-          </Card>
-
-          {/* Wallet summary */}
-          <Card hover className="portal-fadeInUp portal-stagger-2" style={{ padding: '24px 22px', cursor: 'pointer' }}
-            onClick={() => setSection('wallet')}>
-            <SectionLabel>Wallet</SectionLabel>
-            <div style={{ font: `500 22px ${s.FONT}`, color: s.text, marginBottom: 2 }}>
-              {walletTotal > 0 ? fmt(walletTotal) : '$0'}
-            </div>
-            {loyalty && (
-              <div style={{ font: `400 13px ${s.FONT}`, color: s.accent }}>{loyalty.points.toLocaleString()} loyalty pts</div>
-            )}
-          </Card>
-
-          {/* Class package progress */}
-          <Card hover className="portal-fadeInUp portal-stagger-3" style={{ padding: '24px 22px', cursor: 'pointer' }}
-            onClick={() => setSection('treatment')}>
-            <SectionLabel>Training Program</SectionLabel>
-            {firstPlan ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <ProgressRing value={planCompleted} max={planTotal} />
-                <div>
-                  <div style={{ font: `500 15px ${s.FONT}`, color: s.text }}>{firstPlan.name}</div>
-                  <div style={{ font: `400 13px ${s.FONT}`, color: s.text2 }}>
-                    {planCompleted}/{planTotal} sessions
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div style={{ font: `400 14px ${s.FONT}`, color: s.text3 }}>No active package</div>
-            )}
-          </Card>
-
-          {/* Upcoming appts count */}
-          <Card hover className="portal-fadeInUp portal-stagger-4" style={{ padding: '24px 22px', cursor: 'pointer' }}
-            onClick={() => setSection('appointments')}>
-            <SectionLabel>Upcoming</SectionLabel>
-            <div style={{ font: `500 28px ${s.FONT}`, color: s.accent, marginBottom: 2 }}>{upcomingAppts.length}</div>
-            <div style={{ font: `400 13px ${s.FONT}`, color: s.text3 }}>
-              {upcomingAppts.length === 1 ? 'session' : 'sessions'}
-            </div>
-          </Card>
-        </div>
-
-        {/* Quick action buttons */}
-        <div className="portal-fadeInUp portal-stagger-5" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <button style={{
-            ...s.pillAccent, padding: '14px 32px', fontSize: 14, borderRadius: 100,
-            boxShadow: `0 4px 20px ${s.accent}30`,
-          }}>
-            Book a Session
-          </button>
-          <button onClick={() => setSection('referrals')} style={{
-            ...s.pillOutline, padding: '14px 32px', fontSize: 14, borderRadius: 100,
-          }}>
-            Refer a Friend
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  const renderAppointments = () => (
-    <div>
-      <SectionTitle sub={`${upcomingAppts.length} upcoming, ${pastAppts.length} past`}>
-        My Sessions
-      </SectionTitle>
-
-      {/* Upcoming */}
-      <SectionLabel>Upcoming</SectionLabel>
-      {upcomingAppts.length === 0 ? (
-        <Card className="portal-fadeInUp" style={{ padding: '40px 28px', textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ font: `400 15px ${s.FONT}`, color: s.text3 }}>No upcoming sessions</div>
-        </Card>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 28 }}>
-          {upcomingAppts.map((a, i) => {
-            const dt = new Date(a.date + 'T12:00:00');
-            return (
-              <Card key={a.id} hover className={`portal-fadeInUp portal-stagger-${Math.min(i + 1, 8)}`}
-                style={{ padding: '20px 24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-                  {/* Date tile */}
-                  <div style={{
-                    width: 52, height: 58, borderRadius: 14,
-                    background: `linear-gradient(135deg, ${s.accent}15, ${s.accent}08)`,
-                    border: `1px solid ${s.accent}20`,
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  }}>
-                    <div style={{ font: `600 20px ${s.FONT}`, color: s.accent, lineHeight: 1 }}>
-                      {dt.getDate()}
-                    </div>
-                    <div style={{ font: `500 9px ${s.MONO}`, color: s.accent, textTransform: 'uppercase', letterSpacing: 1, marginTop: 2 }}>
-                      {dt.toLocaleDateString('en-US', { month: 'short' })}
-                    </div>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ font: `500 16px ${s.FONT}`, color: s.text, letterSpacing: -0.2 }}>{svcName(a.serviceId)}</div>
-                    <div style={{ font: `400 13px ${s.FONT}`, color: s.text2, marginTop: 2 }}>
-                      {fmtWeekday(a.date)} at {a.time}
-                    </div>
-                    <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, marginTop: 2 }}>
-                      with {provName(a.providerId)}
-                    </div>
-                  </div>
-                  <Badge
-                    text={a.status}
-                    color={a.status === 'confirmed' ? s.success : s.warning}
-                    bg={a.status === 'confirmed' ? '#F0FDF4' : '#FFFBEB'}
-                  />
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-
-      <div className="portal-fadeInUp portal-stagger-3" style={{ marginBottom: 36 }}>
-        <button style={{
-          ...s.pillAccent, padding: '14px 32px', fontSize: 14, borderRadius: 100,
-          boxShadow: `0 4px 20px ${s.accent}30`,
-        }}>
-          Book New Session
-        </button>
-      </div>
-
-      {/* Divider */}
-      <div style={{ height: 1, background: 'rgba(0,0,0,0.06)', marginBottom: 28 }} />
-
-      {/* Past */}
-      <SectionLabel>Past Sessions</SectionLabel>
-      {pastAppts.length === 0 ? (
-        <Card className="portal-fadeInUp" style={{ padding: '40px 28px', textAlign: 'center' }}>
-          <div style={{ font: `400 15px ${s.FONT}`, color: s.text3 }}>No past sessions</div>
-        </Card>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {pastAppts.slice(0, 10).map((a, i) => (
-            <Card key={a.id} className={`portal-fadeInUp portal-stagger-${Math.min(i + 1, 8)}`}
-              style={{ padding: '16px 24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ font: `500 14px ${s.FONT}`, color: s.text }}>{svcName(a.serviceId)}</div>
-                  <div style={{ font: `400 12px ${s.FONT}`, color: s.text3 }}>
-                    {fmtDate(a.date)} at {a.time} \u00B7 {provName(a.providerId)}
-                  </div>
-                </div>
-                <span style={{
-                  font: `500 10px ${s.FONT}`, textTransform: 'uppercase', letterSpacing: 1,
-                  color: s.text3, opacity: 0.7,
-                }}>Completed</span>
-              </div>
-            </Card>
-          ))}
-          {pastAppts.length > 10 && (
-            <div style={{ font: `400 13px ${s.FONT}`, color: s.text3, textAlign: 'center', padding: 12 }}>
-              + {pastAppts.length - 10} more
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-
-  const renderTreatmentPlan = () => (
-    <div>
-      <SectionTitle sub="Your personalized training journey">My Training Program</SectionTitle>
-      {treatmentPlans.length === 0 ? (
-        <Card className="portal-fadeInUp" style={{ padding: '48px 32px', textAlign: 'center' }}>
-          <div style={{ font: `300 20px ${s.FONT}`, color: s.text, marginBottom: 10 }}>No active training program</div>
-          <div style={{ font: `400 14px ${s.FONT}`, color: s.text3, maxWidth: 340, margin: '0 auto' }}>
-            Ask your trainer about a personalized training program at your next visit.
-          </div>
-        </Card>
-      ) : treatmentPlans.map((plan, pi) => {
-        const completed = plan.sessions.filter(ss => ss.status === 'completed').length;
-        const total = plan.sessions.length;
-        const nextSession = plan.sessions.find(ss => ss.status === 'upcoming' || ss.status === 'in-progress');
+      position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
+      background: '#fff', borderTop: '1px solid #EBEBEB',
+      display: 'flex', justifyContent: 'space-around', alignItems: 'center',
+      padding: '6px 0 env(safe-area-inset-bottom, 8px)',
+      boxShadow: '0 -2px 12px rgba(0,0,0,0.04)',
+    }}>
+      {TABS.map(t => {
+        const isActive = active === t.id;
         return (
-          <Card key={plan.id} className={`portal-fadeInUp portal-stagger-${Math.min(pi + 1, 4)}`}
-            style={{ padding: '28px 30px', marginBottom: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
-              <div>
-                <div style={{ font: `300 22px ${s.FONT}`, color: s.text, letterSpacing: -0.3 }}>{plan.name}</div>
-                <div style={{ font: `400 13px ${s.FONT}`, color: s.text2, marginTop: 4 }}>
-                  with {provName(plan.providerId)}
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <ProgressRing value={completed} max={total} size={48} stroke={4} />
-                <div style={{ font: `500 14px ${s.FONT}`, color: s.accent }}>{completed}/{total}</div>
-              </div>
-            </div>
-            <ProgressBar value={completed} max={total} />
-            <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, marginTop: 8 }}>
-              {Math.round((completed / total) * 100)}% complete
-            </div>
-            {nextSession && (
-              <div style={{
-                marginTop: 20, padding: '16px 20px', borderRadius: 14,
-                background: `${s.accent}08`, border: `1px solid ${s.accent}15`,
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10,
-              }}>
-                <div>
-                  <div style={{ font: `500 14px ${s.FONT}`, color: s.text }}>Next: {nextSession.name}</div>
-                  <div style={{ font: `400 12px ${s.FONT}`, color: s.text2, marginTop: 2 }}>{fmtDate(nextSession.date)}</div>
-                </div>
-                <Badge text={nextSession.status === 'in-progress' ? 'training' : nextSession.status} color={nextSession.status === 'in-progress' ? s.warning : s.accent} bg={nextSession.status === 'in-progress' ? '#FFFBEB' : s.accentLight} />
-              </div>
-            )}
-            {/* Sessions list */}
-            <div style={{ marginTop: 24 }}>
-              <SectionLabel>All Sessions</SectionLabel>
-              {plan.sessions.map((ss, i) => (
-                <div key={i} style={{
-                  display: 'flex', alignItems: 'center', gap: 14, padding: '12px 0',
-                  borderBottom: i < plan.sessions.length - 1 ? '1px solid rgba(0,0,0,0.04)' : 'none',
-                }}>
-                  <div style={{
-                    width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: ss.status === 'completed' ? s.success : ss.status === 'in-progress' ? s.warning : 'rgba(0,0,0,0.06)',
-                    color: ss.status === 'completed' || ss.status === 'in-progress' ? '#fff' : s.text3,
-                    font: `600 11px ${s.FONT}`,
-                  }}>
-                    {ss.status === 'completed' ? '\u2713' : i + 1}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ font: `500 13px ${s.FONT}`, color: ss.status === 'completed' ? s.text2 : s.text }}>{ss.name}</div>
-                    {ss.date && <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>{fmtDate(ss.date)}</div>}
-                  </div>
-                  <span style={{
-                    font: `500 10px ${s.FONT}`, textTransform: 'uppercase', letterSpacing: 0.8,
-                    color: ss.status === 'completed' ? s.success : ss.status === 'in-progress' ? s.warning : s.text3,
-                  }}>{ss.status === 'in-progress' ? 'training' : ss.status}</span>
-                </div>
-              ))}
-            </div>
-          </Card>
+          <button key={t.id} onClick={() => onNav(t.id)} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+            padding: '6px 12px', minWidth: 56, color: isActive ? ACCENT : '#999',
+            transition: 'color 0.2s',
+          }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              strokeWidth={isActive ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
+              <path d={t.icon} />
+            </svg>
+            <span style={{ fontSize: 10, fontWeight: isActive ? 600 : 400, fontFamily: FONT }}>{t.label}</span>
+          </button>
         );
       })}
     </div>
   );
+}
 
-  const renderMembership = () => (
-    <div>
-      <SectionTitle sub="Your exclusive benefits">My Membership</SectionTitle>
-      {!membership ? (
-        <Card className="portal-fadeInUp" style={{ padding: '48px 32px', textAlign: 'center' }}>
-          <div style={{ font: `300 22px ${s.FONT}`, color: s.text, marginBottom: 10 }}>
-            You don't have a membership yet
-          </div>
-          <div style={{ font: `400 14px ${s.FONT}`, color: s.text3, marginBottom: 28, maxWidth: 340, margin: '0 auto 28px' }}>
-            Unlock exclusive savings with a membership tier.
-          </div>
-          <button style={{
-            ...s.pillAccent, padding: '14px 36px', fontSize: 14, borderRadius: 100,
-            boxShadow: `0 4px 20px ${s.accent}30`,
-          }}>
-            Explore Plans
-          </button>
-        </Card>
-      ) : (
-        <div>
-          <Card className="portal-fadeInUp" style={{
-            padding: '30px', marginBottom: 20,
-            background: `linear-gradient(135deg, ${tierInfo?.bg || '#fff'}, rgba(255,255,255,0.6))`,
-            backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22, flexWrap: 'wrap', gap: 12 }}>
-              <div>
-                <Badge text={membership.tier} color={tierInfo?.color} bg='rgba(255,255,255,0.85)' />
-                <div style={{ font: `300 24px ${s.FONT}`, color: s.text, marginTop: 12, letterSpacing: -0.3 }}>
-                  {membership.tier} Membership
-                </div>
-                <div style={{ font: `400 13px ${s.FONT}`, color: s.text2, marginTop: 4 }}>
-                  Client since {fmtDate(membership.startDate)}
-                </div>
-              </div>
-              <Badge text={membership.status} color={membership.status === 'active' ? s.success : s.warning}
-                bg={membership.status === 'active' ? '#F0FDF4' : '#FFFBEB'} />
-            </div>
+/* ══════════════════════════════════════════════
+   PORTAL — Main Component
+   ══════════════════════════════════════════════ */
+export default function Portal() {
+  const [, setTick] = useState(0);
+  const [tab, setTab] = useState('home');
+  const [selectedClientId, setSelectedClientId] = useState('CLT-1000');
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const chatEndRef = useRef(null);
 
-            {membership.nextBilling && (
-              <div style={{ font: `400 13px ${s.FONT}`, color: s.text2, marginBottom: 22 }}>
-                Next billing: <strong>{fmtDate(membership.nextBilling)}</strong>
-              </div>
-            )}
+  // Subscribe to store updates
+  useEffect(() => {
+    const unsub = subscribe(() => setTick(t => t + 1));
+    return unsub;
+  }, []);
 
-            {membership.credits > 0 && (
-              <div style={{
-                padding: '14px 18px', borderRadius: 14, background: 'rgba(255,255,255,0.75)',
-                font: `500 14px ${s.FONT}`, color: s.accent, marginBottom: 20,
-                backdropFilter: 'blur(12px)',
-              }}>
-                {fmt(membership.credits * 100)} membership credits available
-              </div>
-            )}
+  // Seed chat messages for selected client
+  useEffect(() => {
+    const client = getPatients().find(p => p.id === selectedClientId);
+    const name = client ? client.firstName : 'there';
+    setChatMessages([
+      { id: 1, from: 'trainer', text: `Hey ${name}! Welcome to FORGE. I've put together your first program based on our assessment. How are you feeling about everything?`, time: '9:00 AM', date: 'Mon' },
+      { id: 2, from: 'client', text: 'Feeling great Marcus! A little sore from yesterday but in a good way 💪', time: '9:15 AM', date: 'Mon' },
+      { id: 3, from: 'trainer', text: 'That\'s exactly what we want — good soreness means progress. Make sure you\'re hitting your protein goals today and getting plenty of sleep tonight.', time: '9:18 AM', date: 'Mon' },
+      { id: 4, from: 'client', text: 'Will do! Quick question — should I be doing any cardio on my off days?', time: '10:30 AM', date: 'Mon' },
+      { id: 5, from: 'trainer', text: 'Light cardio is great on rest days — 20-30 min walk, light bike, or swimming. Nothing too intense. Save your energy for our sessions. See you tomorrow at 7am! 🔥', time: '10:35 AM', date: 'Mon' },
+      { id: 6, from: 'client', text: 'Perfect, see you then!', time: '10:36 AM', date: 'Mon' },
+    ]);
+  }, [selectedClientId]);
 
-            <SectionLabel>Included Services</SectionLabel>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {(membership.wallet || []).map((w, i) => (
-                <div key={i} style={{ background: 'rgba(255,255,255,0.7)', borderRadius: 14, padding: '16px 18px', backdropFilter: 'blur(8px)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ font: `500 14px ${s.FONT}`, color: s.text }}>{w.service}</span>
-                    <span style={{ font: `600 13px ${s.MONO}`, color: w.remaining > 0 ? s.accent : s.text3 }}>
-                      {w.remaining} of {w.total}
-                    </span>
-                  </div>
-                  <ProgressBar value={w.remaining} max={w.total} color={w.remaining > 0 ? s.accent : '#DDD'} />
-                </div>
-              ))}
-            </div>
-          </Card>
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages, tab]);
 
-          {/* Packages */}
-          {packages.length > 0 && (
-            <div>
-              <SectionLabel>My Packages</SectionLabel>
-              {packages.map((pkg, i) => (
-                <Card key={pkg.id} className={`portal-fadeInUp portal-stagger-${Math.min(i + 1, 4)}`}
-                  style={{ padding: '22px 24px', marginBottom: 12 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                    <div style={{ font: `500 16px ${s.FONT}`, color: s.text }}>{pkg.name}</div>
-                    <Badge text={pkg.status} color={pkg.status === 'active' ? s.success : s.text3}
-                      bg={pkg.status === 'active' ? '#F0FDF4' : '#F5F5F5'} />
-                  </div>
-                  <div style={{ font: `400 13px ${s.FONT}`, color: s.text2, marginBottom: 10 }}>
-                    {pkg.usedSessions} of {pkg.totalSessions} sessions used \u00B7 Expires {fmtDate(pkg.expiresDate)}
-                  </div>
-                  <ProgressBar value={pkg.usedSessions} max={pkg.totalSessions} color={s.accent} />
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+  // Data
+  const clients = getPatients();
+  const client = clients.find(p => p.id === selectedClientId) || clients[0];
+  const appointments = getAppointments();
+  const services = getServices();
+  const providers = getProviders();
+  const programs = getClassPackages();
+  const trainer = providers[0] || { name: 'Marcus Cole', title: 'Head Trainer' };
+
+  const todayStr = today();
+  const myAppts = appointments.filter(a => a.patientId === client?.id);
+  const todayAppt = myAppts.find(a => a.date === todayStr && a.status !== 'completed');
+  const upcomingAppts = myAppts.filter(a => a.date >= todayStr && a.status !== 'completed').sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+  const pastAppts = myAppts.filter(a => a.date < todayStr || a.status === 'completed').sort((a, b) => b.date.localeCompare(a.date));
+  const myProgram = programs.find(p => p.patientId === client?.id);
+  const sessionsThisMonth = myAppts.filter(a => a.status === 'completed' && a.date?.startsWith(todayStr.slice(0, 7))).length;
+
+  // Streak calculation (consecutive days with completed sessions counting backwards from today)
+  const completedDates = new Set(myAppts.filter(a => a.status === 'completed').map(a => a.date));
+  let streak = 0;
+  const checkDate = new Date();
+  for (let i = 0; i < 365; i++) {
+    const ds = checkDate.toISOString().slice(0, 10);
+    if (completedDates.has(ds)) { streak++; checkDate.setDate(checkDate.getDate() - 1); }
+    else if (i === 0) { checkDate.setDate(checkDate.getDate() - 1); } // skip today if no session yet
+    else break;
+  }
+  // Default to a demo streak if none
+  const displayStreak = streak || 12;
+
+  // Progress data
+  const progressData = getSeedProgress(client?.id);
+  const currentWeight = progressData ? progressData[progressData.length - 1]?.weight : null;
+  const prs = getSeedPRs(client?.id);
+  const measurements = getSeedMeasurements(client?.id);
+
+  const getServiceName = (id) => services.find(s => s.id === id)?.name || 'Training Session';
+
+  // Next session date
+  const nextSession = upcomingAppts[0];
+
+  // Nutrition mock data
+  const macros = { protein: { current: 142, goal: 180 }, carbs: { current: 210, goal: 250 }, fat: { current: 58, goal: 70 }, calories: { current: 1910, goal: 2200 } };
+  const meals = [
+    { time: '7:00 AM', name: 'Breakfast', items: 'Eggs (3), oatmeal, banana', cals: 520 },
+    { time: '10:30 AM', name: 'Snack', items: 'Protein shake, almonds', cals: 320 },
+    { time: '1:00 PM', name: 'Lunch', items: 'Grilled chicken, rice, broccoli', cals: 580 },
+    { time: '4:00 PM', name: 'Pre-Workout', items: 'Apple, peanut butter', cals: 210 },
+    { time: '7:30 PM', name: 'Dinner', items: 'Salmon, sweet potato, asparagus', cals: 620 },
+  ];
+
+  const sendChat = () => {
+    if (!chatInput.trim()) return;
+    setChatMessages(prev => [...prev, {
+      id: Date.now(), from: 'client', text: chatInput.trim(),
+      time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+      date: 'Now',
+    }]);
+    setChatInput('');
+    // Simulate trainer response
+    setTimeout(() => {
+      setChatMessages(prev => [...prev, {
+        id: Date.now() + 1, from: 'trainer', text: 'Got it! I\'ll get back to you shortly. Keep up the great work! 💪',
+        time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+        date: 'Now',
+      }]);
+    }, 1500);
+  };
+
+  /* ── Card wrapper ── */
+  const Card = ({ children, style = {}, className = '' }) => (
+    <div className={`pt-fadeUp ${className}`} style={{
+      background: '#fff', borderRadius: 16, padding: '20px',
+      boxShadow: CARD_SHADOW, ...style,
+    }}>{children}</div>
   );
 
-  const renderWallet = () => (
-    <div>
-      <SectionTitle sub="Gift cards, credits & loyalty points">My Wallet</SectionTitle>
+  const SectionLabel = ({ children }) => (
+    <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1.2, color: '#999', marginBottom: 12, fontFamily: FONT }}>{children}</div>
+  );
 
-      {/* Summary cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14, marginBottom: 28 }}>
-        <Card hover className="portal-fadeInUp portal-stagger-1" style={{ padding: '24px 22px' }}>
-          <SectionLabel>Gift Cards</SectionLabel>
-          <div style={{ font: `300 28px ${s.FONT}`, color: s.text }}>
-            {fmt(giftCards.reduce((sum, g) => sum + g.balance, 0))}
-          </div>
-        </Card>
-        <Card hover className="portal-fadeInUp portal-stagger-2" style={{ padding: '24px 22px' }}>
-          <SectionLabel>Account Credits</SectionLabel>
-          <div style={{ font: `300 28px ${s.FONT}`, color: s.text }}>
-            {fmt(credits.reduce((sum, c) => sum + c.balance, 0))}
-          </div>
-        </Card>
-        <Card hover className="portal-fadeInUp portal-stagger-3" style={{ padding: '24px 22px' }}>
-          <SectionLabel>Loyalty Points</SectionLabel>
-          <div style={{ font: `300 28px ${s.FONT}`, color: s.accent }}>
-            {loyalty ? loyalty.points.toLocaleString() : '0'}
-          </div>
-          {loyalty && (
-            <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, marginTop: 4 }}>
-              {loyalty.lifetimePoints?.toLocaleString()} lifetime
+  /* ════════════════════════
+     TAB: HOME
+     ════════════════════════ */
+  const renderHome = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Today's Workout */}
+      {todayAppt ? (
+        <Card className="pt-fadeUp-1">
+          <SectionLabel>Today's Workout</SectionLabel>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: 17, fontWeight: 600, color: '#111', fontFamily: FONT }}>{getServiceName(todayAppt.serviceId)}</div>
+              <div style={{ fontSize: 13, color: '#777', marginTop: 4, fontFamily: FONT }}>{fmtTime(todayAppt.time)} &middot; {todayAppt.duration || 60} min</div>
             </div>
-          )}
+            <button style={{
+              background: ACCENT, color: '#fff', border: 'none', borderRadius: 12,
+              padding: '12px 24px', fontFamily: FONT, fontWeight: 600, fontSize: 14,
+              cursor: 'pointer', boxShadow: `0 4px 14px ${ACCENT}44`,
+              transition: 'all 0.2s',
+            }}>Start Workout</button>
+          </div>
+        </Card>
+      ) : (
+        <Card className="pt-fadeUp-1">
+          <SectionLabel>Today</SectionLabel>
+          <div style={{ fontSize: 14, color: '#777', fontFamily: FONT }}>No workout scheduled today. Rest day! 😴</div>
+        </Card>
+      )}
+
+      {/* Streak + Quick Stats */}
+      <div className="portal-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <Card className="pt-fadeUp-2" style={{ textAlign: 'center', padding: '16px' }}>
+          <div className="pt-streak" style={{ fontSize: 36, fontWeight: 700, fontFamily: FONT }}>🔥 {displayStreak}</div>
+          <div style={{ fontSize: 12, color: '#777', fontFamily: FONT, marginTop: 2 }}>Day Streak</div>
+        </Card>
+        <Card className="pt-fadeUp-2" style={{ textAlign: 'center', padding: '16px' }}>
+          <div style={{ fontSize: 36, fontWeight: 700, color: ACCENT, fontFamily: FONT }}>{sessionsThisMonth}</div>
+          <div style={{ fontSize: 12, color: '#777', fontFamily: FONT, marginTop: 2 }}>Sessions This Month</div>
         </Card>
       </div>
 
-      {/* Gift Cards detail */}
-      {giftCards.length > 0 && (
-        <div style={{ marginBottom: 28 }}>
-          <SectionLabel>Gift Cards</SectionLabel>
-          {giftCards.map((gc, i) => (
-            <Card key={gc.id} className={`portal-fadeInUp portal-stagger-${Math.min(i + 1, 4)}`}
-              style={{ padding: '20px 24px', marginBottom: 10 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ font: `500 14px ${s.FONT}`, color: s.text }}>
-                    Gift Card from {gc.purchasedBy}
-                  </div>
-                  {gc.recipientMessage && (
-                    <div style={{ font: `400 12px ${s.FONT}`, color: s.text2, fontStyle: 'italic', marginTop: 3 }}>
-                      "{gc.recipientMessage}"
-                    </div>
-                  )}
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ font: `500 17px ${s.FONT}`, color: s.accent }}>{fmt(gc.balance)}</div>
-                  <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>of {fmt(gc.amount)}</div>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
+      <div className="portal-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <Card className="pt-fadeUp-3" style={{ textAlign: 'center', padding: '16px' }}>
+          <div style={{ fontSize: 28, fontWeight: 700, color: '#111', fontFamily: FONT }}>{currentWeight ? `${currentWeight} lbs` : '--'}</div>
+          <div style={{ fontSize: 12, color: '#777', fontFamily: FONT, marginTop: 2 }}>Current Weight</div>
+        </Card>
+        <Card className="pt-fadeUp-3" style={{ textAlign: 'center', padding: '16px' }}>
+          <div style={{ fontSize: 16, fontWeight: 600, color: '#111', fontFamily: FONT }}>{nextSession ? fmtWeekday(nextSession.date) : 'None scheduled'}</div>
+          <div style={{ fontSize: 12, color: '#777', fontFamily: FONT, marginTop: 2 }}>Next Session</div>
+        </Card>
+      </div>
 
-      {/* Credits detail */}
-      {credits.length > 0 && (
-        <div style={{ marginBottom: 28 }}>
-          <SectionLabel>Account Credits</SectionLabel>
-          {credits.map((cr, i) => (
-            <Card key={cr.id} className={`portal-fadeInUp portal-stagger-${Math.min(i + 1, 4)}`}
-              style={{ padding: '18px 24px', marginBottom: 10 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ font: `500 14px ${s.FONT}`, color: s.text }}>{cr.reason}</div>
-                  <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>{fmtDate(cr.createdAt)}</div>
-                </div>
-                <div style={{ font: `500 17px ${s.FONT}`, color: s.success }}>{fmt(cr.balance)}</div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* Loyalty history */}
-      {loyalty && loyalty.transactions && (
-        <div className="portal-fadeInUp portal-stagger-4">
-          <SectionLabel>Points Activity</SectionLabel>
-          <Card style={{ padding: '20px 24px' }}>
-            {loyalty.transactions.slice().reverse().map((tx, i) => (
-              <div key={i} style={{
-                display: 'flex', justifyContent: 'space-between', padding: '12px 0',
-                borderBottom: i < loyalty.transactions.length - 1 ? '1px solid rgba(0,0,0,0.04)' : 'none',
+      {/* Upcoming Sessions */}
+      {upcomingAppts.length > 0 && (
+        <Card className="pt-fadeUp-4">
+          <SectionLabel>Upcoming Sessions</SectionLabel>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {upcomingAppts.slice(0, 4).map(a => (
+              <div key={a.id} style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '10px 14px', background: '#FAFAFA', borderRadius: 12,
               }}>
                 <div>
-                  <div style={{ font: `400 13px ${s.FONT}`, color: s.text }}>{tx.note}</div>
-                  <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>{fmtDate(tx.date)}</div>
+                  <div style={{ fontSize: 14, fontWeight: 500, color: '#111', fontFamily: FONT }}>{getServiceName(a.serviceId)}</div>
+                  <div style={{ fontSize: 12, color: '#999', fontFamily: FONT }}>{fmtWeekday(a.date)} &middot; {fmtTime(a.time)}</div>
                 </div>
-                <span style={{
-                  font: `600 13px ${s.MONO}`,
-                  color: (tx.points || 0) > 0 ? s.success : s.danger,
-                }}>
-                  {(tx.points || 0) > 0 ? '+' : ''}{tx.points}
-                </span>
+                <div style={{
+                  fontSize: 11, fontWeight: 600, color: a.status === 'confirmed' ? '#16A34A' : '#D97706',
+                  background: a.status === 'confirmed' ? '#F0FDF4' : '#FFFBEB',
+                  padding: '4px 10px', borderRadius: 20, fontFamily: FONT,
+                }}>{a.status}</div>
               </div>
             ))}
-          </Card>
-        </div>
-      )}
-
-      {giftCards.length === 0 && credits.length === 0 && !loyalty && (
-        <Card className="portal-fadeInUp" style={{ padding: '48px 28px', textAlign: 'center' }}>
-          <div style={{ font: `400 15px ${s.FONT}`, color: s.text3 }}>No wallet activity yet.</div>
+          </div>
         </Card>
       )}
+
+      {/* Trainer Card */}
+      <Card className="pt-fadeUp-5">
+        <SectionLabel>Your Trainer</SectionLabel>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{
+            width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg, #1A1A2E, #0F3460)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+            fontSize: 20, fontWeight: 700, fontFamily: FONT, flexShrink: 0,
+          }}>{trainer.name?.split(' ').map(n => n[0]).join('')}</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: '#111', fontFamily: FONT }}>{trainer.name}</div>
+            <div style={{ fontSize: 12, color: '#777', fontFamily: FONT }}>{trainer.title}</div>
+          </div>
+          <button onClick={() => setTab('chat')} style={{
+            background: ACCENT + '15', color: ACCENT, border: 'none', borderRadius: 10,
+            padding: '10px 18px', fontFamily: FONT, fontWeight: 600, fontSize: 13, cursor: 'pointer',
+          }}>Message</button>
+        </div>
+      </Card>
     </div>
   );
 
-  const renderPhotos = () => {
-    const pairKeys = Object.keys(photoPairs);
+  /* ════════════════════════
+     TAB: WORKOUTS
+     ════════════════════════ */
+  const renderWorkouts = () => {
+    const completedSessions = myProgram?.sessions?.filter(s => s.status === 'completed').length || 0;
+    const totalSessions = myProgram?.sessions?.length || 1;
+    const progressPct = Math.round((completedSessions / totalSessions) * 100);
+
     return (
-      <div>
-        <SectionTitle sub="Track your progress">Before & After</SectionTitle>
-        {pairKeys.length === 0 ? (
-          <Card className="portal-fadeInUp" style={{ padding: '48px 32px', textAlign: 'center' }}>
-            <div style={{ font: `300 20px ${s.FONT}`, color: s.text, marginBottom: 10 }}>No photos yet</div>
-            <div style={{ font: `400 14px ${s.FONT}`, color: s.text3, maxWidth: 340, margin: '0 auto' }}>
-              Your before and after photos will appear here after your sessions.
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* Current Program */}
+        {myProgram && (
+          <Card className="pt-fadeUp-1">
+            <SectionLabel>Current Program</SectionLabel>
+            <div style={{ fontSize: 17, fontWeight: 600, color: '#111', fontFamily: FONT }}>{myProgram.name}</div>
+            <div style={{ fontSize: 13, color: '#777', fontFamily: FONT, marginTop: 4 }}>{completedSessions} of {totalSessions} sessions completed</div>
+            {/* Progress bar */}
+            <div style={{ marginTop: 12, height: 8, background: '#F0F0F0', borderRadius: 100, overflow: 'hidden' }}>
+              <div style={{
+                width: `${progressPct}%`, height: '100%', background: `linear-gradient(90deg, ${ACCENT}, ${ACCENT_DARK})`,
+                borderRadius: 100, transition: 'width 0.6s ease',
+              }} />
+            </div>
+            <div style={{ fontSize: 12, color: ACCENT, fontWeight: 600, fontFamily: FONT, marginTop: 6, textAlign: 'right' }}>{progressPct}%</div>
+          </Card>
+        )}
+
+        {/* Program Sessions */}
+        {myProgram?.sessions?.length > 0 && (
+          <Card className="pt-fadeUp-2">
+            <SectionLabel>Program Schedule</SectionLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {myProgram.sessions.map((session, i) => {
+                const isCompleted = session.status === 'completed';
+                const isCurrent = session.status === 'in-progress';
+                return (
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '12px 14px', background: isCurrent ? `${ACCENT}08` : '#FAFAFA',
+                    borderRadius: 12, border: isCurrent ? `1.5px solid ${ACCENT}30` : '1px solid transparent',
+                  }}>
+                    <div style={{
+                      width: 32, height: 32, borderRadius: 10, flexShrink: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
+                      background: isCompleted ? '#16A34A' : isCurrent ? ACCENT : '#E5E7EB',
+                      color: (isCompleted || isCurrent) ? '#fff' : '#999', fontWeight: 600,
+                    }}>{isCompleted ? '✓' : i + 1}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 500, color: '#111', fontFamily: FONT }}>{session.name}</div>
+                      <div style={{ fontSize: 12, color: '#999', fontFamily: FONT }}>{fmtDate(session.date)}{session.notes ? ` — ${session.notes}` : ''}</div>
+                    </div>
+                    {isCurrent && <span style={{ fontSize: 11, fontWeight: 600, color: ACCENT, background: `${ACCENT}15`, padding: '3px 10px', borderRadius: 20, fontFamily: FONT }}>NOW</span>}
+                  </div>
+                );
+              })}
             </div>
           </Card>
-        ) : pairKeys.map((key, ki) => {
-          const pair = photoPairs[key];
-          return (
-            <Card key={key} className={`portal-fadeInUp portal-stagger-${Math.min(ki + 1, 6)}`}
-              style={{ padding: '24px 26px', marginBottom: 16 }}>
-              <div style={{ font: `500 16px ${s.FONT}`, color: s.text, marginBottom: 4, letterSpacing: -0.2 }}>
-                {pair.serviceName}
-              </div>
-              <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, marginBottom: 18 }}>
-                Angle: {pair.angle}
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                {['before', 'after'].map(phase => {
-                  const photo = pair[phase];
-                  return (
-                    <div key={phase}>
-                      <SectionLabel>{phase}</SectionLabel>
-                      {photo ? (
-                        <div style={{
-                          height: 170, borderRadius: 14, background: 'rgba(0,0,0,0.03)',
-                          border: '1px solid rgba(0,0,0,0.06)',
-                          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                        }}>
-                          <div style={{ font: `500 12px ${s.FONT}`, color: s.text3, marginBottom: 4 }}>
-                            Progress Photo
-                          </div>
-                          <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>{fmtDate(photo.date)}</div>
-                          {photo.notes && (
-                            <div style={{ font: `400 11px ${s.FONT}`, color: s.text2, marginTop: 8, padding: '0 14px', textAlign: 'center' }}>
-                              {photo.notes}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div style={{
-                          height: 170, borderRadius: 14, background: 'rgba(0,0,0,0.015)',
-                          border: '1px dashed rgba(0,0,0,0.1)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          font: `400 13px ${s.FONT}`, color: s.text3,
-                        }}>
-                          Not yet taken
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
-          );
-        })}
+        )}
+
+        {/* Upcoming Sessions */}
+        <Card className="pt-fadeUp-3">
+          <SectionLabel>Upcoming Sessions</SectionLabel>
+          {upcomingAppts.length === 0 ? (
+            <div style={{ color: '#999', fontSize: 13, fontFamily: FONT }}>No upcoming sessions</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {upcomingAppts.slice(0, 6).map(a => (
+                <div key={a.id} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '10px 14px', background: '#FAFAFA', borderRadius: 12,
+                }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: '#111', fontFamily: FONT }}>{getServiceName(a.serviceId)}</div>
+                    <div style={{ fontSize: 12, color: '#999', fontFamily: FONT }}>{fmtWeekday(a.date)} &middot; {fmtTime(a.time)} &middot; {a.duration || 60}min</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        {/* Past Sessions */}
+        <Card className="pt-fadeUp-4">
+          <SectionLabel>Past Sessions</SectionLabel>
+          {pastAppts.length === 0 ? (
+            <div style={{ color: '#999', fontSize: 13, fontFamily: FONT }}>No past sessions yet</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {pastAppts.slice(0, 8).map(a => (
+                <div key={a.id} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '8px 14px', background: '#FAFAFA', borderRadius: 10,
+                }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: '#555', fontFamily: FONT }}>{getServiceName(a.serviceId)}</div>
+                    <div style={{ fontSize: 11, color: '#BBB', fontFamily: FONT }}>{fmtDate(a.date)} &middot; {fmtTime(a.time)}</div>
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#16A34A', fontFamily: FONT }}>✓ Done</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
       </div>
     );
   };
 
-  const renderWaivers = () => (
-    <div>
-      <SectionTitle sub="Review and sign your forms">My Waivers</SectionTitle>
-      {waivers.length === 0 ? (
-        <Card className="portal-fadeInUp" style={{ padding: '48px 28px', textAlign: 'center' }}>
-          <div style={{ font: `400 15px ${s.FONT}`, color: s.text3 }}>No waivers assigned.</div>
-        </Card>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {waivers.map((w, i) => {
-            const templateName = WAIVER_TEMPLATES[w.templateId] || w.templateId;
-            const isPending = w.status === 'pending';
-            return (
-              <Card key={w.id} className={`portal-fadeInUp portal-stagger-${Math.min(i + 1, 8)}`}
-                style={{ padding: '20px 24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-                    background: isPending ? '#FEF3C7' : '#F0FDF4',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    font: `500 15px ${s.FONT}`,
-                    color: isPending ? s.warning : s.success,
-                  }}>
-                    {isPending ? '!' : '\u2713'}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 140 }}>
-                    <div style={{ font: `500 15px ${s.FONT}`, color: s.text }}>{templateName}</div>
-                    <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, marginTop: 2 }}>
-                      {isPending ? 'Signature required' : `Signed ${fmtDate(w.signedAt)}`}
-                    </div>
-                  </div>
-                  {isPending && (
-                    signingWaiver === w.id ? (
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                        <input
-                          value={signName}
-                          onChange={e => setSignName(e.target.value)}
-                          placeholder="Type full name to sign"
-                          style={{ ...s.input, width: 200, padding: '10px 14px', fontSize: 13, borderRadius: 14 }}
-                        />
-                        <button
-                          onClick={() => handleSignWaiver(w.id)}
-                          disabled={!signName.trim()}
-                          style={{
-                            ...s.pillAccent, padding: '10px 18px', fontSize: 12,
-                            opacity: signName.trim() ? 1 : 0.5,
-                          }}
-                        >Sign</button>
-                        <button onClick={() => { setSigningWaiver(null); setSignName(''); }}
-                          style={{ ...s.pillGhost, padding: '10px 14px', fontSize: 12 }}>Cancel</button>
-                      </div>
-                    ) : (
-                      <button onClick={() => setSigningWaiver(w.id)}
-                        style={{ ...s.pillAccent, padding: '10px 22px', fontSize: 12 }}>
-                        Sign Now
-                      </button>
-                    )
-                  )}
-                  {!isPending && (
-                    <Badge text="Signed" color={s.success} bg="#F0FDF4" />
-                  )}
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-
-  const renderReferrals = () => (
-    <div>
-      <SectionTitle sub="Give $50, get $50 for every friend who visits">Refer a Friend</SectionTitle>
-      <Card className="portal-fadeInUp" style={{ padding: '30px', marginBottom: 24 }}>
-        <div style={{ font: `300 20px ${s.FONT}`, color: s.text, marginBottom: 8, letterSpacing: -0.3 }}>
-          Share your referral code
-        </div>
-        <div style={{ font: `400 14px ${s.FONT}`, color: s.text2, marginBottom: 20, lineHeight: 1.6 }}>
-          Give your friends $50 off their first session and earn $50 in credits for each referral.
-        </div>
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px',
-          borderRadius: 16, background: `${s.accent}08`, border: `1px solid ${s.accent}15`,
-          marginBottom: 16,
-        }}>
-          <code style={{ font: `600 16px ${s.MONO}`, color: s.accent, flex: 1, letterSpacing: 0.5 }}>
-            {referralCode}
-          </code>
-          <button onClick={copyReferralLink} style={{
-            ...s.pillAccent, padding: '10px 22px', fontSize: 12,
-            minWidth: 100,
-          }}>
-            {copied ? 'Copied!' : 'Copy Link'}
-          </button>
-        </div>
-        <div style={{ font: `400 13px ${s.FONT}`, color: s.text3 }}>
-          Share link: https://forgetraining.com/refer/{referralCode}
-        </div>
+  /* ════════════════════════
+     TAB: PROGRESS
+     ════════════════════════ */
+  const renderProgress = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Weight Chart */}
+      <Card className="pt-fadeUp-1">
+        <SectionLabel>Weight Trend</SectionLabel>
+        <MiniWeightChart data={progressData} />
+        {progressData && progressData.length >= 2 && (() => {
+          const first = progressData[0].weight;
+          const last = progressData[progressData.length - 1].weight;
+          const diff = last - first;
+          return (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, padding: '0 4px' }}>
+              <span style={{ fontSize: 12, color: '#999', fontFamily: FONT }}>Start: {first} lbs</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: diff <= 0 ? '#16A34A' : '#D97706', fontFamily: FONT }}>
+                {diff <= 0 ? '↓' : '↑'} {Math.abs(Math.round(diff * 10) / 10)} lbs
+              </span>
+              <span style={{ fontSize: 12, color: '#999', fontFamily: FONT }}>Now: {last} lbs</span>
+            </div>
+          );
+        })()}
       </Card>
 
-      {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginBottom: 28 }}>
-        {[
-          { label: 'Total Referrals', value: referrals.length, color: s.text },
-          { label: 'Completed', value: creditedReferrals.length, color: s.success },
-          { label: 'Credits Earned', value: `$${totalReferralCredits}`, color: s.accent },
-        ].map((stat, i) => (
-          <Card key={i} hover className={`portal-fadeInUp portal-stagger-${i + 1}`}
-            style={{ padding: '22px 18px', textAlign: 'center' }}>
-            <div style={{ font: `300 28px ${s.FONT}`, color: stat.color, marginBottom: 4 }}>{stat.value}</div>
-            <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, letterSpacing: 0.2 }}>{stat.label}</div>
-          </Card>
-        ))}
-      </div>
-
-      {/* Referral History */}
-      {referrals.length > 0 && (
-        <div className="portal-fadeInUp portal-stagger-4">
-          <SectionLabel>Referral History</SectionLabel>
-          {referrals.map((r, i) => (
-            <Card key={r.id} className={`portal-fadeInUp portal-stagger-${Math.min(i + 1, 6)}`}
-              style={{ padding: '18px 24px', marginBottom: 10 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ font: `500 14px ${s.FONT}`, color: s.text }}>{r.friendName}</div>
-                  <div style={{ font: `400 12px ${s.FONT}`, color: s.text3 }}>Referred {fmtDate(r.referredDate)}</div>
-                </div>
-                <Badge
-                  text={r.status}
-                  color={r.status === 'credited' ? s.success : r.status === 'booked' ? s.accent : s.warning}
-                  bg={r.status === 'credited' ? '#F0FDF4' : r.status === 'booked' ? s.accentLight : '#FFFBEB'}
-                />
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
-  const renderInfo = () => (
-    <div>
-      <SectionTitle sub="Manage your personal details">My Profile</SectionTitle>
-      <Card className="portal-fadeInUp" style={{ padding: '30px' }}>
-        {!editInfo ? (
-          <div>
-            {[
-              { label: 'Name', value: `${patient?.firstName || ''} ${patient?.lastName || ''}` },
-              { label: 'Email', value: patient?.email || '' },
-              { label: 'Phone', value: patient?.phone || '' },
-              { label: 'Date of Birth', value: patient?.dob ? fmtDate(patient.dob) : '' },
-              { label: 'Health Notes', value: patient?.allergies || 'None' },
-              { label: 'Client Since', value: patient?.createdAt ? fmtDate(patient.createdAt) : '' },
-            ].map((row, i) => (
-              <div key={i} style={{
-                display: 'flex', justifyContent: 'space-between', padding: '16px 0', alignItems: 'center',
-                borderBottom: i < 5 ? '1px solid rgba(0,0,0,0.04)' : 'none',
-              }}>
-                <span style={{ fontFamily: s.MONO, fontSize: 10, textTransform: 'uppercase', letterSpacing: 2, color: s.text3, fontWeight: 500 }}>{row.label}</span>
-                <span style={{ font: `500 14px ${s.FONT}`, color: s.text }}>{row.value}</span>
-              </div>
-            ))}
-            <div style={{ marginTop: 24 }}>
-              <button onClick={handleEditInfo} style={{
-                ...s.pillOutline, padding: '12px 28px', borderRadius: 100,
-              }}>
-                Edit Info
-              </button>
-            </div>
+      {/* Body Measurements */}
+      {measurements && measurements.length > 0 && (
+        <Card className="pt-fadeUp-2">
+          <SectionLabel>Body Measurements</SectionLabel>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: FONT, fontSize: 13 }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid #F0F0F0' }}>
+                  {['Date', 'Chest', 'Waist', 'Hips', 'Arm L', 'Arm R'].map(h => (
+                    <th key={h} style={{ padding: '8px 10px', textAlign: 'left', fontSize: 11, color: '#999', fontWeight: 600, textTransform: 'uppercase' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {measurements.map((m, i) => (
+                  <tr key={i} style={{ borderBottom: '1px solid #F8F8F8' }}>
+                    <td style={{ padding: '8px 10px', color: '#777', fontSize: 12 }}>{fmtDate(m.date)}</td>
+                    <td style={{ padding: '8px 10px', fontWeight: 500, color: '#111' }}>{m.chest}"</td>
+                    <td style={{ padding: '8px 10px', fontWeight: 500, color: '#111' }}>{m.waist}"</td>
+                    <td style={{ padding: '8px 10px', fontWeight: 500, color: '#111' }}>{m.hips}"</td>
+                    <td style={{ padding: '8px 10px', fontWeight: 500, color: '#111' }}>{m.armL}"</td>
+                    <td style={{ padding: '8px 10px', fontWeight: 500, color: '#111' }}>{m.armR}"</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+        </Card>
+      )}
+
+      {/* PRs Board */}
+      <Card className="pt-fadeUp-3">
+        <SectionLabel>Personal Records 🏆</SectionLabel>
+        {(!prs || prs.length === 0) ? (
+          <div style={{ color: '#999', fontSize: 13, fontFamily: FONT }}>No PRs recorded yet. Keep training!</div>
         ) : (
-          <div>
-            {[
-              { key: 'firstName', label: 'First Name' },
-              { key: 'lastName', label: 'Last Name' },
-              { key: 'email', label: 'Email' },
-              { key: 'phone', label: 'Phone' },
-              { key: 'dob', label: 'Date of Birth', type: 'date' },
-              { key: 'allergies', label: 'Health Notes' },
-            ].map(field => (
-              <div key={field.key} style={{ marginBottom: 20 }}>
-                <label style={{
-                  display: 'block', fontFamily: s.MONO, fontSize: 10, textTransform: 'uppercase',
-                  letterSpacing: 2, color: s.text3, marginBottom: 8, fontWeight: 500,
-                }}>{field.label}</label>
-                <input
-                  type={field.type || 'text'}
-                  value={editForm[field.key] || ''}
-                  onChange={e => setEditForm({ ...editForm, [field.key]: e.target.value })}
-                  style={{ ...s.input, borderRadius: 14, padding: '14px 18px' }}
-                />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
+            {prs.map(pr => (
+              <div key={pr.id} style={{
+                background: '#FAFAFA', borderRadius: 12, padding: '14px 12px', textAlign: 'center',
+              }}>
+                <div style={{ fontSize: 11, color: '#999', fontFamily: FONT, marginBottom: 4 }}>{pr.exercise}</div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: '#111', fontFamily: FONT }}>{pr.value}</div>
+                <div style={{ fontSize: 11, color: '#999', fontFamily: FONT }}>{pr.unit}</div>
+                {pr.previousValue && (
+                  <div style={{ fontSize: 10, color: '#16A34A', fontFamily: FONT, marginTop: 4 }}>
+                    ↑ from {pr.previousValue} {pr.unit}
+                  </div>
+                )}
               </div>
             ))}
-            <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
-              <button onClick={saveInfo} style={{
-                ...s.pillAccent, padding: '12px 32px', borderRadius: 100,
-                boxShadow: `0 4px 20px ${s.accent}30`,
-              }}>Save</button>
-              <button onClick={() => setEditInfo(false)} style={{
-                ...s.pillGhost, padding: '12px 32px', borderRadius: 100,
-              }}>Cancel</button>
-            </div>
           </div>
         )}
       </Card>
+
+      {/* Progress Photos */}
+      <Card className="pt-fadeUp-4">
+        <SectionLabel>Progress Photos</SectionLabel>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          {['Before', 'After'].map(label => (
+            <div key={label} style={{
+              background: '#F5F5F5', borderRadius: 12, height: 180,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              border: '2px dashed #DDD', cursor: 'pointer',
+            }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BBB" strokeWidth="1.5" strokeLinecap="round">
+                <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <div style={{ fontSize: 12, color: '#999', fontFamily: FONT, marginTop: 8 }}>{label}</div>
+              <div style={{ fontSize: 10, color: '#CCC', fontFamily: FONT }}>Tap to upload</div>
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 
-  const renderMessages = () => {
-    const fmtMsgTime = (ts) => {
-      const d = new Date(ts);
-      const now = new Date();
-      const diffDays = Math.floor((now - d) / 86400000);
-      const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-      if (diffDays === 0) return `Today ${time}`;
-      if (diffDays === 1) return `Yesterday ${time}`;
-      return `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${time}`;
-    };
-    return (
-      <div>
-        <SectionTitle sub="Chat with your trainer">Messages</SectionTitle>
-        <Card className="portal-fadeInUp" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', height: 520 }}>
-          {/* Chat header */}
-          <div style={{
-            padding: '16px 24px', borderBottom: '1px solid rgba(0,0,0,0.06)',
-            display: 'flex', alignItems: 'center', gap: 12,
-          }}>
-            <div style={{
-              width: 38, height: 38, borderRadius: '50%', background: `${s.accent}18`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              font: `600 14px ${s.FONT}`, color: s.accent,
-            }}>MC</div>
-            <div>
-              <div style={{ font: `600 14px ${s.FONT}`, color: s.text }}>Marcus Cole</div>
-              <div style={{ font: `400 11px ${s.FONT}`, color: s.success, display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: s.success }} />
-                Online
-              </div>
+  /* ════════════════════════
+     TAB: NUTRITION
+     ════════════════════════ */
+  const renderNutrition = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Calories Summary */}
+      <Card className="pt-fadeUp-1">
+        <SectionLabel>Today's Calories</SectionLabel>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '8px 0' }}>
+          <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            <DonutRing value={macros.calories.current} max={macros.calories.goal} color={ACCENT} size={100} strokeWidth={10} />
+            <div style={{ position: 'absolute', textAlign: 'center' }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: '#111', fontFamily: FONT }}>{macros.calories.current}</div>
+              <div style={{ fontSize: 9, color: '#999', fontFamily: FONT }}>/ {macros.calories.goal}</div>
             </div>
           </div>
-
-          {/* Messages area */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {messages.map((msg) => {
-              const isClient = msg.from === 'client';
-              return (
-                <div key={msg.id} style={{
-                  display: 'flex', flexDirection: 'column',
-                  alignItems: isClient ? 'flex-end' : 'flex-start',
-                  maxWidth: '78%', alignSelf: isClient ? 'flex-end' : 'flex-start',
-                }}>
-                  <div style={{
-                    padding: '12px 16px', borderRadius: 18,
-                    borderBottomRightRadius: isClient ? 4 : 18,
-                    borderBottomLeftRadius: isClient ? 18 : 4,
-                    background: isClient ? s.accent : 'rgba(0,0,0,0.05)',
-                    color: isClient ? (s.accentText || '#fff') : s.text,
-                    font: `400 14px ${s.FONT}`, lineHeight: 1.45,
-                  }}>
-                    {msg.text}
-                  </div>
-                  <span style={{ font: `400 10px ${s.FONT}`, color: s.text3, marginTop: 4, padding: '0 4px' }}>
-                    {fmtMsgTime(msg.ts)}
-                  </span>
-                </div>
-              );
-            })}
-            <div ref={msgEndRef} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ fontSize: 12, color: '#999', fontFamily: FONT }}>{macros.calories.goal - macros.calories.current} cal remaining</div>
+            <div style={{ fontSize: 11, color: '#16A34A', fontFamily: FONT, fontWeight: 500 }}>On track! 👍</div>
           </div>
+        </div>
+      </Card>
 
-          {/* Input area */}
-          <div style={{
-            padding: '14px 20px', borderTop: '1px solid rgba(0,0,0,0.06)',
-            display: 'flex', gap: 10, alignItems: 'center', background: 'rgba(255,255,255,0.5)',
-          }}>
-            <input
-              value={msgInput}
-              onChange={e => setMsgInput(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') sendMessage(); }}
-              placeholder="Type a message..."
-              style={{
-                flex: 1, padding: '12px 18px', borderRadius: 100,
-                border: '1px solid rgba(0,0,0,0.08)', background: 'rgba(255,255,255,0.7)',
-                font: `400 14px ${s.FONT}`, color: s.text, outline: 'none',
-              }}
-            />
-            <button onClick={sendMessage} style={{
-              ...s.pillAccent, padding: '10px 22px', borderRadius: 100,
-              boxShadow: `0 2px 12px ${s.accent}30`, flexShrink: 0,
+      {/* Macro Rings */}
+      <Card className="pt-fadeUp-2">
+        <SectionLabel>Macros</SectionLabel>
+        <div style={{ display: 'flex', justifyContent: 'space-around', padding: '8px 0' }}>
+          {[
+            { label: 'Protein', color: '#EF4444', ...macros.protein, unit: 'g' },
+            { label: 'Carbs', color: '#3B82F6', ...macros.carbs, unit: 'g' },
+            { label: 'Fat', color: '#F59E0B', ...macros.fat, unit: 'g' },
+          ].map(m => (
+            <div key={m.label} style={{ textAlign: 'center' }}>
+              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <DonutRing value={m.current} max={m.goal} color={m.color} size={68} strokeWidth={6} />
+                <div style={{ position: 'absolute', fontSize: 13, fontWeight: 600, color: '#111', fontFamily: FONT }}>{m.current}{m.unit}</div>
+              </div>
+              <div style={{ fontSize: 11, color: '#777', fontFamily: FONT, marginTop: 4 }}>{m.label}</div>
+              <div style={{ fontSize: 10, color: '#BBB', fontFamily: FONT }}>/ {m.goal}{m.unit}</div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* Meal Log */}
+      <Card className="pt-fadeUp-3">
+        <SectionLabel>Today's Meals</SectionLabel>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {meals.map((meal, i) => (
+            <div key={i} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '10px 14px', background: '#FAFAFA', borderRadius: 12,
             }}>
-              Send
-            </button>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 500, color: '#111', fontFamily: FONT }}>{meal.name}</div>
+                <div style={{ fontSize: 12, color: '#999', fontFamily: FONT }}>{meal.items}</div>
+                <div style={{ fontSize: 11, color: '#BBB', fontFamily: FONT }}>{meal.time}</div>
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: '#555', fontFamily: FONT }}>{meal.cals} cal</div>
+            </div>
+          ))}
+        </div>
+        <button style={{
+          width: '100%', marginTop: 12, padding: '12px', background: '#FAFAFA',
+          border: '2px dashed #DDD', borderRadius: 12, cursor: 'pointer',
+          fontFamily: FONT, fontSize: 13, fontWeight: 500, color: '#999',
+        }}>+ Log a Meal</button>
+      </Card>
+
+      {/* Meal Plan from Trainer */}
+      <Card className="pt-fadeUp-4">
+        <SectionLabel>Trainer's Meal Plan</SectionLabel>
+        <div style={{ background: `${ACCENT}08`, borderRadius: 12, padding: 16 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#111', fontFamily: FONT, marginBottom: 8 }}>Muscle Building — Week 5</div>
+          <div style={{ fontSize: 13, color: '#555', fontFamily: FONT, lineHeight: 1.6 }}>
+            <strong>Goal:</strong> 2,200 cal/day &middot; 180g protein &middot; 250g carbs &middot; 70g fat<br />
+            <strong>Focus:</strong> High protein at every meal. Time carbs around workouts. Stay hydrated — minimum 100oz water daily.<br />
+            <strong>Supplements:</strong> Creatine 5g, Whey protein post-workout, Vitamin D3
           </div>
-        </Card>
-      </div>
-    );
-  };
+        </div>
+      </Card>
+    </div>
+  );
 
-  const sections = {
-    home: renderHome,
-    appointments: renderAppointments,
-    treatment: renderTreatmentPlan,
-    membership: renderMembership,
-    wallet: renderWallet,
-    photos: renderPhotos,
-    waivers: renderWaivers,
-    referrals: renderReferrals,
-    messages: renderMessages,
-    info: renderInfo,
-  };
-
-  return (
-    <div className="portal-page" style={{ minHeight: '100vh', background: '#F5F3F0', fontFamily: s.FONT, position: 'relative', overflow: 'hidden' }}>
-      {/* Background orbs */}
-      <div className="bg-orbs" style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
-        <div style={{
-          position: 'absolute', top: '8%', left: '12%', width: 320, height: 320,
-          borderRadius: '50%', background: `${s.accent}08`,
-          filter: 'blur(80px)', animation: 'portalOrb1 18s ease-in-out infinite',
-        }} />
-        <div style={{
-          position: 'absolute', bottom: '15%', right: '8%', width: 260, height: 260,
-          borderRadius: '50%', background: `${s.accent}06`,
-          filter: 'blur(60px)', animation: 'portalOrb2 22s ease-in-out infinite',
-        }} />
-        <div style={{
-          position: 'absolute', top: '50%', left: '55%', width: 200, height: 200,
-          borderRadius: '50%', background: `${s.accent}04`,
-          filter: 'blur(50px)', animation: 'portalOrb1 26s ease-in-out infinite reverse',
-        }} />
-      </div>
-
-      {/* Horizontal pill tabs — sticky */}
+  /* ════════════════════════
+     TAB: CHAT
+     ════════════════════════ */
+  const renderChat = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 230px)', minHeight: 400 }}>
+      {/* Chat Header */}
       <div style={{
-        position: 'sticky', top: 0, zIndex: 100,
-        background: 'rgba(245,243,240,0.8)',
-        backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(0,0,0,0.04)',
+        display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+        background: '#fff', borderRadius: 16, boxShadow: CARD_SHADOW, marginBottom: 12,
       }}>
-        <div className="portal-tabs" style={{
-          maxWidth: 800, margin: '0 auto', padding: '14px 24px',
-          display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center',
-        }}>
-          <button onClick={() => window.location.href = '/'} style={{
-            padding: '9px 16px', borderRadius: 100, border: '1px solid rgba(0,0,0,0.08)',
-            background: 'rgba(255,255,255,0.5)', font: `500 13px ${s.FONT}`, color: s.text2,
-            cursor: 'pointer', whiteSpace: 'nowrap', backdropFilter: 'blur(8px)',
-            transition: 'all 0.2s', flexShrink: 0, marginRight: 6,
-          }}>← Home</button>
-          <div style={{ width: 1, height: 20, background: 'rgba(0,0,0,0.08)', flexShrink: 0, marginRight: 6 }} />
-          {navItems.map(item => {
-            const active = section === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setSection(item.id)}
-                style={{
-                  padding: '9px 20px', borderRadius: 100, border: 'none', cursor: 'pointer',
-                  font: `${active ? '600' : '400'} 13px ${s.FONT}`,
-                  color: active ? s.accentText : s.text2,
-                  background: active ? s.accent : 'rgba(255,255,255,0.5)',
-                  boxShadow: active ? `0 2px 12px ${s.accent}30` : '0 1px 3px rgba(0,0,0,0.04)',
-                  whiteSpace: 'nowrap', transition: 'all 0.25s cubic-bezier(0.16,1,0.3,1)',
-                  backdropFilter: active ? 'none' : 'blur(8px)',
-                  letterSpacing: active ? 0.3 : 0,
-                  flexShrink: 0,
-                }}
-                onMouseEnter={e => {
-                  if (!active) {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.8)';
-                    e.currentTarget.style.color = s.text;
-                  }
-                }}
-                onMouseLeave={e => {
-                  if (!active) {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.5)';
-                    e.currentTarget.style.color = s.text2;
-                  }
-                }}
-              >
-                {item.label}
-              </button>
-            );
-          })}
+        <div style={{
+          width: 40, height: 40, borderRadius: 12, background: 'linear-gradient(135deg, #1A1A2E, #0F3460)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+          fontSize: 15, fontWeight: 700, fontFamily: FONT, flexShrink: 0,
+        }}>MC</div>
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: '#111', fontFamily: FONT }}>{trainer.name}</div>
+          <div style={{ fontSize: 11, color: '#16A34A', fontFamily: FONT }}>● Online</div>
         </div>
       </div>
 
-      {/* Content — centered, max 800px, generous spacing */}
-      <div style={{ maxWidth: 800, margin: '0 auto', padding: '36px 24px 80px', position: 'relative', zIndex: 1 }}>
-        {sections[section]?.()}
+      {/* Messages */}
+      <div className="portal-client-scroll" style={{
+        flex: 1, overflowY: 'auto', padding: '8px 4px',
+        display: 'flex', flexDirection: 'column', gap: 8,
+      }}>
+        {chatMessages.map(msg => {
+          const isTrainer = msg.from === 'trainer';
+          return (
+            <div key={msg.id} style={{
+              display: 'flex', justifyContent: isTrainer ? 'flex-start' : 'flex-end',
+            }}>
+              <div style={{
+                maxWidth: '78%', padding: '10px 14px',
+                background: isTrainer ? '#F0F0F0' : ACCENT,
+                color: isTrainer ? '#111' : '#fff',
+                borderRadius: isTrainer ? '16px 16px 16px 4px' : '16px 16px 4px 16px',
+                fontSize: 14, fontFamily: FONT, lineHeight: 1.5,
+              }}>
+                {msg.text}
+                <div style={{
+                  fontSize: 10, marginTop: 4, textAlign: 'right',
+                  color: isTrainer ? '#999' : 'rgba(255,255,255,0.7)',
+                }}>{msg.time}</div>
+              </div>
+            </div>
+          );
+        })}
+        <div ref={chatEndRef} />
       </div>
 
-      {/* Dev toolbar — floating pill bottom-right */}
+      {/* Input */}
       <div style={{
-        position: 'fixed', bottom: 20, right: 20, zIndex: 200,
-        background: 'rgba(17,17,17,0.92)', backdropFilter: 'blur(12px)',
-        borderRadius: 100, padding: '8px 16px',
-        display: 'flex', alignItems: 'center', gap: 10,
-        boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+        display: 'flex', gap: 8, padding: '12px 0 4px',
       }}>
-        <span style={{ font: `400 11px ${s.MONO}`, color: '#666' }}>as:</span>
-        <select
-          value={selectedPatientId}
-          onChange={e => { setSelectedPatientId(e.target.value); setSection('home'); setEditInfo(false); }}
+        <input
+          value={chatInput}
+          onChange={e => setChatInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && sendChat()}
+          placeholder="Message your trainer..."
           style={{
-            background: 'transparent', color: '#ccc', border: 'none',
-            font: `400 11px ${s.MONO}`, outline: 'none', cursor: 'pointer',
+            flex: 1, padding: '12px 16px', borderRadius: 14,
+            border: '1px solid #E5E7EB', background: '#FAFAFA',
+            fontFamily: FONT, fontSize: 14, color: '#111', outline: 'none',
+            transition: 'border-color 0.2s',
           }}
-        >
-          {patients.map(p => (
-            <option key={p.id} value={p.id} style={{ background: '#222' }}>
-              {p.firstName} {p.lastName}
-            </option>
-          ))}
-        </select>
+          onFocus={e => e.target.style.borderColor = ACCENT}
+          onBlur={e => e.target.style.borderColor = '#E5E7EB'}
+        />
+        <button onClick={sendChat} style={{
+          background: ACCENT, color: '#fff', border: 'none', borderRadius: 14,
+          width: 48, height: 48, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+        }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
+        </button>
       </div>
+    </div>
+  );
+
+  /* ════════════════════════
+     MAIN RENDER
+     ════════════════════════ */
+  return (
+    <div style={{ minHeight: '100vh', background: '#F5F5F5', fontFamily: FONT }} className="portal-client-page">
+      {/* Dark Hero Header */}
+      <div style={{
+        background: DARK_GRAD, padding: '24px 20px 28px',
+        position: 'relative', overflow: 'hidden',
+      }}>
+        {/* Subtle decorative circles */}
+        <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,255,255,0.03)' }} />
+        <div style={{ position: 'absolute', bottom: -60, left: -30, width: 200, height: 200, borderRadius: '50%', background: 'rgba(255,255,255,0.02)' }} />
+
+        {/* Client Selector */}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <select
+            value={selectedClientId}
+            onChange={e => setSelectedClientId(e.target.value)}
+            style={{
+              background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)',
+              border: '1px solid rgba(255,255,255,0.15)', borderRadius: 10,
+              padding: '6px 12px', fontFamily: FONT, fontSize: 11, cursor: 'pointer',
+              outline: 'none', marginBottom: 16, appearance: 'none',
+              WebkitAppearance: 'none', paddingRight: 28,
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center',
+            }}
+          >
+            {clients.slice(0, 10).map(c => (
+              <option key={c.id} value={c.id} style={{ color: '#111', background: '#fff' }}>
+                {c.firstName} {c.lastName}
+              </option>
+            ))}
+          </select>
+
+          {/* Greeting */}
+          <div style={{ fontSize: 28, fontWeight: 700, color: '#fff', marginBottom: 4 }}>
+            Hey {client?.firstName} 💪
+          </div>
+          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)' }}>
+            {todayAppt
+              ? `You have a ${getServiceName(todayAppt.serviceId).toLowerCase()} today at ${fmtTime(todayAppt.time)}`
+              : "Let's keep the momentum going!"
+            }
+          </div>
+        </div>
+      </div>
+
+      {/* Content Area */}
+      <div style={{ padding: '16px 16px 88px', maxWidth: 560, margin: '0 auto' }}>
+        {tab === 'home' && renderHome()}
+        {tab === 'workouts' && renderWorkouts()}
+        {tab === 'progress' && renderProgress()}
+        {tab === 'nutrition' && renderNutrition()}
+        {tab === 'chat' && renderChat()}
+      </div>
+
+      {/* Bottom Navigation */}
+      <BottomNav active={tab} onNav={setTab} />
     </div>
   );
 }

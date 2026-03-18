@@ -373,27 +373,26 @@ export default function Layout({ children }) {
         </div>
       </div>
 
-      {/* ═══ MOBILE BOTTOM TAB BAR — 4 tabs, native feel ═══ */}
+      {/* ═══ MOBILE BOTTOM TAB BAR — ultra-minimal Trainerize style ═══ */}
       <div className="mobile-bottom-tabs" style={{
         display: 'none', position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 150,
-        height: 64, paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        background: 'rgba(255,255,255,0.95)',
-        backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-        borderTop: '1px solid rgba(0,0,0,0.08)',
+        height: 48, paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        background: 'rgba(255,255,255,0.7)',
+        backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+        borderTop: '1px solid rgba(0,0,0,0.04)',
         alignItems: 'center', justifyContent: 'space-around',
       }}>
         {BOTTOM_TAB_ITEMS.map(tab => (
           <NavLink key={tab.path} to={tab.path} end={tab.path === '/admin'}
             style={({ isActive }) => ({
               flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              gap: 3, textDecoration: 'none', padding: '6px 0',
-              color: isActive ? theme.accent : '#999',
-              minHeight: 48,
-              transition: 'color 0.2s ease',
+              gap: 2, textDecoration: 'none', padding: '4px 0',
+              color: isActive ? theme.accent : '#C0C0C0',
+              transition: 'color 0.15s ease',
             })}
           >
-            <span style={{ display: 'flex' }}>{TAB_ICONS[tab.icon]}</span>
-            <span style={{ font: "500 10px 'Inter', sans-serif" }}>{tab.label}</span>
+            <span style={{ display: 'flex', opacity: isActive ? 1 : 0.6 }}>{TAB_ICONS[tab.icon]}</span>
+            <span style={{ font: "500 9px 'Inter', sans-serif", letterSpacing: '0.3px' }}>{tab.label}</span>
           </NavLink>
         ))}
       </div>
@@ -421,7 +420,7 @@ export default function Layout({ children }) {
           .mobile-topbar { display: flex !important; }
           .mobile-bottom-tabs { display: flex !important; }
           .layout-content {
-            padding: 0 16px 80px 16px !important;
+            padding: 20px 16px 68px 16px !important;
             max-width: 100% !important;
             animation-duration: 0.2s !important;
           }

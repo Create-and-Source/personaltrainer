@@ -83,7 +83,7 @@ export default function Settings() {
 
   // Integrations state
   const [integrations, setIntegrations] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('ms_integrations')) || { myfitnesspal: true, stripe: true, instagram: true }; } catch { return { myfitnesspal: true, stripe: true, instagram: true }; }
+    try { return JSON.parse(localStorage.getItem('ms_integrations')) || { stripe: true, instagram: true }; } catch { return { stripe: true, instagram: true }; }
   });
   const toggleIntegration = (id, defaultConnected) => {
     const current = integrations[id] !== undefined ? integrations[id] : defaultConnected;
@@ -304,7 +304,7 @@ export default function Settings() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 14 }}>
             {[
-              { id: 'myfitnesspal', name: 'MyFitnessPal', desc: 'Nutrition tracking syncs automatically', color: '#0070DF', accent: '#0070DF', connected: true, letter: 'MF' },
+              { id: 'openfoods', name: 'Open Food Facts', desc: 'Food database with barcode scanning', color: '#FF6F00', accent: '#FF6F00', connected: true, letter: 'OF' },
               { id: 'applehealth', name: 'Apple Health', desc: 'Import workout and activity data', color: '#111', accent: '#111', connected: false, letter: 'AH' },
               { id: 'fitbit', name: 'Fitbit', desc: 'Sync heart rate, sleep, and activity', color: '#00B0B9', accent: '#00B0B9', connected: false, letter: 'Fb' },
               { id: 'googlefit', name: 'Google Fit', desc: 'Sync workouts and steps', color: '#4285F4', accent: '#4285F4', connected: false, letter: 'GF' },

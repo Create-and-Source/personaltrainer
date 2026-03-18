@@ -1081,8 +1081,7 @@ export default function Nutrition() {
   const [selectedClient, setSelectedClient] = useState('');
   const [mealLogs, setMealLogs] = useState(null);
   const [targets, setTargets] = useState(null);
-  const [mfpSyncing, setMfpSyncing] = useState(false);
-  const [mfpSynced, setMfpSynced] = useState(false);
+  // Removed MFP integration state
   const [foodModalOpen, setFoodModalOpen] = useState(false);
   const [foodModalMeal, setFoodModalMeal] = useState('');
   const [barcodeModalOpen, setBarcodeModalOpen] = useState(false);
