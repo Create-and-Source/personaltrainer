@@ -488,7 +488,7 @@ export default function WorkoutBuilder() {
 
       {/* ═══════════════════════ TEMPLATES VIEW ═══════════════════════ */}
       {view === 'templates' && (
-        <div style={{
+        <div className="wb-template-grid" style={{
           display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 18,
         }}>
           {workouts.map((w, idx) => {
@@ -657,7 +657,7 @@ export default function WorkoutBuilder() {
           </div>
 
           {/* Exercise grid */}
-          <div style={{
+          <div className="wb-library-grid" style={{
             display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16,
           }}>
             {filteredLibrary.map((ex, idx) => {
@@ -1016,9 +1016,21 @@ export default function WorkoutBuilder() {
       )}
 
       <style>{`
-        @media (max-width: 768px) {
+        @media (max-width: 860px) {
           .wb-template-grid {
             grid-template-columns: 1fr !important;
+          }
+          .wb-library-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .wb-modal-content {
+            max-width: 100% !important;
+            width: 100% !important;
+            min-height: 100vh;
+            border-radius: 0 !important;
+          }
+          .wb-modal-overlay {
+            padding: 0 !important;
           }
         }
       `}</style>

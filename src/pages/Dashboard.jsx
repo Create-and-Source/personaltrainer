@@ -390,7 +390,7 @@ export default function Dashboard() {
             animation: 'dashFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) 640ms backwards',
           }}>
             <div style={{ font: `600 14px ${s.FONT}`, color: s.text, marginBottom: 14 }}>Quick Actions</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div className="dash-quick-actions-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {[
                 { label: 'New Client', path: '/members', icon: (
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -435,11 +435,8 @@ export default function Dashboard() {
       <style>{`
         @media (max-width: 860px) {
           .dashboard-main-grid { grid-template-columns: 1fr !important; }
-        }
-        @media (max-width: 768px) {
-          .dashboard-main-grid { grid-template-columns: 1fr !important; }
           .dash-hero {
-            padding: 20px 18px !important;
+            padding: 20px 16px !important;
           }
           .dash-hero h1 {
             font-size: 22px !important;
@@ -460,7 +457,7 @@ export default function Dashboard() {
           .dash-kpi-card .dash-kpi-sub {
             font-size: 11px !important;
           }
-          .dash-quick-actions {
+          .dash-quick-actions-grid {
             grid-template-columns: 1fr !important;
           }
           .dash-appt-item {

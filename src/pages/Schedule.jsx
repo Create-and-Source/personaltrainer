@@ -7,7 +7,10 @@ export default function Schedule() {
   const [, setTick] = useState(0);
   useEffect(() => subscribe(() => setTick(t => t + 1)), []);
 
-  const [view, setView] = useState('day'); // 'day' | 'week' | 'list' | 'grid'
+  const [view, setView] = useState(() => {
+    if (typeof window !== 'undefined' && window.innerWidth <= 860) return 'list';
+    return 'day';
+  }); // 'day' | 'week' | 'list' | 'grid'
   const [currentDate, setCurrentDate] = useState(new Date().toISOString().slice(0, 10));
   const [showForm, setShowForm] = useState(false);
   const [editAppt, setEditAppt] = useState(null);
@@ -188,9 +191,9 @@ export default function Schedule() {
           <button onClick={() => setCurrentDate(new Date().toISOString().slice(0, 10))} style={{ ...s.pillGhost, padding: '6px 12px', fontSize: 11 }}>Today</button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ display: 'flex', gap: 0, background: 'rgba(0,0,0,0.04)', borderRadius: 8, overflow: 'hidden' }}>
+          <div className="schedule-view-toggle" style={{ display: 'flex', gap: 0, background: 'rgba(0,0,0,0.04)', borderRadius: 8, overflow: 'hidden' }}>
             {['day', 'week', 'grid', 'list'].map(v => (
-              <button key={v} onClick={() => setView(v)} style={{
+              <button key={v} onClick={() => setView(v)} className={v === 'grid' ? 'schedule-grid-btn' : ''} style={{
                 padding: '7px 16px', background: view === v ? '#fff' : 'transparent', border: 'none',
                 font: `500 12px ${s.FONT}`, color: view === v ? s.text : s.text3, cursor: 'pointer',
                 borderRadius: view === v ? 8 : 0, boxShadow: view === v ? s.shadow : 'none',
@@ -483,12 +486,19 @@ export default function Schedule() {
       )}
 
       <style>{`
-        @media (max-width: 768px) {
+        @media (max-width: 860px) {
+          .schedule-grid-btn {
+            display: none !important;
+          }
+          .schedule-view-toggle button {
+            padding: 6px 12px !important;
+            font-size: 11px !important;
+          }
           .schedule-week-wrap {
             -webkit-overflow-scrolling: touch;
           }
           .schedule-week-wrap::after {
-            content: 'Scroll to see full week →';
+            content: 'Scroll to see full week \\2192';
             display: block;
             text-align: center;
             font: 400 11px 'Inter', sans-serif;
@@ -504,7 +514,7 @@ export default function Schedule() {
             -webkit-overflow-scrolling: touch;
           }
           .schedule-grid-wrap::after {
-            content: 'Scroll to see full week →';
+            content: 'Scroll to see full week \\2192';
             display: block;
             text-align: center;
             font: 400 11px 'Inter', sans-serif;

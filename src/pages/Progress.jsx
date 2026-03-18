@@ -479,7 +479,7 @@ export default function Progress() {
       {selectedClient && client && (
         <div>
           {/* Section 1: Body Metrics Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 28 }}>
+          <div className="prog-metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 28 }}>
             {/* Weight Card */}
             <div className="prog-card-hover" style={{
               ...glass, padding: '22px 20px',
@@ -572,7 +572,7 @@ export default function Progress() {
 
           {/* Section 2: Weight Chart */}
           {progressData && progressData.length > 1 && (
-            <div style={{
+            <div className="prog-chart-section" style={{
               ...glass, padding: '24px', marginBottom: 28, overflow: 'hidden',
               animation: 'progFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) 480ms backwards',
             }}>
@@ -991,11 +991,26 @@ export default function Progress() {
       </Modal>
 
       <style>{`
-        @media (max-width: 768px) {
-          .prog-pr-grid { grid-template-columns: 1fr 1fr !important; }
+        @media (max-width: 860px) {
+          .prog-metrics-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+          }
+          .prog-chart-section {
+            padding: 16px !important;
+          }
+          .prog-chart-section svg {
+            width: 100% !important;
+            height: auto !important;
+            max-height: 200px;
+          }
+          .prog-pr-grid {
+            grid-template-columns: 1fr 1fr !important;
+          }
         }
         @media (max-width: 480px) {
           .prog-pr-grid { grid-template-columns: 1fr !important; }
+          .prog-metrics-grid { grid-template-columns: 1fr 1fr !important; }
         }
       `}</style>
     </div>

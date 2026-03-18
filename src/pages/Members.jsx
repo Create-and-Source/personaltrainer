@@ -206,7 +206,7 @@ export default function Members() {
         </div>
 
         {/* Filter pills */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <div className="mem-filter-row" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {filterOptions.map(f => (
             <button key={f} className="mem-filter-pill" onClick={() => setFilter(f)} style={{
               padding: '7px 16px', borderRadius: 100, border: 'none', cursor: 'pointer',
@@ -230,7 +230,7 @@ export default function Members() {
         </select>
 
         {/* View toggle */}
-        <div style={{ display: 'flex', gap: 0, background: 'rgba(0,0,0,0.04)', borderRadius: 10, overflow: 'hidden', flexShrink: 0 }}>
+        <div className="mem-view-toggle" style={{ display: 'flex', gap: 0, background: 'rgba(0,0,0,0.04)', borderRadius: 10, overflow: 'hidden', flexShrink: 0 }}>
           {[['cards', 'Cards'], ['table', 'Table']].map(([v, l]) => (
             <button key={v} onClick={() => setViewMode(v)} style={{
               padding: '8px 16px', background: viewMode === v ? 'rgba(255,255,255,0.8)' : 'transparent', border: 'none',
@@ -246,8 +246,8 @@ export default function Members() {
       <div className="members-main-grid" style={{ display: 'grid', gridTemplateColumns: detail ? '1fr 380px' : '1fr', gap: 20 }}>
 
         {/* Card View */}
-        {viewMode === 'cards' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
+        {(viewMode === 'cards' || true) && (
+          <div className="mem-cards-grid" style={{ display: viewMode === 'cards' ? 'grid' : 'none', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
             {filtered.map((p, idx) => {
               const tier = TIER_BADGE[p.membershipTier || 'None'];
               const isActive = detail?.id === p.id;
@@ -314,7 +314,7 @@ export default function Members() {
 
         {/* Table View */}
         {viewMode === 'table' && (
-          <div style={{ ...glass, overflow: 'hidden' }}>
+          <div className="mem-table-section" style={{ ...glass, overflow: 'hidden' }}>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
@@ -497,17 +497,41 @@ export default function Members() {
       </div>
 
       <style>{`
-        @media (max-width: 768px) {
+        @media (max-width: 860px) {
           .members-main-grid {
             grid-template-columns: 1fr !important;
+          }
+          .mem-view-toggle {
+            display: none !important;
+          }
+          .mem-filter-row {
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+          }
+          .mem-filter-row::-webkit-scrollbar {
+            display: none;
+          }
+          .mem-filter-pill {
+            white-space: nowrap;
+            flex-shrink: 0;
+          }
+          .mem-cards-grid {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+          }
+          .mem-table-section {
+            display: none !important;
           }
           .members-detail-panel {
             position: fixed !important;
             top: 0 !important;
             right: 0 !important;
             bottom: 0 !important;
-            width: 85vw !important;
-            max-width: 380px !important;
+            width: 92vw !important;
+            max-width: 400px !important;
             z-index: 200 !important;
             border-radius: 20px 0 0 20px !important;
             overflow-y: auto !important;
