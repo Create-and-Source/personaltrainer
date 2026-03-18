@@ -16,22 +16,19 @@ const BOTTOM_TAB_ITEMS = [
 const NAV_ITEMS = [
   { section: 'Overview', items: [
     { path: '/admin', label: 'Dashboard', icon: 'grid' },
-    { path: '/admin/checkin', label: 'Check-In', icon: 'clipboard' },
     { path: '/admin/virtual', label: 'Virtual Sessions', icon: 'calendar' },
   ]},
   { section: 'Clients', items: [
-    { path: '/admin/members', label: 'Members', icon: 'users' },
+    { path: '/admin/members', label: 'Clients', icon: 'users' },
     { path: '/admin/schedule', label: 'Schedule', icon: 'calendar' },
     { path: '/admin/classes', label: 'Training Programs', icon: 'clipboard' },
     { path: '/admin/workouts', label: 'Workout Builder', icon: 'dumbbell' },
     { path: '/admin/progress', label: 'Progress Tracking', icon: 'bar-chart' },
     { path: '/admin/nutrition', label: 'Nutrition', icon: 'leaf' },
     { path: '/admin/habits', label: 'Habits', icon: 'heart' },
-    { path: '/admin/waivers', label: 'Waivers', icon: 'clipboard' },
   ]},
   { section: 'Billing', items: [
     { path: '/admin/memberships', label: 'Memberships', icon: 'users' },
-    { path: '/admin/wallet', label: 'Client Wallet', icon: 'package' },
     { path: '/admin/referrals', label: 'Referrals', icon: 'share' },
   ]},
   { section: 'Client Success', items: [
@@ -41,14 +38,8 @@ const NAV_ITEMS = [
     { path: '/admin/community', label: 'Community', icon: 'users' },
   ]},
   { section: 'Marketing', items: [
-    { path: '/admin/inbox', label: 'DM Inbox', icon: 'message' },
-    { path: '/admin/email', label: 'Email', icon: 'mail' },
-    { path: '/admin/texts', label: 'Text Messages', icon: 'message' },
-    { path: '/admin/social', label: 'Social Media', icon: 'share' },
+    { path: '/admin/inbox', label: 'Messages', icon: 'message' },
     { path: '/admin/automations', label: 'Automations', icon: 'settings' },
-  ]},
-  { section: 'Reporting', items: [
-    { path: '/admin/reports', label: 'Reports', icon: 'bar-chart' },
   ]},
   { section: 'System', items: [
     { path: '/admin/settings', label: 'Settings', icon: 'settings' },

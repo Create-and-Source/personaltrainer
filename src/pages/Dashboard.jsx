@@ -238,9 +238,9 @@ function MobileTodayView({ s, nav, settings, patients, appointments, services, p
             { label: 'Progress', path: '/admin/progress', emoji: '📈' },
             { label: 'Nutrition', path: '/admin/nutrition', emoji: '🥗' },
             { label: 'Habits', path: '/admin/habits', emoji: '🔥' },
-            { label: 'Check-In', path: '/admin/checkin', emoji: '✅' },
+            { label: 'Challenges', path: '/admin/challenges', emoji: '🏆' },
             { label: 'Billing', path: '/admin/memberships', emoji: '💳' },
-            { label: 'More', path: '/admin/settings', emoji: '⚙️' },
+            { label: 'Settings', path: '/admin/settings', emoji: '⚙️' },
           ].map(item => (
             <button key={item.path} onClick={() => nav(item.path)} style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
