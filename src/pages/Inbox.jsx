@@ -659,7 +659,7 @@ export default function Inbox() {
   );
 
   return (
-    <div>
+    <div className="inbox-page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
         <div>
           <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4 }}>DM Inbox</h1>
@@ -958,17 +958,26 @@ export default function Inbox() {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.5; transform: scale(1.3); }
         }
-        @media (max-width: 768px) {
+        @media (max-width: 860px) {
+          /* Global */
+          .inbox-page h1 { font-size: 22px !important; margin-bottom: 4px !important; }
+          .inbox-page > div:first-child p { font-size: 13px !important; }
+          .inbox-page > div { margin-bottom: 20px !important; }
+
+          /* Hide platform metrics on mobile */
           .platform-metrics-section {
             display: none !important;
           }
+
+          /* Conversation list + message view: stack vertically */
           .inbox-grid {
             grid-template-columns: 1fr !important;
-            height: calc(100vh - 380px) !important;
+            height: calc(100vh - 300px) !important;
           }
           .inbox-list-panel {
             border-right: none !important;
           }
+          /* Full screen message view */
           .inbox-list-panel.inbox-has-active {
             display: none !important;
           }
@@ -978,8 +987,8 @@ export default function Inbox() {
           .inbox-back-btn {
             display: inline-flex !important;
           }
-        }
-        @media (max-width: 900px) {
+
+          /* Platform cards */
           .platform-cards-grid {
             grid-template-columns: 1fr !important;
           }
@@ -987,6 +996,15 @@ export default function Inbox() {
             flex-direction: column !important;
             gap: 8px !important;
           }
+
+          /* Cards */
+          .inbox-page div[style*="border-radius: 16px"] {
+            border-radius: 14px !important;
+          }
+
+          /* Touch targets & inputs */
+          .inbox-page button { min-height: 44px; }
+          .inbox-page input, .inbox-page select, .inbox-page textarea { font-size: 16px !important; }
         }
       `}</style>
     </div>

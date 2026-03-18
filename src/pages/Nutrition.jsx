@@ -51,9 +51,50 @@ if (!document.getElementById(NUTR_ANIM_ID)) {
       background: rgba(0,0,0,0.015) !important;
     }
     @media (max-width: 860px) {
-      .nutr-macros-grid { grid-template-columns: repeat(2, 1fr) !important; }
+      /* Global */
+      .nutr-page h1 { font-size: 22px !important; margin-bottom: 4px !important; }
+      .nutr-page > div:first-child p { font-size: 13px !important; }
+      .nutr-page > div { margin-bottom: 20px !important; }
+
+      /* Macro rings: 2x2 grid */
+      .nutr-macros-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 16px !important; }
+
+      /* Meal plan cards: single column */
       .nutr-templates-grid { grid-template-columns: 1fr !important; }
+
+      /* Weekly chart: reduce height */
       .nutr-weekly-chart { min-height: 200px !important; }
+      .nutr-weekly-chart svg { max-height: 200px; }
+
+      /* Meal sections: reduce padding */
+      .nutr-meal-row { padding: 10px 14px !important; }
+
+      /* Food search modal: full screen */
+      .nutr-search-modal {
+        align-items: flex-end !important;
+      }
+      .nutr-search-modal > div {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 20px 20px 0 0 !important;
+        max-height: 95vh !important;
+      }
+
+      /* Cards */
+      .nutr-card-hover {
+        padding: 14px 16px !important;
+        border-radius: 14px !important;
+      }
+
+      /* KPI stats */
+      .nutr-kpi-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+      }
+
+      /* Touch targets & inputs */
+      .nutr-page button { min-height: 44px; }
+      .nutr-page input, .nutr-page select { font-size: 16px !important; }
     }
   `;
   document.head.appendChild(sheet);
@@ -1121,7 +1162,7 @@ export default function Nutrition() {
   const clientObj = patients.find(p => p.id === selectedClient);
 
   return (
-    <div>
+    <div className="nutr-page">
       {/* Header */}
       <div style={{ marginBottom: 28, animation: 'nutrFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) both' }}>
         <h1 style={{ font: `700 30px ${s.FONT}`, color: s.text, margin: 0, letterSpacing: '-0.5px' }}>

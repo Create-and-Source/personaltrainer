@@ -197,7 +197,7 @@ export default function Wallet() {
   }[t] || { bg: '#F5F5F5', color: s.text2 });
 
   return (
-    <div>
+    <div className="wallet-page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Wallet</h1>
@@ -210,7 +210,7 @@ export default function Wallet() {
       </div>
 
       {/* KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 24 }}>
+      <div className="wallet-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 24 }}>
         {[
           { label: 'Gift Card Balance', value: fmt(totalGiftBalance), sub: `${giftCards.length} cards`, color: '#7C3AED' },
           { label: 'Credits Outstanding', value: fmt(totalCredits), sub: `${credits.length} credits`, color: '#D97706' },
@@ -241,7 +241,7 @@ export default function Wallet() {
       {tab === 'overview' && (
         <div>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients..." style={{ ...s.input, maxWidth: 280, marginBottom: 16 }} />
-          <div style={{ display: 'grid', gap: 8 }}>
+          <div className="wallet-list" style={{ display: 'grid', gap: 8 }}>
             {walletList.filter(w => !search || w.patientName.toLowerCase().includes(search.toLowerCase())).map(w => (
               <div key={w.patientId} style={{ ...s.cardStyle, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer' }} onClick={() => setSelectedEntry(selectedEntry === w.patientId ? null : w.patientId)}>
                 <div style={{
@@ -458,6 +458,53 @@ export default function Wallet() {
           </div>
         </div>
       )}
+      <style>{`
+        @media (max-width: 860px) {
+          /* Global */
+          .wallet-page h1 { font-size: 22px !important; margin-bottom: 4px !important; }
+          .wallet-page > div:first-child p { font-size: 13px !important; }
+          .wallet-page > div { margin-bottom: 20px !important; }
+
+          /* KPIs: 2 columns */
+          .wallet-kpi-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+          }
+          .wallet-kpi-grid > div {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+          }
+
+          /* Wallet cards: full width, compact */
+          .wallet-list > div {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+            flex-wrap: wrap !important;
+          }
+          /* Hide chevron on mobile */
+          .wallet-list > div > svg { display: none !important; }
+
+          /* Transaction list: compact */
+          .wallet-page div[style*="paddingLeft: 12"] {
+            padding-left: 8px !important;
+          }
+
+          /* Table: horizontal scroll */
+          .wallet-page table { min-width: 600px; }
+
+          /* Modals: full screen */
+          .wallet-page div[style*="position: fixed"] > div {
+            max-width: 100% !important;
+            width: 100% !important;
+            border-radius: 20px 20px 0 0 !important;
+            max-height: 95vh !important;
+          }
+
+          /* Touch targets & inputs */
+          .wallet-page button { min-height: 44px; }
+          .wallet-page input, .wallet-page select { font-size: 16px !important; }
+        }
+      `}</style>
     </div>
   );
 }

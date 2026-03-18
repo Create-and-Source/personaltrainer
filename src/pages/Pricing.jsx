@@ -18,7 +18,7 @@ export default function Pricing() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F5F3F0', padding: '40px 20px' }}>
+    <div className="pricing-page" style={{ minHeight: '100vh', background: '#F5F3F0', padding: '40px 20px' }}>
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
 
         {/* Header */}
@@ -268,6 +268,53 @@ export default function Pricing() {
           Get Stoa LLC — Built in one night, March 2026
         </div>
       </div>
+      <style>{`
+        @media (max-width: 860px) {
+          /* Global */
+          .pricing-page h1 { font-size: 22px !important; }
+          .pricing-page h2 { font-size: 18px !important; }
+          .pricing-page { padding: 20px 12px !important; }
+
+          /* Pricing cards: single column */
+          .pricing-page div[style*="gridTemplateColumns: '1fr 1fr'"],
+          .pricing-page div[style*="gridTemplateColumns: '1fr auto'"],
+          .pricing-page div[style*="repeat(2, 1fr)"] {
+            grid-template-columns: 1fr !important;
+          }
+
+          /* Competitor table: single column */
+          .pricing-page div[style*="gridTemplateColumns: '140px"] {
+            grid-template-columns: 1fr !important;
+            gap: 4px !important;
+          }
+
+          /* Cards: reduce padding */
+          .pricing-page div[style*="padding: 32"] {
+            padding: 20px 16px !important;
+            border-radius: 14px !important;
+          }
+
+          /* Pricing hero */
+          .pricing-page div[style*="padding: 40"] {
+            padding: 28px 20px !important;
+          }
+          .pricing-page div[style*="font-size: 56px"],
+          .pricing-page div[style*="56px"] {
+            font-size: 40px !important;
+          }
+
+          /* Feature grid */
+          .pricing-page div[style*="gridTemplateColumns: '1fr 1fr'"] {
+            grid-template-columns: 1fr !important;
+          }
+
+          /* Frankenstack totals */
+          .pricing-page div[style*="gridTemplateColumns: '1fr 1fr 1fr'"] {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

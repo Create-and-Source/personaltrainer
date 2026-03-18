@@ -75,6 +75,16 @@ if (!document.getElementById(ANIM_ID)) {
     .book-stagger-8 { animation-delay: 0.24s; }
     .book-cats::-webkit-scrollbar { display:none; }
     .book-days::-webkit-scrollbar { display:none; }
+    @media (max-width: 860px) {
+      .book-page h1 { font-size: 22px !important; margin-bottom: 4px !important; }
+      .book-page p { font-size: 13px !important; }
+      .book-page > div > div { margin-bottom: 20px !important; }
+      .book-page div[style*="maxWidth: 820px"] { max-width: 100% !important; padding: 20px 16px !important; }
+      .book-page div[style*="gridTemplateColumns"] { grid-template-columns: 1fr !important; }
+      .book-page input, .book-page select, .book-page textarea { font-size: 16px !important; }
+      .book-page button { min-height: 44px; }
+      .book-page div[style*="borderRadius: 20"] { border-radius: 14px !important; }
+    }
   `;
   document.head.appendChild(sheet);
 }
@@ -322,7 +332,7 @@ export default function BookOnline() {
   // ══════════════════════════════════════════════
 
   return (
-    <div ref={containerRef} style={{
+    <div ref={containerRef} className="book-page" style={{
       minHeight: '100vh', background: s.bg, fontFamily: s.FONT,
       position: 'relative', overflow: 'hidden',
     }}>

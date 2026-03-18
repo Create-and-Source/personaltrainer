@@ -434,7 +434,7 @@ export default function Progress() {
   };
 
   return (
-    <div>
+    <div className="prog-page">
       {/* ═══ HEADER ═══ */}
       <div style={{
         ...glass, padding: '28px 32px', marginBottom: 28,
@@ -992,20 +992,67 @@ export default function Progress() {
 
       <style>{`
         @media (max-width: 860px) {
+          /* Global spacing */
+          .prog-page h1 { font-size: 22px !important; margin-bottom: 4px !important; }
+          .prog-page > div:first-child p { font-size: 13px !important; }
+          .prog-page > div { margin-bottom: 20px !important; }
+
+          /* KPI metrics: 2 columns */
           .prog-metrics-grid {
             grid-template-columns: repeat(2, 1fr) !important;
             gap: 10px !important;
           }
+          .prog-metrics-grid > div {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+          }
+
+          /* Weight chart */
           .prog-chart-section {
             padding: 16px !important;
+            border-radius: 14px !important;
           }
           .prog-chart-section svg {
             width: 100% !important;
             height: auto !important;
             max-height: 200px;
           }
+
+          /* PR cards: 2 columns, hide previous PR */
           .prog-pr-grid {
             grid-template-columns: 1fr 1fr !important;
+            gap: 10px !important;
+          }
+          .prog-pr-grid > div {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+          }
+          .prog-pr-prev {
+            display: none !important;
+          }
+
+          /* Measurements table: horizontal scroll */
+          .prog-meas-table-wrap {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+          }
+          .prog-meas-table-wrap table {
+            min-width: 500px;
+          }
+
+          /* Cards general */
+          .prog-card-hover {
+            border-radius: 14px !important;
+          }
+
+          /* Touch targets */
+          .prog-page button {
+            min-height: 44px;
+          }
+
+          /* Form inputs */
+          .prog-page input, .prog-page select {
+            font-size: 16px !important;
           }
         }
         @media (max-width: 480px) {

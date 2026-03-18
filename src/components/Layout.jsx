@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { section: 'Overview', items: [
     { path: '/admin', label: 'Dashboard', icon: 'grid' },
     { path: '/admin/checkin', label: 'Check-In', icon: 'clipboard' },
+    { path: '/admin/virtual', label: 'Virtual Sessions', icon: 'calendar' },
   ]},
   { section: 'Clients', items: [
     { path: '/admin/members', label: 'Members', icon: 'users' },
@@ -36,12 +37,15 @@ const NAV_ITEMS = [
   { section: 'Client Success', items: [
     { path: '/admin/retention', label: 'Retention', icon: 'heart' },
     { path: '/admin/reviews', label: 'Reviews', icon: 'heart' },
+    { path: '/admin/challenges', label: 'Challenges', icon: 'bar-chart' },
+    { path: '/admin/community', label: 'Community', icon: 'users' },
   ]},
   { section: 'Marketing', items: [
     { path: '/admin/inbox', label: 'DM Inbox', icon: 'message' },
     { path: '/admin/email', label: 'Email', icon: 'mail' },
     { path: '/admin/texts', label: 'Text Messages', icon: 'message' },
     { path: '/admin/social', label: 'Social Media', icon: 'share' },
+    { path: '/admin/automations', label: 'Automations', icon: 'settings' },
   ]},
   { section: 'Reporting', items: [
     { path: '/admin/reports', label: 'Reports', icon: 'bar-chart' },

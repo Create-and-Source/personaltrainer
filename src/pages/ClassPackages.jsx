@@ -119,7 +119,7 @@ export default function ClassPackages() {
   const statusColor = (status) => status === 'completed' ? s.success : status === 'active' || status === 'in-progress' ? s.accent : s.text3;
 
   return (
-    <div>
+    <div className="cp-page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ font: `600 28px ${s.FONT}`, color: s.text, marginBottom: 6, letterSpacing: '-0.3px' }}>Training Programs</h1>
@@ -129,7 +129,7 @@ export default function ClassPackages() {
       </div>
 
       {/* KPIs */}
-      <div className="stagger-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 28 }}>
+      <div className="stagger-in cp-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 28 }}>
         {[
           { label: 'Active Programs', value: activePlans, color: s.accent },
           { label: 'Completed', value: completedPlans, color: s.success },
@@ -144,7 +144,7 @@ export default function ClassPackages() {
       </div>
 
       {/* Controls */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+      <div className="cp-controls" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search member or package..." style={{ ...s.input, maxWidth: 240 }} />
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ ...s.input, width: 'auto', cursor: 'pointer' }}>
@@ -168,7 +168,7 @@ export default function ClassPackages() {
 
       {/* === PACKAGES VIEW === */}
       {view === 'plans' && (
-        <div style={{ display: 'grid', gap: 12 }}>
+        <div className="cp-plans" style={{ display: 'grid', gap: 12 }}>
           {filtered.map((plan, planIdx) => {
             const prog = getProgress(plan);
             const prov = providers.find(p => p.id === plan.providerId);
@@ -356,8 +356,8 @@ export default function ClassPackages() {
 
       {/* Form Modal */}
       {showForm && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }} onClick={() => setShowForm(false)}>
-          <div style={{ background: '#fff', borderRadius: 20, padding: 32, maxWidth: 600, width: '90%', boxShadow: s.shadowLg, maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+        <div className="cp-modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }} onClick={() => setShowForm(false)}>
+          <div className="cp-modal" style={{ background: '#fff', borderRadius: 20, padding: 32, maxWidth: 600, width: '90%', boxShadow: s.shadowLg, maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
             <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 24 }}>{editPlan ? 'Edit Training Program' : 'New Training Program'}</h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
@@ -418,6 +418,77 @@ export default function ClassPackages() {
           </div>
         </div>
       )}
+      <style>{`
+        @media (max-width: 860px) {
+          /* Global */
+          .cp-page h1 { font-size: 22px !important; margin-bottom: 4px !important; }
+          .cp-page > div:first-child p { font-size: 13px !important; }
+
+          /* KPIs: 2 columns */
+          .cp-kpi-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+            margin-bottom: 20px !important;
+          }
+          .cp-kpi-grid > div {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+          }
+          .cp-kpi-grid > div > div:last-child {
+            font-size: 22px !important;
+          }
+
+          /* Controls */
+          .cp-controls { margin-bottom: 16px !important; }
+          .cp-controls input { max-width: 100% !important; width: 100% !important; font-size: 16px !important; }
+
+          /* Plan cards */
+          .cp-plans > div {
+            border-radius: 14px !important;
+          }
+          .cp-plan-header {
+            padding: 14px 16px !important;
+          }
+          .cp-plan-header .cp-avatar {
+            width: 38px !important; height: 38px !important; border-radius: 10px !important; font-size: 12px !important;
+          }
+          .cp-plan-sessions > div {
+            padding: 12px 16px !important;
+          }
+          .cp-plan-actions {
+            padding: 12px 16px !important;
+          }
+
+          /* Timeline dots smaller */
+          .cp-timeline-dot {
+            width: 8px !important; height: 8px !important;
+          }
+
+          /* Modal: full screen */
+          .cp-modal-overlay {
+            align-items: flex-end !important;
+          }
+          .cp-modal {
+            width: 100% !important;
+            max-width: 100% !important;
+            border-radius: 20px 20px 0 0 !important;
+            max-height: 95vh !important;
+            padding: 24px 20px !important;
+          }
+          .cp-modal input, .cp-modal select {
+            font-size: 16px !important;
+          }
+          .cp-modal h2 { font-size: 18px !important; }
+
+          /* Sections breathing room */
+          .cp-page > div { margin-bottom: 20px !important; }
+
+          /* Touch targets */
+          .cp-page button {
+            min-height: 44px;
+          }
+        }
+      `}</style>
     </div>
   );
 }

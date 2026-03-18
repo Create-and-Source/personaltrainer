@@ -95,7 +95,7 @@ export default function Email() {
   );
 
   return (
-    <div>
+    <div className="email-page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
           <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Email</h1>
@@ -270,11 +270,48 @@ export default function Email() {
         </div>
       )}
       <style>{`
-        @media (max-width: 768px) {
+        @media (max-width: 860px) {
+          /* Global */
+          .email-page h1 { font-size: 22px !important; margin-bottom: 4px !important; }
+          .email-page > div:first-child p { font-size: 13px !important; }
+          .email-page > div { margin-bottom: 20px !important; }
+
+          /* Sent table: horizontal scroll, hide columns */
           .email-sent-table {
             overflow-x: auto !important;
             -webkit-overflow-scrolling: touch;
           }
+          .email-sent-table table { min-width: 600px; }
+          .email-sent-table th:nth-child(6),
+          .email-sent-table td:nth-child(6) {
+            display: none !important;
+          }
+
+          /* Template cards: single column */
+          .email-page div[style*="repeat(auto-fill"] {
+            grid-template-columns: 1fr !important;
+          }
+
+          /* Compose: full width */
+          .email-page div[style*="maxWidth: 720"] {
+            max-width: 100% !important;
+          }
+
+          /* Preview: hide side padding on mobile */
+          .email-page div[style*="background: '#F5F5F5'"] {
+            padding: 12px !important;
+          }
+
+          /* Cards */
+          .email-page button[style*="cardStyle"],
+          .email-page div[style*="cardStyle"] {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+          }
+
+          /* Touch targets & inputs */
+          .email-page button { min-height: 44px; }
+          .email-page input, .email-page select, .email-page textarea { font-size: 16px !important; }
         }
       `}</style>
     </div>

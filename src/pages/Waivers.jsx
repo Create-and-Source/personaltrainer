@@ -248,7 +248,7 @@ export default function Waivers() {
   };
 
   return (
-    <div>
+    <div className="waivers-page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Consent & Waivers</h1>
@@ -258,7 +258,7 @@ export default function Waivers() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 24 }}>
+      <div className="waivers-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 24 }}>
         {[
           { label: 'Total Waivers', value: waivers.length },
           { label: 'Signed', value: signedCount, color: s.success },
@@ -299,7 +299,7 @@ export default function Waivers() {
             </div>
           </div>
 
-          <div style={s.tableWrap}>
+          <div className="waivers-table-wrap" style={s.tableWrap}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #E5E5E5' }}>
@@ -351,7 +351,7 @@ export default function Waivers() {
       )}
 
       {tab === 'templates' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
+        <div className="waivers-tpl-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
           {TEMPLATES.map(tpl => (
             <div key={tpl.id} style={{ ...s.cardStyle, padding: 20 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -435,6 +435,62 @@ export default function Waivers() {
           </div>
         </div>
       )}
+      <style>{`
+        @media (max-width: 860px) {
+          /* Global */
+          .waivers-page h1 { font-size: 22px !important; margin-bottom: 4px !important; }
+          .waivers-page > div:first-child p { font-size: 13px !important; }
+
+          /* KPIs: 2 columns */
+          .waivers-kpi-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+            margin-bottom: 20px !important;
+          }
+          .waivers-kpi-grid > div {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+          }
+
+          /* Table: horizontal scroll, hide less important columns */
+          .waivers-table-wrap {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+          }
+          .waivers-table-wrap table {
+            min-width: 600px;
+          }
+          .waivers-table-wrap th:nth-child(4),
+          .waivers-table-wrap td:nth-child(4),
+          .waivers-table-wrap th:nth-child(5),
+          .waivers-table-wrap td:nth-child(5) {
+            display: none !important;
+          }
+
+          /* Template cards: full width */
+          .waivers-tpl-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .waivers-tpl-grid > div {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+          }
+
+          /* Modals: full screen */
+          .waivers-page div[style*="position: fixed"] > div {
+            max-width: 100% !important;
+            width: 100% !important;
+            border-radius: 20px 20px 0 0 !important;
+          }
+
+          /* Touch targets & inputs */
+          .waivers-page button { min-height: 44px; }
+          .waivers-page input, .waivers-page select { font-size: 16px !important; }
+
+          /* Section spacing */
+          .waivers-page > div { margin-bottom: 20px !important; }
+        }
+      `}</style>
     </div>
   );
 }

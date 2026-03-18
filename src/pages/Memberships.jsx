@@ -241,7 +241,7 @@ export default function Memberships() {
   });
 
   return (
-    <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+    <div className="mem-page" style={{ maxWidth: 1280, margin: '0 auto' }}>
 
       {/* ===== HEADER ===== */}
       <div style={{ marginBottom: 36, ...stagger(0) }}>
@@ -254,7 +254,7 @@ export default function Memberships() {
       </div>
 
       {/* ===== TIER SHOWCASE ===== */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginBottom: 32 }}>
+      <div className="mem-tier-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginBottom: 32 }}>
         {Object.entries(TIERS).map(([name, tier], idx) => {
           const isHovered = hoveredTier === name;
           return (
@@ -345,7 +345,7 @@ export default function Memberships() {
       </div>
 
       {/* ===== KPI ROW ===== */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 32 }}>
+      <div className="mem-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 32 }}>
         {[
           { label: 'Monthly Revenue', value: `$${mrr.toLocaleString()}`, icon: '$', color: s.success, sub: 'Recurring' },
           { label: 'Total Clients', value: activeMemberships, icon: '#', color: s.accent, sub: 'Active' },
@@ -537,7 +537,7 @@ export default function Memberships() {
 
       {/* ===== MEMBERS TAB — CARDS VIEW ===== */}
       {tab === 'memberships' && view === 'cards' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(370px, 1fr))', gap: 18 }}>
+        <div className="mem-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(370px, 1fr))', gap: 18 }}>
           {filteredMemberships.map((m, idx) => {
             const tc = tierColor(m.tier);
             const isHovered = hoveredCard === m.id;
@@ -799,7 +799,7 @@ export default function Memberships() {
 
       {/* ===== PACKAGES TAB — CARDS VIEW ===== */}
       {tab === 'packages' && view === 'cards' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 18 }}>
+        <div className="mem-pkg-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 18 }}>
           {filteredPackages.map((p, idx) => {
             const remaining = p.totalSessions - p.usedSessions;
             const pct = (p.usedSessions / p.totalSessions) * 100;
@@ -1095,6 +1095,69 @@ export default function Memberships() {
           </div>
         );
       })()}
+      <style>{`
+        @media (max-width: 860px) {
+          /* Global */
+          .mem-page h1 { font-size: 22px !important; margin-bottom: 4px !important; }
+          .mem-page > div:first-child p { font-size: 13px !important; }
+          .mem-page > div { margin-bottom: 20px !important; }
+
+          /* Tier cards: single column */
+          .mem-tier-grid {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+          .mem-tier-grid > div {
+            padding: 20px !important;
+            border-radius: 14px !important;
+          }
+
+          /* KPIs: 2 columns */
+          .mem-kpi-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+          }
+          .mem-kpi-grid > div {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+          }
+
+          /* Membership cards: single column */
+          .mem-cards-grid {
+            grid-template-columns: 1fr !important;
+            gap: 14px !important;
+          }
+          .mem-cards-grid > div {
+            border-radius: 14px !important;
+          }
+
+          /* Package cards: single column */
+          .mem-pkg-grid {
+            grid-template-columns: 1fr !important;
+            gap: 14px !important;
+          }
+          .mem-pkg-grid > div {
+            border-radius: 14px !important;
+          }
+
+          /* Table view: horizontal scroll */
+          .mem-page table {
+            min-width: 600px;
+          }
+
+          /* Modals */
+          .mem-page div[style*="position: fixed"] > div {
+            max-width: 100% !important;
+            width: 100% !important;
+            border-radius: 20px 20px 0 0 !important;
+            max-height: 95vh !important;
+          }
+
+          /* Touch targets & inputs */
+          .mem-page button { min-height: 44px; }
+          .mem-page input, .mem-page select { font-size: 16px !important; }
+        }
+      `}</style>
     </div>
   );
 }

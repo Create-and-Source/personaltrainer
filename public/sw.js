@@ -1,11 +1,16 @@
-const CACHE_NAME = 'medspa-v1';
+const CACHE_NAME = 'forge-pt-v1';
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(clients.claim());
+  // Clean old caches
+  e.waitUntil(
+    caches.keys().then(keys => Promise.all(
+      keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+    )).then(() => clients.claim())
+  );
 });
 
 self.addEventListener('fetch', (e) => {
@@ -18,7 +23,7 @@ self.addEventListener('fetch', (e) => {
 // Push notification handler
 self.addEventListener('push', (e) => {
   const data = e.data ? e.data.json() : {};
-  const title = data.title || 'MedSpa Platform';
+  const title = data.title || 'FORGE Training';
   const options = {
     body: data.body || 'You have a new notification',
     icon: '/icon-192.png',

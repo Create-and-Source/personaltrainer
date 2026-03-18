@@ -82,7 +82,7 @@ export default function Reports() {
   };
 
   return (
-    <div>
+    <div className="reports-page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Reports</h1>
@@ -99,7 +99,7 @@ export default function Reports() {
       </div>
 
       {/* KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 28 }}>
+      <div className="reports-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 28 }}>
         {[
           { label: 'Monthly Revenue', value: fmt(thisMonthRev), sub: revChange >= 0 ? `+${revChange}% vs last month` : `${revChange}% vs last month`, subColor: revChange >= 0 ? s.success : s.danger },
           { label: 'Sessions This Month', value: thisMonthAppts.length, sub: `${lastMonthAppts.length} last month` },
@@ -114,7 +114,7 @@ export default function Reports() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      <div className="reports-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
         {/* Top Classes */}
         <div style={{ ...s.cardStyle, overflow: 'hidden' }}>
           <div style={{ padding: '18px 20px', borderBottom: '1px solid #F0F0F0' }}>
@@ -194,6 +194,36 @@ export default function Reports() {
           })}
         </div>
       </div>
+      <style>{`
+        @media (max-width: 860px) {
+          /* Global */
+          .reports-page h1 { font-size: 22px !important; margin-bottom: 4px !important; }
+          .reports-page > div:first-child p { font-size: 13px !important; }
+          .reports-page > div { margin-bottom: 20px !important; }
+
+          /* KPIs: 2 columns */
+          .reports-kpi-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+          }
+          .reports-kpi-grid > div {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+          }
+
+          /* Charts grid: single column */
+          .reports-grid {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+          }
+          .reports-grid > div {
+            border-radius: 14px !important;
+          }
+
+          /* Touch targets */
+          .reports-page button { min-height: 44px; }
+        }
+      `}</style>
     </div>
   );
 }

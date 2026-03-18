@@ -40,14 +40,14 @@ export default function Retention() {
   };
 
   return (
-    <div>
+    <div className="retention-page">
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Retention</h1>
         <p style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>Smart alerts for clients who need re-engagement — stop the drift</p>
       </div>
 
       {/* KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 24 }}>
+      <div className="retention-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 24 }}>
         {[
           { label: 'Pending Alerts', value: pendingCount, color: pendingCount > 0 ? s.warning : s.success },
           { label: 'High Priority', value: highCount, color: highCount > 0 ? s.danger : s.success },
@@ -77,7 +77,7 @@ export default function Retention() {
       </div>
 
       {/* Alerts List */}
-      <div style={{ display: 'grid', gap: 8 }}>
+      <div className="retention-alerts" style={{ display: 'grid', gap: 8 }}>
         {filtered.map(alert => {
           const patient = patients.find(p => p.id === alert.patientId);
           return (
@@ -130,6 +130,47 @@ export default function Retention() {
           </div>
         )}
       </div>
+      <style>{`
+        @media (max-width: 860px) {
+          /* Global */
+          .retention-page h1 { font-size: 22px !important; margin-bottom: 4px !important; }
+          .retention-page > div:first-child p { font-size: 13px !important; }
+          .retention-page > div { margin-bottom: 20px !important; }
+
+          /* KPIs: 2 columns */
+          .retention-kpi-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+          }
+          .retention-kpi-grid > div {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+          }
+
+          /* Alert cards: full width, stack layout */
+          .retention-alerts > div {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+            flex-wrap: wrap !important;
+            gap: 10px !important;
+          }
+          /* Hide avatar on very small, stack actions */
+          .retention-alerts > div > div:last-child {
+            width: 100%;
+            flex-direction: row !important;
+            gap: 8px !important;
+          }
+          .retention-alerts > div > div:last-child button {
+            flex: 1;
+          }
+
+          /* Filter pills: wrap */
+          .retention-page input { font-size: 16px !important; max-width: 100% !important; width: 100% !important; }
+
+          /* Touch targets */
+          .retention-page button { min-height: 44px; }
+        }
+      `}</style>
     </div>
   );
 }

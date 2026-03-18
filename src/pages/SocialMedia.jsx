@@ -123,7 +123,7 @@ export default function SocialMedia() {
   const filteredHistory = allPosts.filter(p => historyFilter === 'all' || p.status === historyFilter);
 
   return (
-    <div>
+    <div className="social-page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
         <div>
           <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Social Media</h1>
@@ -378,13 +378,46 @@ export default function SocialMedia() {
         </div>
       )}
       <style>{`
-        @media (max-width: 768px) {
+        @media (max-width: 860px) {
+          /* Global */
+          .social-page h1 { font-size: 22px !important; margin-bottom: 4px !important; }
+          .social-page > div:first-child p { font-size: 13px !important; }
+          .social-page > div { margin-bottom: 20px !important; }
+
+          /* Write grid: single column */
           .social-write-grid {
             grid-template-columns: 1fr !important;
           }
+
+          /* Publish grid: single column, hide phone preview */
           .social-publish-grid {
             grid-template-columns: 1fr !important;
           }
+          .social-publish-grid > div:last-child {
+            display: none !important;
+          }
+
+          /* Connected accounts: 2 columns */
+          .social-page div[style*="repeat(auto-fill, minmax(160px"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 8px !important;
+          }
+
+          /* Content type cards: single column */
+          .social-page div[style*="repeat(auto-fill, minmax(180px"] {
+            grid-template-columns: 1fr !important;
+          }
+
+          /* Cards */
+          .social-page div[style*="padding: '16px 20px'"],
+          .social-page div[style*="padding: 20"] {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+          }
+
+          /* Touch targets & inputs */
+          .social-page button { min-height: 44px; }
+          .social-page input, .social-page select, .social-page textarea { font-size: 16px !important; }
         }
       `}</style>
     </div>

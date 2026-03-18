@@ -136,7 +136,7 @@ export default function Referrals() {
   };
 
   return (
-    <div>
+    <div className="referrals-page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
           <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Referrals</h1>
@@ -149,7 +149,7 @@ export default function Referrals() {
       </div>
 
       {/* KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 24 }}>
+      <div className="referrals-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 24 }}>
         {[
           { label: 'Total Referrals', value: totalReferrals, color: s.text },
           { label: 'Pending', value: pendingCount, color: pendingCount > 0 ? s.warning : s.success },
@@ -198,7 +198,7 @@ export default function Referrals() {
       </div>
 
       {/* Referral Table */}
-      <div style={s.tableWrap}>
+      <div className="referrals-table-wrap" style={s.tableWrap}>
         <table style={{ width: '100%', borderCollapse: 'collapse', font: `400 13px ${s.FONT}` }}>
           <thead>
             <tr style={{ borderBottom: '1px solid #E5E5E5' }}>
@@ -298,6 +298,59 @@ export default function Referrals() {
           </div>
         </div>
       )}
+      <style>{`
+        @media (max-width: 860px) {
+          /* Global */
+          .referrals-page h1 { font-size: 22px !important; margin-bottom: 4px !important; }
+          .referrals-page > div:first-child p { font-size: 13px !important; }
+          .referrals-page > div { margin-bottom: 20px !important; }
+
+          /* KPIs: 2 columns */
+          .referrals-kpi-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+          }
+          .referrals-kpi-grid > div {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+          }
+
+          /* Referral cards: full width */
+          .referrals-page div[style*="padding: 20"] {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+          }
+
+          /* Table: horizontal scroll, hide less important columns */
+          .referrals-table-wrap {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+          }
+          .referrals-table-wrap table { min-width: 600px; }
+          .referrals-table-wrap th:nth-child(2),
+          .referrals-table-wrap td:nth-child(2),
+          .referrals-table-wrap th:nth-child(5),
+          .referrals-table-wrap td:nth-child(5) {
+            display: none !important;
+          }
+
+          /* Leaderboard: wrap */
+          .referrals-page div[style*="overflowX: 'auto'"] > div {
+            min-width: 160px !important;
+          }
+
+          /* Modals */
+          .referrals-page div[style*="position: fixed"] > div {
+            max-width: 100% !important;
+            width: 100% !important;
+            border-radius: 20px 20px 0 0 !important;
+          }
+
+          /* Touch targets & inputs */
+          .referrals-page button { min-height: 44px; }
+          .referrals-page input, .referrals-page select { font-size: 16px !important; }
+        }
+      `}</style>
     </div>
   );
 }

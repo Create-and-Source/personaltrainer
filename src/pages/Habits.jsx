@@ -339,7 +339,7 @@ export default function Habits() {
   const barGap = (chartW - barW * 8) / 9;
 
   return (
-    <div style={{ animation: 'habitFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1)' }}>
+    <div className="habits-page" style={{ animation: 'habitFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1)' }}>
       {/* Header */}
       <div style={{ marginBottom: 32 }}>
         <h1 style={{ font: `700 28px ${s.FONT}`, color: s.text, margin: 0, letterSpacing: '-0.5px' }}>
@@ -398,7 +398,7 @@ export default function Habits() {
               </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+            <div className="habits-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
               {habits.map((habit, idx) => {
                 const log = todayLogs.find(l => l.habitId === habit.id);
                 const isComplete = log?.completed || false;
@@ -817,6 +817,70 @@ export default function Habits() {
           )}
         </div>
       )}
+      <style>{`
+        @media (max-width: 860px) {
+          /* Global */
+          .habits-page h1 { font-size: 22px !important; margin-bottom: 4px !important; }
+          .habits-page p { font-size: 13px !important; }
+          .habits-page > div { margin-bottom: 20px !important; }
+
+          /* Habit cards: single column */
+          .habits-cards-grid {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+          .habits-cards-grid > div {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+          }
+
+          /* Streak board: compact */
+          .habits-page table {
+            font-size: 12px !important;
+          }
+          .habits-page table td div[style*="width: 28px"] {
+            width: 22px !important;
+            height: 22px !important;
+          }
+          .habits-page table th {
+            padding: 4px 2px !important;
+          }
+          .habits-page table td {
+            padding: 6px 2px !important;
+          }
+
+          /* Cards general */
+          .habits-page > div > div > div[style*="cardStyle"] {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+          }
+
+          /* Performance chart: reduce height */
+          .habits-page svg[viewBox] {
+            max-height: 180px;
+          }
+
+          /* Leaderboard: full width */
+          .habits-page .habit-card-hover {
+            border-radius: 14px !important;
+          }
+
+          /* Modal: full screen */
+          .habits-page > div > div[style*="position: fixed"] {
+            align-items: flex-end !important;
+          }
+          .habits-page > div > div[style*="position: fixed"] > div {
+            width: 100% !important;
+            max-width: 100% !important;
+            border-radius: 20px 20px 0 0 !important;
+            max-height: 95vh !important;
+          }
+
+          /* Touch targets & inputs */
+          .habits-page button { min-height: 44px; }
+          .habits-page input, .habits-page select { font-size: 16px !important; }
+        }
+      `}</style>
     </div>
   );
 }

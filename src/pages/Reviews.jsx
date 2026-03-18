@@ -148,7 +148,7 @@ export default function Reviews() {
   const smsTemplate = `Thanks for visiting ${businessName}! Love your results? Leave us a quick review: https://g.page/${businessName.replace(/\s/g, '').toLowerCase()}/review`;
 
   return (
-    <div>
+    <div className="reviews-page">
       {/* Toast */}
       {toast && (
         <div style={{
@@ -166,7 +166,7 @@ export default function Reviews() {
       </div>
 
       {/* KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 24 }}>
+      <div className="reviews-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 24 }}>
         {[
           { label: 'Total Reviews', value: totalReviews, color: s.text },
           { label: 'Average Rating', value: avgRating, color: Number(avgRating) >= 4.5 ? s.success : Number(avgRating) >= 3.5 ? s.warning : s.danger, extra: completed.length > 0 ? <Stars rating={Math.round(Number(avgRating))} size={12} /> : null },
@@ -209,7 +209,7 @@ export default function Reviews() {
       </div>
 
       {/* Reviews List */}
-      <div style={{ display: 'grid', gap: 8 }}>
+      <div className="reviews-list" style={{ display: 'grid', gap: 8 }}>
         {filtered.map(rev => (
           <div key={rev.id} style={{
             ...s.cardStyle, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16,
@@ -282,6 +282,44 @@ export default function Reviews() {
           </div>
         )}
       </div>
+      <style>{`
+        @media (max-width: 860px) {
+          /* Global */
+          .reviews-page h1 { font-size: 22px !important; margin-bottom: 4px !important; }
+          .reviews-page > div p { font-size: 13px !important; }
+          .reviews-page > div { margin-bottom: 20px !important; }
+
+          /* KPIs: 2 columns */
+          .reviews-kpi-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+          }
+          .reviews-kpi-grid > div {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+          }
+
+          /* Review cards: full width, stack layout */
+          .reviews-list > div {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+            flex-wrap: wrap !important;
+            gap: 10px !important;
+          }
+          /* Stack actions below */
+          .reviews-list > div > div:last-child {
+            width: 100%;
+            flex-direction: row !important;
+            gap: 8px !important;
+          }
+
+          /* Input */
+          .reviews-page input { font-size: 16px !important; max-width: 100% !important; width: 100% !important; }
+
+          /* Touch targets */
+          .reviews-page button { min-height: 44px; }
+        }
+      `}</style>
     </div>
   );
 }

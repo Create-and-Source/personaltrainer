@@ -77,7 +77,7 @@ export default function TextMessages() {
   const segments = Math.ceil(charCount / 160) || 1;
 
   return (
-    <div>
+    <div className="texts-page">
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Text Messages</h1>
         <p style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>Send SMS reminders, promotions, and check-ins</p>
@@ -239,13 +239,39 @@ export default function TextMessages() {
         </div>
       )}
       <style>{`
-        @media (max-width: 768px) {
+        @media (max-width: 860px) {
+          /* Global */
+          .texts-page h1 { font-size: 22px !important; margin-bottom: 4px !important; }
+          .texts-page > div:first-child p { font-size: 13px !important; }
+          .texts-page > div { margin-bottom: 20px !important; }
+
+          /* Compose grid: single column, hide preview on mobile */
           .texts-compose-grid {
             grid-template-columns: 1fr !important;
           }
           .texts-compose-grid > div:last-child {
-            order: -1;
+            display: none !important;
           }
+
+          /* Template cards: single column */
+          .texts-page div[style*="repeat(auto-fill"] {
+            grid-template-columns: 1fr !important;
+          }
+
+          /* Sent table: scroll */
+          .texts-page table {
+            min-width: 500px;
+          }
+
+          /* Cards */
+          .texts-page div[style*="padding: 20"] {
+            padding: 14px 16px !important;
+            border-radius: 14px !important;
+          }
+
+          /* Touch targets & inputs */
+          .texts-page button { min-height: 44px; }
+          .texts-page input, .texts-page select, .texts-page textarea { font-size: 16px !important; }
         }
       `}</style>
     </div>

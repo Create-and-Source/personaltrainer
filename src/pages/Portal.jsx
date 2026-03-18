@@ -71,6 +71,26 @@ if (!document.getElementById(ANIM_ID)) {
     .portal-stagger-7 { animation-delay: 0.28s; }
     .portal-stagger-8 { animation-delay: 0.32s; }
     .portal-tabs::-webkit-scrollbar { display:none; }
+    @media (max-width: 860px) {
+      .portal-page h1, .portal-page h2 { font-size: 22px !important; margin-bottom: 4px !important; }
+      .portal-page p { font-size: 13px !important; }
+      .portal-page > div { margin-bottom: 20px !important; }
+      .portal-tabs {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        flex-wrap: nowrap !important;
+      }
+      .portal-tabs > button {
+        flex-shrink: 0 !important;
+        min-height: 44px;
+      }
+      .portal-page div[style*="gridTemplateColumns"] { grid-template-columns: 1fr !important; }
+      .portal-page input, .portal-page select, .portal-page textarea { font-size: 16px !important; }
+      .portal-page button { min-height: 44px; }
+      .portal-page div[style*="borderRadius: 20"], .portal-page div[style*="border-radius: 20px"] { border-radius: 14px !important; }
+      .portal-page div[style*="padding: '24px 22px'"], .portal-page div[style*="padding: 24px"] { padding: 14px 16px !important; }
+    }
   `;
   document.head.appendChild(sheet);
 }

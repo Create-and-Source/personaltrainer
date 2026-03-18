@@ -31,6 +31,10 @@ const WorkoutBuilder = lazy(() => import('./pages/WorkoutBuilder'));
 const Progress = lazy(() => import('./pages/Progress'));
 const Habits = lazy(() => import('./pages/Habits'));
 const Nutrition = lazy(() => import('./pages/Nutrition'));
+const Automations = lazy(() => import('./pages/Automations'));
+const Challenges = lazy(() => import('./pages/Challenges'));
+const VirtualSessions = lazy(() => import('./pages/VirtualSessions'));
+const Community = lazy(() => import('./pages/Community'));
 
 function Loader() {
   return <div style={{ padding: 60, textAlign: 'center', color: '#999', font: "400 14px 'Inter', sans-serif" }}>Loading...</div>;
@@ -70,6 +74,10 @@ export default function App() {
                 <Route path="/email" element={<Email />} />
                 <Route path="/texts" element={<TextMessages />} />
                 <Route path="/social" element={<SocialMedia />} />
+                <Route path="/automations" element={<Automations />} />
+                <Route path="/challenges" element={<Challenges />} />
+                <Route path="/virtual" element={<VirtualSessions />} />
+                <Route path="/community" element={<Community />} />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/settings" element={<Settings />} />
               </Routes>
