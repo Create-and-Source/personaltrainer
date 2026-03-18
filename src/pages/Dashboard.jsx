@@ -117,11 +117,188 @@ function ChevronRight({ color }) {
   );
 }
 
+/* ═══ MOBILE TODAY VIEW ═══ */
+function MobileTodayView({ s, nav, settings, patients, appointments, services, providers, alerts }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const todayAppts = appointments.filter(a => a.date === today);
+  const thisMonth = today.slice(0, 7);
+  const thisWeekStart = new Date();
+  thisWeekStart.setDate(thisWeekStart.getDate() - thisWeekStart.getDay());
+  const weekStr = thisWeekStart.toISOString().slice(0, 10);
+  const weekClients = new Set(appointments.filter(a => a.date >= weekStr && a.date <= today).map(a => a.patientId)).size;
+  const monthRevenue = appointments.filter(a => a.date?.startsWith(thisMonth) && a.status === 'completed').reduce((sum, a) => {
+    const svc = services.find(sv => sv.id === a.serviceId);
+    return sum + (svc?.price || 0);
+  }, 0);
+  const unreadMessages = 3; // placeholder
+
+  // Clients inactive 30+ days
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const thirtyStr = thirtyDaysAgo.toISOString().slice(0, 10);
+  const needsAttention = patients.filter(p => !p.lastVisit || p.lastVisit < thirtyStr);
+
+  // Recent completed sessions (last 5)
+  const recentCompleted = appointments
+    .filter(a => a.status === 'completed')
+    .sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`))
+    .slice(0, 5);
+
+  const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  const mobileGlass = {
+    background: 'rgba(255,255,255,0.65)',
+    backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+    border: '1px solid rgba(255,255,255,0.7)',
+    borderRadius: 16,
+    boxShadow: '0 2px 16px rgba(0,0,0,0.04)',
+  };
+
+  const timeSince = (dateStr) => {
+    const diff = Date.now() - new Date(dateStr + 'T12:00:00').getTime();
+    const hours = Math.floor(diff / 3600000);
+    if (hours < 1) return 'Just now';
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days === 1) return 'Yesterday';
+    return `${days}d ago`;
+  };
+
+  return (
+    <div style={{ paddingTop: 8 }}>
+      {/* Greeting — big, airy, Trainerize-style */}
+      <div style={{ marginBottom: 32, padding: '0 4px' }}>
+        <h1 style={{ font: `700 32px ${s.FONT}`, color: s.text, margin: '0 0 4px', letterSpacing: '-0.8px', lineHeight: 1.1 }}>
+          Hey {settings.founder?.split(' ')[0] || 'Marcus'} 👋
+        </h1>
+        <p style={{ font: `400 15px ${s.FONT}`, color: s.text3, margin: 0, lineHeight: 1.4 }}>{dateStr}</p>
+      </div>
+
+      {/* Today's Sessions — the hero content */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ font: `600 13px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.5, color: s.text3, marginBottom: 14, padding: '0 4px' }}>
+          Today's Sessions · {todayAppts.length}
+        </div>
+        {todayAppts.length === 0 ? (
+          <div style={{ ...mobileGlass, padding: '40px 24px', textAlign: 'center' }}>
+            <div style={{ fontSize: 36, marginBottom: 12 }}>☀️</div>
+            <div style={{ font: `500 16px ${s.FONT}`, color: s.text, marginBottom: 4 }}>No sessions today</div>
+            <div style={{ font: `400 14px ${s.FONT}`, color: s.text3 }}>Enjoy the rest!</div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {todayAppts.sort((a, b) => (a.time || '').localeCompare(b.time || '')).map(a => {
+              const svc = services.find(sv => sv.id === a.serviceId);
+              const statusColor = a.status === 'confirmed' ? '#16A34A' : a.status === 'pending' ? '#D97706' : '#999';
+              const statusBg = a.status === 'confirmed' ? '#F0FDF4' : a.status === 'pending' ? '#FFFBEB' : '#F5F5F5';
+              return (
+                <div key={a.id} onClick={() => nav('/admin/schedule')} style={{
+                  ...mobileGlass, padding: '18px 20px', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 16,
+                }}>
+                  {/* Time block */}
+                  <div style={{
+                    width: 56, height: 56, borderRadius: 14, background: s.accentLight,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>
+                    <div style={{ font: `700 16px ${s.MONO}`, color: s.accent, lineHeight: 1 }}>
+                      {(a.time || '--:--').split(':')[0] > 12 ? a.time.split(':')[0] - 12 : a.time.split(':')[0]}:{(a.time || '--:--').split(':')[1]}
+                    </div>
+                    <div style={{ font: `500 9px ${s.MONO}`, color: s.accent, opacity: 0.7 }}>
+                      {parseInt((a.time || '0').split(':')[0]) >= 12 ? 'PM' : 'AM'}
+                    </div>
+                  </div>
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ font: `600 16px ${s.FONT}`, color: s.text, marginBottom: 3 }}>{a.patientName}</div>
+                    <div style={{ font: `400 13px ${s.FONT}`, color: s.text3 }}>{svc?.name || 'Session'}</div>
+                  </div>
+                  {/* Status */}
+                  <span style={{
+                    padding: '4px 10px', borderRadius: 100,
+                    font: `600 10px ${s.FONT}`, textTransform: 'uppercase', letterSpacing: 0.3,
+                    background: statusBg, color: statusColor, flexShrink: 0,
+                  }}>{a.status}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Quick Access — clean 2x4 grid */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ font: `600 13px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.5, color: s.text3, marginBottom: 14, padding: '0 4px' }}>
+          Quick Access
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+          {[
+            { label: 'Workouts', path: '/admin/workouts', emoji: '💪' },
+            { label: 'Programs', path: '/admin/classes', emoji: '📋' },
+            { label: 'Progress', path: '/admin/progress', emoji: '📈' },
+            { label: 'Nutrition', path: '/admin/nutrition', emoji: '🥗' },
+            { label: 'Habits', path: '/admin/habits', emoji: '🔥' },
+            { label: 'Check-In', path: '/admin/checkin', emoji: '✅' },
+            { label: 'Billing', path: '/admin/memberships', emoji: '💳' },
+            { label: 'More', path: '/admin/settings', emoji: '⚙️' },
+          ].map(item => (
+            <button key={item.path} onClick={() => nav(item.path)} style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+              padding: '16px 4px', borderRadius: 16, border: 'none', cursor: 'pointer',
+              background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(12px)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+            }}>
+              <span style={{ fontSize: 24 }}>{item.emoji}</span>
+              <span style={{ font: `500 10px ${s.FONT}`, color: s.text2 }}>{item.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Needs Attention — only if there are any */}
+      {needsAttention.length > 0 && (
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ font: `600 13px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.5, color: s.text3, marginBottom: 14, padding: '0 4px' }}>
+            Needs Attention · {needsAttention.length}
+          </div>
+          <div style={{ display: 'flex', gap: 12, overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 8 }}>
+            {needsAttention.slice(0, 8).map(p => (
+              <div key={p.id} onClick={() => nav('/admin/members')} style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, cursor: 'pointer', flexShrink: 0, minWidth: 64,
+              }}>
+                <div style={{
+                  width: 48, height: 48, borderRadius: '50%',
+                  background: `linear-gradient(135deg, ${s.accentLight}, ${s.accent}18)`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  font: `600 14px ${s.FONT}`, color: s.accent,
+                  border: '2px solid rgba(220,38,38,0.2)',
+                }}>
+                  {p.firstName?.[0]}{p.lastName?.[0]}
+                </div>
+                <span style={{ font: `500 11px ${s.FONT}`, color: s.text2, textAlign: 'center' }}>
+                  {p.firstName}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const s = useStyles();
   const nav = useNavigate();
   const [, setTick] = useState(0);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth <= 860);
   useEffect(() => subscribe(() => setTick(t => t + 1)), []);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 860px)');
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   const patients = getPatients();
   const appointments = getAppointments();
@@ -129,6 +306,11 @@ export default function Dashboard() {
   const services = getServices();
   const providers = getProviders();
   const settings = getSettings();
+
+  // Mobile: render completely different "Today" view
+  if (isMobile) {
+    return <MobileTodayView s={s} nav={nav} settings={settings} patients={patients} appointments={appointments} services={services} providers={providers} alerts={alerts} />;
+  }
 
   const today = new Date().toISOString().slice(0, 10);
   const todayAppts = appointments.filter(a => a.date === today);
@@ -386,47 +568,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <style>{`
-        @media (max-width: 860px) {
-          .dashboard-main-grid { grid-template-columns: 1fr !important; }
-          .dash-hero {
-            padding: 20px 16px !important;
-          }
-          .dash-hero h1 {
-            font-size: 22px !important;
-          }
-          .dash-hero-right {
-            display: none !important;
-          }
-          .dash-kpi-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 10px !important;
-          }
-          .dash-kpi-card {
-            padding: 16px 14px !important;
-          }
-          .dash-kpi-card .dash-kpi-value {
-            font-size: 24px !important;
-          }
-          .dash-kpi-card .dash-kpi-sub {
-            font-size: 11px !important;
-          }
-          .dash-quick-actions-grid {
-            grid-template-columns: 1fr !important;
-          }
-          .dash-appt-item {
-            padding: 12px 14px !important;
-          }
-          .dash-sparkline-section {
-            display: none !important;
-          }
-        }
-        @media (max-width: 400px) {
-          .dash-kpi-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
+      {/* Mobile styles removed — mobile renders MobileTodayView instead */}
 
     </div>
   );

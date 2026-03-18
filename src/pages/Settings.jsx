@@ -81,6 +81,17 @@ export default function Settings() {
     localStorage.setItem('ms_social_connections', JSON.stringify(next));
   };
 
+  // Integrations state
+  const [integrations, setIntegrations] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('ms_integrations')) || { myfitnesspal: true, stripe: true, instagram: true }; } catch { return { myfitnesspal: true, stripe: true, instagram: true }; }
+  });
+  const toggleIntegration = (id, defaultConnected) => {
+    const current = integrations[id] !== undefined ? integrations[id] : defaultConnected;
+    const next = { ...integrations, [id]: !current };
+    setIntegrations(next);
+    localStorage.setItem('ms_integrations', JSON.stringify(next));
+  };
+
   const tabs = [
     { id: 'general', label: 'General' },
     { id: 'branding', label: 'Branding' },
@@ -284,96 +295,74 @@ export default function Settings() {
 
       {/* Integrations */}
       {tab === 'integrations' && (
-        <div style={{ maxWidth: 600 }}>
-          <div style={{ ...s.cardStyle, padding: 24, marginBottom: 20 }}>
-            <div style={{ font: `600 15px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Social Media — DM Inbox</div>
-            <p style={{ font: `400 13px ${s.FONT}`, color: s.text3, marginBottom: 20 }}>
-              Connect social accounts to manage all DMs from one inbox. Each staff member gets their own assigned conversations.
+        <div style={{ maxWidth: 700 }}>
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ font: `600 15px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Connected Apps & Services</div>
+            <p style={{ font: `400 13px ${s.FONT}`, color: s.text3 }}>
+              Manage all your integrations in one place. Toggle connections on or off.
             </p>
-            <div style={{ display: 'grid', gap: 12 }}>
-              {[
-                { id: 'instagram', name: 'Instagram', desc: 'DMs, comments, story replies', color: '#E1306C', handle: '@forgeperformance' },
-                { id: 'facebook', name: 'Facebook', desc: 'Messenger, page messages', color: '#1877F2', handle: 'FORGE Performance Training' },
-                { id: 'tiktok', name: 'TikTok', desc: 'DMs, comment replies', color: '#FE2C55', handle: '@forgeperformance' },
-              ].map(p => (
-                <div key={p.id} style={{ ...s.cardStyle, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: `${p.color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <span style={{ font: `700 14px ${s.FONT}`, color: p.color }}>{p.name.slice(0, 2)}</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 14 }}>
+            {[
+              { id: 'myfitnesspal', name: 'MyFitnessPal', desc: 'Nutrition tracking syncs automatically', color: '#0070DF', accent: '#0070DF', connected: true, letter: 'MF' },
+              { id: 'applehealth', name: 'Apple Health', desc: 'Import workout and activity data', color: '#111', accent: '#111', connected: false, letter: 'AH' },
+              { id: 'fitbit', name: 'Fitbit', desc: 'Sync heart rate, sleep, and activity', color: '#00B0B9', accent: '#00B0B9', connected: false, letter: 'Fb' },
+              { id: 'googlefit', name: 'Google Fit', desc: 'Sync workouts and steps', color: '#4285F4', accent: '#4285F4', connected: false, letter: 'GF' },
+              { id: 'stripe', name: 'Stripe', desc: 'Accept payments and manage subscriptions', color: '#635BFF', accent: '#635BFF', connected: true, letter: 'St' },
+              { id: 'zoom', name: 'Zoom', desc: 'Virtual training sessions', color: '#2D8CFF', accent: '#2D8CFF', connected: false, letter: 'Zm' },
+              { id: 'instagram', name: 'Instagram', desc: 'DM management and content scheduling', color: '#E1306C', accent: 'linear-gradient(45deg, #F58529, #DD2A7B, #8134AF)', connected: true, letter: 'Ig' },
+              { id: 'garmin', name: 'Garmin', desc: 'Sync training data from Garmin watches', color: '#111', accent: '#111', connected: false, letter: 'Gn' },
+            ].map(intg => {
+              const isOn = intg.connected ? (integrations[intg.id] !== false) : (integrations[intg.id] === true);
+              return (
+                <div key={intg.id} style={{
+                  ...s.cardStyle, padding: '20px',
+                  background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255,255,255,0.65)', borderRadius: 16,
+                  boxShadow: '0 4px 24px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
+                    <div style={{
+                      width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
+                      background: intg.accent.startsWith?.('linear') ? intg.accent : `${intg.color}14`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <span style={{ font: `700 13px ${s.FONT}`, color: intg.accent.startsWith?.('linear') ? '#fff' : intg.color }}>{intg.letter}</span>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ font: `600 14px ${s.FONT}`, color: s.text }}>{intg.name}</div>
+                      <div style={{ font: `400 12px ${s.FONT}`, color: s.text2, marginTop: 2 }}>{intg.desc}</div>
+                    </div>
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ font: `600 14px ${s.FONT}`, color: s.text, marginBottom: 2 }}>{p.name}</div>
-                    <div style={{ font: `400 12px ${s.FONT}`, color: s.text2 }}>{p.desc}</div>
-                  </div>
-                  {socials[p.id] ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: s.success }} />
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ font: `500 12px ${s.FONT}`, color: s.success }}>Connected</div>
-                        <div style={{ font: `400 10px ${s.FONT}`, color: s.text3 }}>{p.handle}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    {isOn ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 7, height: 7, borderRadius: '50%', background: s.success }} />
+                        <span style={{ font: `500 11px ${s.FONT}`, color: s.success }}>Connected</span>
                       </div>
-                      <button onClick={() => toggleSocial(p.id)} style={{ ...s.pillGhost, padding: '4px 10px', fontSize: 10 }}>Disconnect</button>
+                    ) : (
+                      <span style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>Not connected</span>
+                    )}
+                    <div
+                      onClick={() => toggleIntegration(intg.id, intg.connected)}
+                      style={{
+                        width: 44, height: 24, borderRadius: 100, cursor: 'pointer',
+                        background: isOn ? s.accent : '#D1D5DB',
+                        position: 'relative', transition: 'background 0.25s ease',
+                      }}
+                    >
+                      <div style={{
+                        width: 18, height: 18, borderRadius: '50%', background: '#fff',
+                        position: 'absolute', top: 3,
+                        left: isOn ? 23 : 3,
+                        transition: 'left 0.25s cubic-bezier(0.16,1,0.3,1)',
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
+                      }} />
                     </div>
-                  ) : (
-                    <button onClick={() => toggleSocial(p.id)} style={{ ...s.pillAccent, padding: '8px 16px', fontSize: 12 }}>Connect</button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ ...s.cardStyle, padding: 24, marginBottom: 20 }}>
-            <div style={{ font: `600 15px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Reviews</div>
-            <p style={{ font: `400 13px ${s.FONT}`, color: s.text3, marginBottom: 20 }}>
-              Connect to automatically request and manage reviews.
-            </p>
-            <div style={{ display: 'grid', gap: 12 }}>
-              {[
-                { id: 'google', name: 'Google Business Profile', desc: 'Google reviews, Maps listing, business info', color: '#4285F4' },
-                { id: 'yelp', name: 'Yelp', desc: 'Yelp reviews and business page', color: '#D32323' },
-              ].map(p => (
-                <div key={p.id} style={{ ...s.cardStyle, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: `${p.color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <span style={{ font: `700 14px ${s.FONT}`, color: p.color }}>{p.name[0]}</span>
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ font: `600 14px ${s.FONT}`, color: s.text, marginBottom: 2 }}>{p.name}</div>
-                    <div style={{ font: `400 12px ${s.FONT}`, color: s.text2 }}>{p.desc}</div>
-                  </div>
-                  {payments[p.id] ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: s.success }} />
-                      <span style={{ font: `500 12px ${s.FONT}`, color: s.success }}>Connected</span>
-                      <button onClick={() => togglePayment(p.id)} style={{ ...s.pillGhost, padding: '4px 10px', fontSize: 10 }}>Disconnect</button>
-                    </div>
-                  ) : (
-                    <button onClick={() => togglePayment(p.id)} style={{ ...s.pillAccent, padding: '8px 16px', fontSize: 12 }}>Connect</button>
-                  )}
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ ...s.cardStyle, padding: 24 }}>
-            <div style={{ font: `600 15px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Other Integrations</div>
-            <p style={{ font: `400 13px ${s.FONT}`, color: s.text3, marginBottom: 20 }}>
-              Coming soon — connect your other tools.
-            </p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {[
-                { name: 'QuickBooks', desc: 'Accounting sync', status: 'coming' },
-                { name: 'Google Calendar', desc: 'Two-way calendar sync', status: 'coming' },
-                { name: 'Zapier', desc: 'Connect 5000+ apps', status: 'coming' },
-                { name: 'Twilio', desc: 'SMS delivery', status: 'coming' },
-                { name: 'Mailgun', desc: 'Email delivery', status: 'coming' },
-                { name: 'AWS S3', desc: 'Photo storage', status: 'coming' },
-              ].map(p => (
-                <div key={p.name} style={{ padding: '14px 16px', background: 'rgba(0,0,0,0.02)', borderRadius: 12, border: '1px solid rgba(0,0,0,0.04)' }}>
-                  <div style={{ font: `500 13px ${s.FONT}`, color: s.text, marginBottom: 2 }}>{p.name}</div>
-                  <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>{p.desc}</div>
-                  <div style={{ font: `500 10px ${s.FONT}`, color: s.text3, marginTop: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Coming Soon</div>
-                </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </div>
       )}

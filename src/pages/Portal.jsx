@@ -88,6 +88,43 @@ export default function Portal() {
   const [copied, setCopied] = useState(false);
   const [signingWaiver, setSigningWaiver] = useState(null);
   const [signName, setSignName] = useState('');
+  const [msgInput, setMsgInput] = useState('');
+  const msgEndRef = useRef(null);
+
+  // Messages — seeded per client, stored in localStorage
+  const msgKey = `ms_portal_messages_${selectedPatientId}`;
+  const seedMessages = (clientId) => {
+    const clientP = patients.find(p => p.id === clientId);
+    const cName = clientP ? clientP.firstName : 'Client';
+    const now = Date.now();
+    return [
+      { id: 'm1', from: 'trainer', text: `Hey ${cName}! Welcome to FORGE. Excited to start training with you. How are you feeling about your goals?`, ts: now - 86400000 * 3 },
+      { id: 'm2', from: 'client', text: 'Hey Marcus! Really pumped to get started. Feeling motivated but a little nervous about the first session.', ts: now - 86400000 * 3 + 600000 },
+      { id: 'm3', from: 'trainer', text: 'That is totally normal. We will start with a movement assessment so I can see where you are at. No pressure, just building a baseline.', ts: now - 86400000 * 2 },
+      { id: 'm4', from: 'client', text: 'Sounds great. Also wanted to ask — should I change anything about my diet before we start?', ts: now - 86400000 * 1 },
+      { id: 'm5', from: 'trainer', text: 'Good question. For now, focus on hitting about 1g of protein per pound of bodyweight and staying hydrated. We will dial in the details after your first week of sessions.', ts: now - 3600000 },
+    ];
+  };
+  const [messages, setMessages] = useState(() => {
+    const stored = lsGet(msgKey, null);
+    return stored || seedMessages(selectedPatientId);
+  });
+  useEffect(() => {
+    const stored = lsGet(msgKey, null);
+    setMessages(stored || seedMessages(selectedPatientId));
+    setMsgInput('');
+  }, [selectedPatientId]);
+  useEffect(() => {
+    if (msgEndRef.current) msgEndRef.current.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, section]);
+
+  const sendMessage = () => {
+    if (!msgInput.trim()) return;
+    const updated = [...messages, { id: `m-${Date.now()}`, from: 'client', text: msgInput.trim(), ts: Date.now() }];
+    setMessages(updated);
+    localStorage.setItem(msgKey, JSON.stringify(updated));
+    setMsgInput('');
+  };
 
   const patient = patients.find(p => p.id === selectedPatientId);
   const patientName = patient ? patient.firstName : 'Guest';
@@ -180,6 +217,7 @@ export default function Portal() {
     { id: 'photos', label: 'Photos', icon: '\uD83D\uDCF7' },
     { id: 'waivers', label: 'Waivers', icon: '\uD83D\uDCDD' },
     { id: 'referrals', label: 'Referrals', icon: '\uD83D\uDC96' },
+    { id: 'messages', label: 'Messages', icon: '\uD83D\uDCAC' },
     { id: 'info', label: 'Profile', icon: '\uD83D\uDC64' },
   ];
 
@@ -1082,6 +1120,96 @@ export default function Portal() {
     </div>
   );
 
+  const renderMessages = () => {
+    const fmtMsgTime = (ts) => {
+      const d = new Date(ts);
+      const now = new Date();
+      const diffDays = Math.floor((now - d) / 86400000);
+      const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      if (diffDays === 0) return `Today ${time}`;
+      if (diffDays === 1) return `Yesterday ${time}`;
+      return `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${time}`;
+    };
+    return (
+      <div>
+        <SectionTitle sub="Chat with your trainer">Messages</SectionTitle>
+        <Card className="portal-fadeInUp" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', height: 520 }}>
+          {/* Chat header */}
+          <div style={{
+            padding: '16px 24px', borderBottom: '1px solid rgba(0,0,0,0.06)',
+            display: 'flex', alignItems: 'center', gap: 12,
+          }}>
+            <div style={{
+              width: 38, height: 38, borderRadius: '50%', background: `${s.accent}18`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              font: `600 14px ${s.FONT}`, color: s.accent,
+            }}>MC</div>
+            <div>
+              <div style={{ font: `600 14px ${s.FONT}`, color: s.text }}>Marcus Cole</div>
+              <div style={{ font: `400 11px ${s.FONT}`, color: s.success, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: s.success }} />
+                Online
+              </div>
+            </div>
+          </div>
+
+          {/* Messages area */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {messages.map((msg) => {
+              const isClient = msg.from === 'client';
+              return (
+                <div key={msg.id} style={{
+                  display: 'flex', flexDirection: 'column',
+                  alignItems: isClient ? 'flex-end' : 'flex-start',
+                  maxWidth: '78%', alignSelf: isClient ? 'flex-end' : 'flex-start',
+                }}>
+                  <div style={{
+                    padding: '12px 16px', borderRadius: 18,
+                    borderBottomRightRadius: isClient ? 4 : 18,
+                    borderBottomLeftRadius: isClient ? 18 : 4,
+                    background: isClient ? s.accent : 'rgba(0,0,0,0.05)',
+                    color: isClient ? (s.accentText || '#fff') : s.text,
+                    font: `400 14px ${s.FONT}`, lineHeight: 1.45,
+                  }}>
+                    {msg.text}
+                  </div>
+                  <span style={{ font: `400 10px ${s.FONT}`, color: s.text3, marginTop: 4, padding: '0 4px' }}>
+                    {fmtMsgTime(msg.ts)}
+                  </span>
+                </div>
+              );
+            })}
+            <div ref={msgEndRef} />
+          </div>
+
+          {/* Input area */}
+          <div style={{
+            padding: '14px 20px', borderTop: '1px solid rgba(0,0,0,0.06)',
+            display: 'flex', gap: 10, alignItems: 'center', background: 'rgba(255,255,255,0.5)',
+          }}>
+            <input
+              value={msgInput}
+              onChange={e => setMsgInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') sendMessage(); }}
+              placeholder="Type a message..."
+              style={{
+                flex: 1, padding: '12px 18px', borderRadius: 100,
+                border: '1px solid rgba(0,0,0,0.08)', background: 'rgba(255,255,255,0.7)',
+                font: `400 14px ${s.FONT}`, color: s.text, outline: 'none',
+              }}
+            />
+            <button onClick={sendMessage} style={{
+              ...s.pillAccent, padding: '10px 22px', borderRadius: 100,
+              boxShadow: `0 2px 12px ${s.accent}30`, flexShrink: 0,
+            }}>
+              Send
+            </button>
+          </div>
+        </Card>
+      </div>
+    );
+  };
+
   const sections = {
     home: renderHome,
     appointments: renderAppointments,
@@ -1091,6 +1219,7 @@ export default function Portal() {
     photos: renderPhotos,
     waivers: renderWaivers,
     referrals: renderReferrals,
+    messages: renderMessages,
     info: renderInfo,
   };
 

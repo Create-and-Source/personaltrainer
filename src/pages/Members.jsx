@@ -61,6 +61,17 @@ export default function Members() {
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', dob: '', gender: 'Female', goals: '', notes: '', membershipTier: 'None' });
   const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'table'
   const [detail, setDetail] = useState(null);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth <= 860);
+  const [mobileDetail, setMobileDetail] = useState(null);
+  const [addedClient, setAddedClient] = useState(null); // tracks newly added client for intake form UI
+  const [intakeToast, setIntakeToast] = useState(null);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 860px)');
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   const members = getPatients();
   const appointments = getAppointments();
@@ -84,11 +95,12 @@ export default function Members() {
     if (!form.firstName.trim() || !form.lastName.trim()) return;
     if (selected) {
       updatePatient(selected.id, form);
+      setShowForm(false);
+      setSelected(null);
     } else {
-      addPatient({ ...form, totalSpent: 0, visitCount: 0, lastVisit: null });
+      const newClient = addPatient({ ...form, totalSpent: 0, visitCount: 0, lastVisit: null });
+      setAddedClient({ ...form, id: newClient.id });
     }
-    setShowForm(false);
-    setSelected(null);
     setForm({ firstName: '', lastName: '', email: '', phone: '', dob: '', gender: 'Female', goals: '', notes: '', membershipTier: 'None' });
   };
 
@@ -131,6 +143,337 @@ export default function Members() {
     { value: 'visits', label: 'Most Sessions' },
   ];
 
+  // ═══ MOBILE CLIENT LIST ═══
+  if (isMobile) {
+    const mobileFiltered = members.filter(p => {
+      const q = search.toLowerCase();
+      return `${p.firstName} ${p.lastName}`.toLowerCase().includes(q) || p.email?.toLowerCase().includes(q) || p.phone?.includes(q);
+    }).sort((a, b) => {
+      // Sort by next session date (soonest first), then last visit
+      const aNext = appointments.filter(ap => ap.patientId === a.id && ap.date >= new Date().toISOString().slice(0, 10)).sort((x, y) => x.date.localeCompare(y.date))[0]?.date || 'zzzz';
+      const bNext = appointments.filter(ap => ap.patientId === b.id && ap.date >= new Date().toISOString().slice(0, 10)).sort((x, y) => x.date.localeCompare(y.date))[0]?.date || 'zzzz';
+      return aNext.localeCompare(bNext);
+    });
+
+    const getActivityStatus = (p) => {
+      if (!p.lastVisit) return 'red';
+      const daysSince = Math.floor((Date.now() - new Date(p.lastVisit + 'T12:00:00').getTime()) / 86400000);
+      if (daysSince <= 7) return 'green';
+      if (daysSince <= 30) return 'yellow';
+      return 'red';
+    };
+    const statusColors = { green: '#16A34A', yellow: '#D97706', red: '#DC2626' };
+
+    // Mobile full-screen detail view
+    if (mobileDetail) {
+      const p = mobileDetail;
+      const tier = TIER_BADGE[p.membershipTier || 'None'];
+      const pClasses = memberClasses(p.id);
+      return (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 250, background: '#F5F3F0',
+          overflowY: 'auto', WebkitOverflowScrolling: 'touch',
+          animation: 'memMobileSlideIn 0.2s cubic-bezier(0.16,1,0.3,1) both',
+        }}>
+          {/* Top bar */}
+          <div style={{
+            position: 'sticky', top: 0, zIndex: 2, padding: '0 16px', height: 48,
+            background: 'rgba(245,243,240,0.9)', backdropFilter: 'blur(12px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            borderBottom: '1px solid rgba(0,0,0,0.06)',
+          }}>
+            <button onClick={() => setMobileDetail(null)} style={{
+              background: 'none', border: 'none', cursor: 'pointer', color: s.accent,
+              font: `500 14px ${s.FONT}`, display: 'flex', alignItems: 'center', gap: 4, padding: 0,
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+              Clients
+            </button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => handleEdit(p)} style={{ ...s.pillGhost, padding: '6px 14px', fontSize: 12 }}>Edit</button>
+              <button onClick={() => { handleDelete(p.id); setMobileDetail(null); }} style={{ ...s.pillGhost, padding: '6px 14px', fontSize: 12, color: s.danger, borderColor: `${s.danger}40` }}>Delete</button>
+            </div>
+          </div>
+
+          {/* Profile header */}
+          <div style={{ padding: '24px 20px', textAlign: 'center', background: `linear-gradient(135deg, ${s.accent}08, ${s.accent}04)` }}>
+            <div style={{
+              width: 72, height: 72, borderRadius: '50%', margin: '0 auto 12px',
+              background: `linear-gradient(135deg, ${s.accentLight}, ${s.accent}18)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              font: `600 22px ${s.FONT}`, color: s.accent, border: `3px solid ${s.accent}25`,
+            }}>
+              {p.firstName[0]}{p.lastName[0]}
+            </div>
+            <div style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 4 }}>{p.firstName} {p.lastName}</div>
+            {tier && (
+              <span style={{
+                display: 'inline-block', padding: '4px 14px', borderRadius: 100,
+                font: `600 10px ${s.FONT}`, textTransform: 'uppercase',
+                background: tier.bg, color: tier.color, border: `1px solid ${tier.border}`,
+              }}>{p.membershipTier}</span>
+            )}
+          </div>
+
+          {/* Stats row */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1, background: 'rgba(0,0,0,0.04)', margin: '0 0 16px' }}>
+            {[
+              { label: 'Sessions', value: p.visitCount },
+              { label: 'Spent', value: fmt(p.totalSpent) },
+              { label: 'Last Session', value: p.lastVisit ? new Date(p.lastVisit + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '---' },
+            ].map(item => (
+              <div key={item.label} style={{ background: '#fff', padding: '14px 12px', textAlign: 'center' }}>
+                <div style={{ font: `500 9px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: s.text3, marginBottom: 4 }}>{item.label}</div>
+                <div style={{ font: `600 16px ${s.FONT}`, color: s.text }}>{item.value}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Info */}
+          <div style={{ padding: '0 20px 20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
+              {[
+                { label: 'Email', value: p.email },
+                { label: 'Phone', value: p.phone },
+                { label: 'DOB', value: p.dob || '---' },
+                { label: 'Gender', value: p.gender },
+              ].map(f => (
+                <div key={f.label}>
+                  <div style={{ font: `500 9px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.5, color: s.text3, marginBottom: 4 }}>{f.label}</div>
+                  <div style={{ font: `400 13px ${s.FONT}`, color: s.text, wordBreak: 'break-word' }}>{f.value}</div>
+                </div>
+              ))}
+            </div>
+            {(p.goals || p.allergies) && (
+              <div style={{
+                padding: '10px 14px', background: s.accentLight, borderRadius: 10, marginBottom: 16,
+                font: `400 12px ${s.FONT}`, color: s.accent, border: `1px solid ${s.accent}20`,
+              }}>
+                Goals: {p.goals || p.allergies}
+              </div>
+            )}
+            <div style={{ font: `600 14px ${s.FONT}`, color: s.text, marginBottom: 10 }}>Recent Sessions</div>
+            {pClasses.length === 0 ? (
+              <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, padding: '8px 0' }}>No sessions yet</div>
+            ) : pClasses.map(a => {
+              const svc = services.find(sv => sv.id === a.serviceId);
+              const statusColor = a.status === 'completed' ? s.success : a.status === 'confirmed' ? s.accent : s.warning;
+              return (
+                <div key={a.id} style={{
+                  padding: '10px 12px', marginBottom: 6, borderRadius: 10,
+                  background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(0,0,0,0.03)',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                }}>
+                  <div>
+                    <div style={{ font: `500 12px ${s.FONT}`, color: s.text }}>{svc?.name || 'Session'}</div>
+                    <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>
+                      {new Date(a.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </div>
+                  </div>
+                  <span style={{
+                    padding: '2px 8px', borderRadius: 100,
+                    font: `500 9px ${s.FONT}`, textTransform: 'uppercase', color: statusColor,
+                    background: a.status === 'completed' ? '#F0FDF4' : a.status === 'confirmed' ? s.accentLight : '#FFFBEB',
+                  }}>{a.status}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          <style>{`
+            @keyframes memMobileSlideIn {
+              from { transform: translateX(100%); }
+              to { transform: translateX(0); }
+            }
+          `}</style>
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ paddingTop: 12 }}>
+        {/* Mobile header - just title, no add button (FAB handles it) */}
+        <div style={{ marginBottom: 14 }}>
+          <h1 style={{ font: `600 24px ${s.FONT}`, color: s.text, margin: '0 0 2px', letterSpacing: '-0.3px' }}>Clients</h1>
+          <p style={{ font: `400 13px ${s.FONT}`, color: s.text3, margin: 0 }}>{members.length} total</p>
+        </div>
+
+        {/* Search input - full width, rounded */}
+        <div style={{ position: 'relative', marginBottom: 14 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={s.text3} strokeWidth="2" strokeLinecap="round"
+            style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)' }}>
+            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients..."
+            style={{
+              width: '100%', padding: '14px 16px 14px 44px', height: 48,
+              background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(0,0,0,0.06)',
+              borderRadius: 100, font: `400 14px ${s.FONT}`, color: s.text, outline: 'none',
+              boxSizing: 'border-box', backdropFilter: 'blur(8px)',
+            }} />
+        </div>
+
+        {/* Client cards - mobile optimized */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {mobileFiltered.map((p, idx) => {
+            const status = getActivityStatus(p);
+            const tier = TIER_BADGE[p.membershipTier || 'None'];
+            return (
+              <div key={p.id} onClick={() => setMobileDetail(p)} style={{
+                background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255,255,255,0.7)', borderRadius: 14,
+                padding: '16px', cursor: 'pointer',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.03)',
+                transition: 'all 0.2s ease',
+                animation: `memFadeInUp 0.2s ease ${idx * 30}ms backwards`,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {/* Avatar */}
+                  <div style={{
+                    width: 48, height: 48, borderRadius: '50%', flexShrink: 0,
+                    background: `linear-gradient(135deg, ${s.accentLight}, ${s.accent}18)`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    font: `600 15px ${s.FONT}`, color: s.accent, border: `2px solid ${s.accent}20`,
+                  }}>
+                    {p.firstName[0]}{p.lastName[0]}
+                  </div>
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ font: `600 16px ${s.FONT}`, color: s.text, marginBottom: 1 }}>{p.firstName} {p.lastName}</div>
+                    <div style={{ font: `400 13px ${s.FONT}`, color: s.text3, marginBottom: 2 }}>{p.goals || p.allergies || 'No goals set'}</div>
+                    <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>
+                      {p.lastVisit ? `Last: ${new Date(p.lastVisit + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : 'No sessions yet'}
+                    </div>
+                  </div>
+                  {/* Status dot */}
+                  <div style={{
+                    width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+                    background: statusColors[status],
+                    boxShadow: `0 0 6px ${statusColors[status]}40`,
+                  }} />
+                </div>
+                {/* Package pill at bottom */}
+                {tier && (
+                  <div style={{ marginTop: 10 }}>
+                    <span style={{
+                      padding: '3px 10px', borderRadius: 100,
+                      font: `600 9px ${s.FONT}`, textTransform: 'uppercase', letterSpacing: 0.5,
+                      background: tier.bg, color: tier.color, border: `1px solid ${tier.border}`,
+                    }}>{p.membershipTier}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {mobileFiltered.length === 0 && (
+            <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+              <div style={{ font: `400 14px ${s.FONT}`, color: s.text3, marginBottom: 12 }}>No clients found</div>
+            </div>
+          )}
+        </div>
+
+        {/* Floating Action Button */}
+        <button onClick={() => { setSelected(null); setForm({ firstName: '', lastName: '', email: '', phone: '', dob: '', gender: 'Female', goals: '', notes: '', membershipTier: 'None' }); setShowForm(true); }} style={{
+          position: 'fixed', bottom: 80, right: 20, zIndex: 140,
+          width: 56, height: 56, borderRadius: '50%',
+          background: s.accent, color: s.accentText,
+          border: 'none', cursor: 'pointer',
+          boxShadow: `0 4px 20px ${s.accent}40`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'transform 0.2s ease',
+          fontSize: 24, fontWeight: 300,
+        }}>
+          +
+        </button>
+
+        {/* Add/Edit Modal — same as desktop */}
+        {showForm && (
+          <div style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 300,
+          }} onClick={() => { setShowForm(false); setAddedClient(null); }}>
+            <div style={{
+              background: '#fff', borderRadius: '20px 20px 0 0', padding: '24px 20px', width: '100%',
+              maxHeight: '90vh', overflowY: 'auto',
+              animation: 'memFadeInUp 0.2s cubic-bezier(0.16,1,0.3,1) both',
+            }} onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+                <div style={{ width: 36, height: 4, borderRadius: 100, background: 'rgba(0,0,0,0.15)' }} />
+              </div>
+              {addedClient ? (
+                <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                  <div style={{
+                    width: 56, height: 56, borderRadius: '50%', background: `${s.accent}14`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px',
+                  }}>
+                    <span style={{ fontSize: 24 }}>&#10003;</span>
+                  </div>
+                  <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 6 }}>Client Added!</h2>
+                  <p style={{ font: `400 14px ${s.FONT}`, color: s.text2, marginBottom: 24 }}>
+                    {addedClient.firstName} {addedClient.lastName} has been added.
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <button onClick={() => {
+                      const email = addedClient.email || `${addedClient.firstName.toLowerCase()}@email.com`;
+                      setIntakeToast(`Intake form sent to ${email}`);
+                      setTimeout(() => setIntakeToast(null), 3000);
+                    }} style={{ ...s.pillOutline, padding: '14px', textAlign: 'center', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 16 }}>&#9993;</span>
+                      Send Intake Form
+                    </button>
+                    <button onClick={() => { setShowForm(false); setAddedClient(null); }} style={{ ...s.pillAccent, padding: '14px', textAlign: 'center', width: '100%' }}>
+                      Done
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 20 }}>{selected ? 'Edit Client' : 'New Client'}</h2>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    {[
+                      { key: 'firstName', label: 'First Name', type: 'text' },
+                      { key: 'lastName', label: 'Last Name', type: 'text' },
+                      { key: 'email', label: 'Email', type: 'email' },
+                      { key: 'phone', label: 'Phone', type: 'tel' },
+                      { key: 'dob', label: 'Date of Birth', type: 'date' },
+                    ].map(f => (
+                      <div key={f.key}>
+                        <label style={s.label}>{f.label}</label>
+                        <input type={f.type} value={form[f.key]} onChange={e => setForm({ ...form, [f.key]: e.target.value })} style={s.input} />
+                      </div>
+                    ))}
+                    <div>
+                      <label style={s.label}>Membership</label>
+                      <select value={form.membershipTier} onChange={e => setForm({ ...form, membershipTier: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
+                        <option>Drop-in</option><option>10-Session Pack</option><option>Unlimited Monthly</option><option>Premium Monthly</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{ marginTop: 12 }}>
+                    <label style={s.label}>Goals</label>
+                    <input value={form.goals} onChange={e => setForm({ ...form, goals: e.target.value })} style={s.input} placeholder="e.g., Build muscle, Lose weight" />
+                  </div>
+                  <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+                    <button onClick={() => setShowForm(false)} style={{ ...s.pillGhost, flex: 1, padding: '14px', textAlign: 'center' }}>Cancel</button>
+                    <button onClick={handleSave} style={{ ...s.pillAccent, flex: 1, padding: '14px', textAlign: 'center' }}>{selected ? 'Save' : 'Add Client'}</button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        <style>{`
+          @keyframes memMobileSlideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // ═══ DESKTOP VIEW (unchanged) ═══
   return (
     <div>
       {/* Header */}
@@ -546,55 +889,101 @@ export default function Members() {
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300,
-        }} onClick={() => setShowForm(false)}>
+        }} onClick={() => { setShowForm(false); setAddedClient(null); }}>
           <div style={{
             background: '#fff', borderRadius: 20, padding: 32, maxWidth: 540, width: '90%',
             boxShadow: s.shadowLg, maxHeight: '90vh', overflowY: 'auto',
             animation: 'memFadeInUp 0.35s cubic-bezier(0.16,1,0.3,1) both',
           }} onClick={e => e.stopPropagation()}>
-            <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 24 }}>{selected ? 'Edit Client' : 'New Client'}</h2>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              {[
-                { key: 'firstName', label: 'First Name', type: 'text' },
-                { key: 'lastName', label: 'Last Name', type: 'text' },
-                { key: 'email', label: 'Email', type: 'email' },
-                { key: 'phone', label: 'Phone', type: 'tel' },
-                { key: 'dob', label: 'Date of Birth', type: 'date' },
-              ].map(f => (
-                <div key={f.key}>
-                  <label style={s.label}>{f.label}</label>
-                  <input type={f.type} value={form[f.key]} onChange={e => setForm({ ...form, [f.key]: e.target.value })} style={s.input} />
+            {addedClient ? (
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <div style={{
+                  width: 64, height: 64, borderRadius: '50%', background: `${s.accent}14`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px',
+                }}>
+                  <span style={{ fontSize: 28 }}>&#10003;</span>
                 </div>
-              ))}
-              <div>
-                <label style={s.label}>Gender</label>
-                <select value={form.gender} onChange={e => setForm({ ...form, gender: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
-                  <option>Female</option><option>Male</option><option>Non-binary</option><option>Prefer not to say</option>
-                </select>
+                <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 6 }}>Client Added!</h2>
+                <p style={{ font: `400 14px ${s.FONT}`, color: s.text2, marginBottom: 28 }}>
+                  {addedClient.firstName} {addedClient.lastName} has been added to your roster.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
+                  <button onClick={() => {
+                    const email = addedClient.email || `${addedClient.firstName.toLowerCase()}@email.com`;
+                    setIntakeToast(`Intake form sent to ${email}`);
+                    setTimeout(() => setIntakeToast(null), 3000);
+                  }} style={{
+                    ...s.pillOutline, padding: '12px 28px', borderRadius: 100,
+                    display: 'flex', alignItems: 'center', gap: 8,
+                  }}>
+                    <span style={{ fontSize: 16 }}>&#9993;</span>
+                    Send Intake Form
+                  </button>
+                  <button onClick={() => { setShowForm(false); setAddedClient(null); }} style={s.pillAccent}>
+                    Done
+                  </button>
+                </div>
               </div>
-              <div>
-                <label style={s.label}>Membership</label>
-                <select value={form.membershipTier} onChange={e => setForm({ ...form, membershipTier: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
-                  <option>Drop-in</option><option>10-Session Pack</option><option>Unlimited Monthly</option><option>Premium Monthly</option>
-                </select>
-              </div>
-            </div>
+            ) : (
+              <>
+                <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 24 }}>{selected ? 'Edit Client' : 'New Client'}</h2>
 
-            <div style={{ marginTop: 16 }}>
-              <label style={s.label}>Goals</label>
-              <input value={form.goals} onChange={e => setForm({ ...form, goals: e.target.value })} style={s.input} placeholder="e.g., Build muscle, Lose weight, Get stronger" />
-            </div>
-            <div style={{ marginTop: 16 }}>
-              <label style={s.label}>Notes</label>
-              <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={3} style={{ ...s.input, resize: 'vertical' }} placeholder="Internal notes..." />
-            </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  {[
+                    { key: 'firstName', label: 'First Name', type: 'text' },
+                    { key: 'lastName', label: 'Last Name', type: 'text' },
+                    { key: 'email', label: 'Email', type: 'email' },
+                    { key: 'phone', label: 'Phone', type: 'tel' },
+                    { key: 'dob', label: 'Date of Birth', type: 'date' },
+                  ].map(f => (
+                    <div key={f.key}>
+                      <label style={s.label}>{f.label}</label>
+                      <input type={f.type} value={form[f.key]} onChange={e => setForm({ ...form, [f.key]: e.target.value })} style={s.input} />
+                    </div>
+                  ))}
+                  <div>
+                    <label style={s.label}>Gender</label>
+                    <select value={form.gender} onChange={e => setForm({ ...form, gender: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
+                      <option>Female</option><option>Male</option><option>Non-binary</option><option>Prefer not to say</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={s.label}>Membership</label>
+                    <select value={form.membershipTier} onChange={e => setForm({ ...form, membershipTier: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
+                      <option>Drop-in</option><option>10-Session Pack</option><option>Unlimited Monthly</option><option>Premium Monthly</option>
+                    </select>
+                  </div>
+                </div>
 
-            <div style={{ display: 'flex', gap: 12, marginTop: 24, justifyContent: 'flex-end' }}>
-              <button onClick={() => setShowForm(false)} style={s.pillGhost}>Cancel</button>
-              <button onClick={handleSave} style={s.pillAccent}>{selected ? 'Save Changes' : 'Add Client'}</button>
-            </div>
+                <div style={{ marginTop: 16 }}>
+                  <label style={s.label}>Goals</label>
+                  <input value={form.goals} onChange={e => setForm({ ...form, goals: e.target.value })} style={s.input} placeholder="e.g., Build muscle, Lose weight, Get stronger" />
+                </div>
+                <div style={{ marginTop: 16 }}>
+                  <label style={s.label}>Notes</label>
+                  <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={3} style={{ ...s.input, resize: 'vertical' }} placeholder="Internal notes..." />
+                </div>
+
+                <div style={{ display: 'flex', gap: 12, marginTop: 24, justifyContent: 'flex-end' }}>
+                  <button onClick={() => setShowForm(false)} style={s.pillGhost}>Cancel</button>
+                  <button onClick={handleSave} style={s.pillAccent}>{selected ? 'Save Changes' : 'Add Client'}</button>
+                </div>
+              </>
+            )}
           </div>
+        </div>
+      )}
+
+      {/* Intake form toast */}
+      {intakeToast && (
+        <div style={{
+          position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)', zIndex: 400,
+          background: 'rgba(17,17,17,0.92)', backdropFilter: 'blur(12px)', color: '#fff',
+          padding: '14px 28px', borderRadius: 100, font: `500 13px ${s.FONT}`,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+          animation: 'memFadeInUp 0.25s cubic-bezier(0.16,1,0.3,1) both',
+        }}>
+          {intakeToast}
         </div>
       )}
     </div>

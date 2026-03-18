@@ -172,7 +172,7 @@ export default function Schedule() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+      <div className="schedule-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Schedule</h1>
           <p style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>{dayAppts.length} sessions {view === 'day' || view === 'list' ? 'today' : 'this week'}</p>
@@ -181,8 +181,8 @@ export default function Schedule() {
       </div>
 
       {/* Controls */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div className="schedule-controls" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <div className="schedule-date-nav" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button onClick={() => navigate(-1)} style={{ ...s.pillGhost, padding: '6px 12px' }}>←</button>
           <span style={{ font: `500 15px ${s.FONT}`, color: s.text, minWidth: 180, textAlign: 'center' }}>
             {new Date(currentDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
@@ -259,11 +259,11 @@ export default function Schedule() {
       {/* List View */}
       {view === 'list' && (
         <div style={s.tableWrap}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className="schedule-list-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #E5E5E5' }}>
                 {['Time', 'Client', 'Session', 'Trainer', 'Status', 'Actions'].map(h => (
-                  <th key={h} style={{ padding: '12px 16px', font: `500 11px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: s.text3, textAlign: 'left' }}>{h}</th>
+                  <th key={h} className={(h === 'Trainer' || h === 'Actions') ? 'schedule-hide-mobile' : ''} style={{ padding: '12px 16px', font: `500 11px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: s.text3, textAlign: 'left' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -276,7 +276,7 @@ export default function Schedule() {
                     <td style={{ padding: '14px 16px', font: `500 13px ${s.MONO}`, color: s.text }}>{a.time}</td>
                     <td style={{ padding: '14px 16px', font: `500 13px ${s.FONT}`, color: s.text }}>{a.patientName}</td>
                     <td style={{ padding: '14px 16px', font: `400 13px ${s.FONT}`, color: s.text2 }}>{svc?.name || '—'}</td>
-                    <td style={{ padding: '14px 16px', font: `400 13px ${s.FONT}`, color: s.text2 }}>{prov?.name?.split(',')[0] || '—'}</td>
+                    <td className="schedule-hide-mobile" style={{ padding: '14px 16px', font: `400 13px ${s.FONT}`, color: s.text2 }}>{prov?.name?.split(',')[0] || '—'}</td>
                     <td style={{ padding: '14px 16px' }}>
                       <select value={a.status} onChange={e => handleStatusChange(a.id, e.target.value)} style={{ ...s.input, width: 'auto', padding: '4px 8px', fontSize: 12, cursor: 'pointer', color: statusColor(a.status), fontWeight: 500 }}>
                         <option value="pending">Pending</option>
@@ -285,7 +285,7 @@ export default function Schedule() {
                         <option value="cancelled">Cancelled</option>
                       </select>
                     </td>
-                    <td style={{ padding: '14px 16px' }}>
+                    <td className="schedule-hide-mobile" style={{ padding: '14px 16px' }}>
                       <div style={{ display: 'flex', gap: 6 }}>
                         <button onClick={() => openEdit(a)} style={{ ...s.pillGhost, padding: '4px 10px', fontSize: 11 }}>Edit</button>
                         <button onClick={() => { if (confirm('Delete?')) deleteAppointment(a.id); }} style={{ ...s.pillGhost, padding: '4px 10px', fontSize: 11, color: s.danger }}>×</button>
@@ -521,6 +521,18 @@ export default function Schedule() {
             color: #999;
             padding: 8px 0 4px;
           }
+          /* Mobile schedule fixes */
+          .schedule-header { flex-direction: column !important; align-items: stretch !important; gap: 8px !important; }
+          .schedule-header h1 { font-size: 22px !important; }
+          .schedule-header p { font-size: 12px !important; }
+          .schedule-controls { flex-direction: column !important; gap: 8px !important; }
+          .schedule-date-nav { justify-content: center !important; gap: 8px !important; }
+          .schedule-date-nav span { font-size: 13px !important; min-width: 0 !important; }
+          .schedule-list-table th.schedule-hide-mobile,
+          .schedule-list-table td.schedule-hide-mobile { display: none !important; }
+          .schedule-list-table th,
+          .schedule-list-table td { padding: 10px 8px !important; font-size: 12px !important; }
+          .schedule-list-table { table-layout: fixed !important; }
         }
       `}</style>
 

@@ -92,7 +92,7 @@ export function updateSettings(updates) { set('ms_settings', { ...getSettings(),
 export function initStore() {
   const alreadyInit = localStorage.getItem('pt_initialized_v2');
 
-  // Clear old pilates data if present
+  // Clear old legacy data if present
   if (!alreadyInit) {
     // Clear ALL old data for clean re-seed
     ['ms_patients','ms_appointments','ms_class_packages','ms_inventory','ms_providers','ms_services','ms_locations','ms_retention_alerts','ms_settings','ms_emails','ms_texts','ms_social_posts','ms_checkins','ms_social_connections','ms_prs','ms_initialized','pt_initialized_v1','ms_workouts','ms_workout_assignments'].forEach(k => localStorage.removeItem(k));
