@@ -417,8 +417,13 @@ export default function WorkoutBuilder() {
 
   const refresh = () => setWorkoutsState(getWorkouts());
 
-  // Debounce search input
+  // Debounce search input (skip initial mount)
+  const isFirstRender = useRef(true);
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     searchTimerRef.current = setTimeout(() => {
       setDebouncedSearch(libSearch);
@@ -636,8 +641,7 @@ export default function WorkoutBuilder() {
   }, [libSearch, libBodyPart, libEquipment]);
 
   // Use API data when available, fall back to local
-  const useApiData = apiExercises.length > 0 || (apiLoading && apiPage === 0);
-  const displayExercises = useApiData ? apiExercises : (apiError ? filteredLocalLibrary : (apiLoading ? [] : filteredLocalLibrary));
+  const displayExercises = apiExercises.length > 0 ? apiExercises : filteredLocalLibrary;
 
   // Dynamic filter lists (API with fallback)
   const bodyPartFilters = useMemo(() => {

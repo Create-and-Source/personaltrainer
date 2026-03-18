@@ -90,7 +90,13 @@ export function updateSettings(updates) { set('ms_settings', { ...getSettings(),
 
 // ── Init seed data ──
 export function initStore() {
-  const alreadyInit = localStorage.getItem('ms_initialized');
+  const alreadyInit = localStorage.getItem('pt_initialized_v1');
+
+  // Clear old pilates data if present
+  if (!alreadyInit && localStorage.getItem('ms_initialized')) {
+    ['ms_patients','ms_appointments','ms_class_packages','ms_inventory','ms_providers','ms_services','ms_locations','ms_retention_alerts','ms_settings','ms_emails','ms_texts','ms_social_posts','ms_checkins','ms_social_connections','ms_prs'].forEach(k => localStorage.removeItem(k));
+    localStorage.removeItem('ms_initialized');
+  }
 
   const today = new Date();
   const d = (offset) => { const dt = new Date(today); dt.setDate(dt.getDate() + offset); return dt.toISOString().slice(0, 10); };
@@ -312,7 +318,7 @@ export function initStore() {
     founder: 'Marcus Cole',
   });
 
-  localStorage.setItem('ms_initialized', 'true');
+  localStorage.setItem('pt_initialized_v1', 'true');
 }
 
 // Seeds data for keys that are empty — runs every load to fill gaps
