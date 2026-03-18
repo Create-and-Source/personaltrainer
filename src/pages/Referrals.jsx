@@ -107,7 +107,7 @@ export default function Referrals() {
 
   const generateLink = (patient) => {
     const code = `REF-${patient.firstName.toUpperCase()}-${patient.id.split('-')[1]}`;
-    navigator.clipboard?.writeText(`https://remedypilates.com/refer/${code}`);
+    navigator.clipboard?.writeText(`https://forgeperformance.com/refer/${code}`);
     setShowGenerate(false);
     setGenerateSearch('');
   };
@@ -140,11 +140,11 @@ export default function Referrals() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
           <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Referrals</h1>
-          <p style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>Track referrals, reward loyalty, and grow your member base</p>
+          <p style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>Track referrals, reward loyalty, and grow your client base</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => setShowSettings(true)} style={s.pillGhost}>Settings</button>
-          <button onClick={() => setShowGenerate(true)} style={s.pillOutline}>View Member Links</button>
+          <button onClick={() => setShowGenerate(true)} style={s.pillOutline}>View Client Links</button>
         </div>
       </div>
 
@@ -257,8 +257,8 @@ export default function Referrals() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }} onClick={() => setShowGenerate(false)}>
           <div onClick={e => e.stopPropagation()} style={{ ...s.cardStyle, padding: 28, width: 420, maxHeight: '80vh', overflow: 'auto' }}>
             <div style={{ font: `600 18px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Generate Referral Link</div>
-            <div style={{ font: `400 13px ${s.FONT}`, color: s.text2, marginBottom: 16 }}>Select a member to generate their unique referral link</div>
-            <input value={generateSearch} onChange={e => setGenerateSearch(e.target.value)} placeholder="Search members..." style={{ ...s.input, marginBottom: 12 }} />
+            <div style={{ font: `400 13px ${s.FONT}`, color: s.text2, marginBottom: 16 }}>Select a client to generate their unique referral link</div>
+            <input value={generateSearch} onChange={e => setGenerateSearch(e.target.value)} placeholder="Search clients..." style={{ ...s.input, marginBottom: 12 }} />
             <div style={{ display: 'grid', gap: 6 }}>
               {filteredPatients.map(p => {
                 const code = `REF-${p.firstName.toUpperCase()}-${p.id.split('-')[1]}`;

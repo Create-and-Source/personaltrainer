@@ -30,9 +30,9 @@ const WAIVER_TEMPLATES = {
 };
 
 const TIER_COLORS = {
-  '8-Class Pack': { color: '#94A3B8', bg: '#F8FAFC' },
+  '10-Session Pack': { color: '#94A3B8', bg: '#F8FAFC' },
   'Unlimited Monthly': { color: '#D97706', bg: '#FFFBEB' },
-  'Annual Unlimited': { color: '#7C3AED', bg: '#F5F3FF' },
+  'Premium Monthly': { color: '#7C3AED', bg: '#F5F3FF' },
 };
 
 /* --- keyframe injection (once) --- */
@@ -123,7 +123,7 @@ export default function Portal() {
   const totalReferralCredits = creditedReferrals.reduce((sum, r) => sum + (r.referrerCredit || 0), 0);
 
   const svcName = (id) => services.find(sv => sv.id === id)?.name || 'Service';
-  const provName = (id) => providers.find(p => p.id === id)?.name || 'Instructor';
+  const provName = (id) => providers.find(p => p.id === id)?.name || 'Trainer';
 
   // Photo pairs
   const photoPairs = {};
@@ -165,7 +165,7 @@ export default function Portal() {
   };
 
   const copyReferralLink = () => {
-    navigator.clipboard.writeText(`https://remedypilates.com/refer/${referralCode}`);
+    navigator.clipboard.writeText(`https://forgetraining.com/refer/${referralCode}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -173,8 +173,8 @@ export default function Portal() {
   // -- Nav items --
   const navItems = [
     { id: 'home', label: 'Home', icon: '\u2302' },
-    { id: 'appointments', label: 'Classes', icon: '\uD83D\uDCC5' },
-    { id: 'treatment', label: 'Class Packages', icon: '\u2728' },
+    { id: 'appointments', label: 'Sessions', icon: '\uD83D\uDCC5' },
+    { id: 'treatment', label: 'Training Programs', icon: '\u2728' },
     { id: 'membership', label: 'Membership', icon: '\u2606' },
     { id: 'wallet', label: 'Wallet', icon: '\uD83D\uDCB3' },
     { id: 'photos', label: 'Photos', icon: '\uD83D\uDCF7' },
@@ -305,7 +305,7 @@ export default function Portal() {
                 background: `${tierInfo.color}15`, border: `1.5px solid ${tierInfo.color}30`,
                 font: `600 11px ${s.FONT}`, textTransform: 'uppercase', letterSpacing: 1.2,
                 color: tierInfo.color,
-              }}>{membership.tier} Member</span>
+              }}>{membership.tier} Client</span>
             )}
           </div>
 
@@ -317,7 +317,7 @@ export default function Portal() {
               borderLeft: `3px solid ${s.accent}`,
               background: 'rgba(255,255,255,0.65)',
             }}>
-              <SectionLabel>Next Class</SectionLabel>
+              <SectionLabel>Next Session</SectionLabel>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ font: `500 17px ${s.FONT}`, color: s.text, marginBottom: 3, letterSpacing: -0.2 }}>
@@ -373,7 +373,7 @@ export default function Portal() {
           {/* Class package progress */}
           <Card hover className="portal-fadeInUp portal-stagger-3" style={{ padding: '24px 22px', cursor: 'pointer' }}
             onClick={() => setSection('treatment')}>
-            <SectionLabel>Class Package</SectionLabel>
+            <SectionLabel>Training Program</SectionLabel>
             {firstPlan ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                 <ProgressRing value={planCompleted} max={planTotal} />
@@ -395,7 +395,7 @@ export default function Portal() {
             <SectionLabel>Upcoming</SectionLabel>
             <div style={{ font: `500 28px ${s.FONT}`, color: s.accent, marginBottom: 2 }}>{upcomingAppts.length}</div>
             <div style={{ font: `400 13px ${s.FONT}`, color: s.text3 }}>
-              {upcomingAppts.length === 1 ? 'class' : 'classes'}
+              {upcomingAppts.length === 1 ? 'session' : 'sessions'}
             </div>
           </Card>
         </div>
@@ -406,7 +406,7 @@ export default function Portal() {
             ...s.pillAccent, padding: '14px 32px', fontSize: 14, borderRadius: 100,
             boxShadow: `0 4px 20px ${s.accent}30`,
           }}>
-            Book a Class
+            Book a Session
           </button>
           <button onClick={() => setSection('referrals')} style={{
             ...s.pillOutline, padding: '14px 32px', fontSize: 14, borderRadius: 100,
@@ -421,14 +421,14 @@ export default function Portal() {
   const renderAppointments = () => (
     <div>
       <SectionTitle sub={`${upcomingAppts.length} upcoming, ${pastAppts.length} past`}>
-        My Classes
+        My Sessions
       </SectionTitle>
 
       {/* Upcoming */}
       <SectionLabel>Upcoming</SectionLabel>
       {upcomingAppts.length === 0 ? (
         <Card className="portal-fadeInUp" style={{ padding: '40px 28px', textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ font: `400 15px ${s.FONT}`, color: s.text3 }}>No upcoming classes</div>
+          <div style={{ font: `400 15px ${s.FONT}`, color: s.text3 }}>No upcoming sessions</div>
         </Card>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 28 }}>
@@ -458,7 +458,7 @@ export default function Portal() {
                       {fmtWeekday(a.date)} at {a.time}
                     </div>
                     <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, marginTop: 2 }}>
-                      with {provName(a.providerId)} {a.room ? `\u00B7 ${a.room}` : ''}
+                      with {provName(a.providerId)}
                     </div>
                   </div>
                   <Badge
@@ -478,7 +478,7 @@ export default function Portal() {
           ...s.pillAccent, padding: '14px 32px', fontSize: 14, borderRadius: 100,
           boxShadow: `0 4px 20px ${s.accent}30`,
         }}>
-          Book New Class
+          Book New Session
         </button>
       </div>
 
@@ -486,10 +486,10 @@ export default function Portal() {
       <div style={{ height: 1, background: 'rgba(0,0,0,0.06)', marginBottom: 28 }} />
 
       {/* Past */}
-      <SectionLabel>Past Classes</SectionLabel>
+      <SectionLabel>Past Sessions</SectionLabel>
       {pastAppts.length === 0 ? (
         <Card className="portal-fadeInUp" style={{ padding: '40px 28px', textAlign: 'center' }}>
-          <div style={{ font: `400 15px ${s.FONT}`, color: s.text3 }}>No past classes</div>
+          <div style={{ font: `400 15px ${s.FONT}`, color: s.text3 }}>No past sessions</div>
         </Card>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -522,12 +522,12 @@ export default function Portal() {
 
   const renderTreatmentPlan = () => (
     <div>
-      <SectionTitle sub="Your personalized class journey">My Class Package</SectionTitle>
+      <SectionTitle sub="Your personalized training journey">My Training Program</SectionTitle>
       {treatmentPlans.length === 0 ? (
         <Card className="portal-fadeInUp" style={{ padding: '48px 32px', textAlign: 'center' }}>
-          <div style={{ font: `300 20px ${s.FONT}`, color: s.text, marginBottom: 10 }}>No active class package</div>
+          <div style={{ font: `300 20px ${s.FONT}`, color: s.text, marginBottom: 10 }}>No active training program</div>
           <div style={{ font: `400 14px ${s.FONT}`, color: s.text3, maxWidth: 340, margin: '0 auto' }}>
-            Ask your instructor about a personalized class package at your next visit.
+            Ask your trainer about a personalized training program at your next visit.
           </div>
         </Card>
       ) : treatmentPlans.map((plan, pi) => {
@@ -563,7 +563,7 @@ export default function Portal() {
                   <div style={{ font: `500 14px ${s.FONT}`, color: s.text }}>Next: {nextSession.name}</div>
                   <div style={{ font: `400 12px ${s.FONT}`, color: s.text2, marginTop: 2 }}>{fmtDate(nextSession.date)}</div>
                 </div>
-                <Badge text={nextSession.status} color={nextSession.status === 'in-progress' ? s.warning : s.accent} bg={nextSession.status === 'in-progress' ? '#FFFBEB' : s.accentLight} />
+                <Badge text={nextSession.status === 'in-progress' ? 'training' : nextSession.status} color={nextSession.status === 'in-progress' ? s.warning : s.accent} bg={nextSession.status === 'in-progress' ? '#FFFBEB' : s.accentLight} />
               </div>
             )}
             {/* Sessions list */}
@@ -590,7 +590,7 @@ export default function Portal() {
                   <span style={{
                     font: `500 10px ${s.FONT}`, textTransform: 'uppercase', letterSpacing: 0.8,
                     color: ss.status === 'completed' ? s.success : ss.status === 'in-progress' ? s.warning : s.text3,
-                  }}>{ss.status}</span>
+                  }}>{ss.status === 'in-progress' ? 'training' : ss.status}</span>
                 </div>
               ))}
             </div>
@@ -615,7 +615,7 @@ export default function Portal() {
             ...s.pillAccent, padding: '14px 36px', fontSize: 14, borderRadius: 100,
             boxShadow: `0 4px 20px ${s.accent}30`,
           }}>
-            Explore Memberships
+            Explore Plans
           </button>
         </Card>
       ) : (
@@ -632,7 +632,7 @@ export default function Portal() {
                   {membership.tier} Membership
                 </div>
                 <div style={{ font: `400 13px ${s.FONT}`, color: s.text2, marginTop: 4 }}>
-                  Member since {fmtDate(membership.startDate)}
+                  Client since {fmtDate(membership.startDate)}
                 </div>
               </div>
               <Badge text={membership.status} color={membership.status === 'active' ? s.success : s.warning}
@@ -817,7 +817,7 @@ export default function Portal() {
           <Card className="portal-fadeInUp" style={{ padding: '48px 32px', textAlign: 'center' }}>
             <div style={{ font: `300 20px ${s.FONT}`, color: s.text, marginBottom: 10 }}>No photos yet</div>
             <div style={{ font: `400 14px ${s.FONT}`, color: s.text3, maxWidth: 340, margin: '0 auto' }}>
-              Your before and after photos will appear here after your classes.
+              Your before and after photos will appear here after your sessions.
             </div>
           </Card>
         ) : pairKeys.map((key, ki) => {
@@ -952,7 +952,7 @@ export default function Portal() {
           Share your referral code
         </div>
         <div style={{ font: `400 14px ${s.FONT}`, color: s.text2, marginBottom: 20, lineHeight: 1.6 }}>
-          Give your friends $50 off their first class and earn $50 in credits for each referral.
+          Give your friends $50 off their first session and earn $50 in credits for each referral.
         </div>
         <div style={{
           display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px',
@@ -970,7 +970,7 @@ export default function Portal() {
           </button>
         </div>
         <div style={{ font: `400 13px ${s.FONT}`, color: s.text3 }}>
-          Share link: https://remedypilates.com/refer/{referralCode}
+          Share link: https://forgetraining.com/refer/{referralCode}
         </div>
       </Card>
 
@@ -1026,7 +1026,7 @@ export default function Portal() {
               { label: 'Phone', value: patient?.phone || '' },
               { label: 'Date of Birth', value: patient?.dob ? fmtDate(patient.dob) : '' },
               { label: 'Health Notes', value: patient?.allergies || 'None' },
-              { label: 'Member Since', value: patient?.createdAt ? fmtDate(patient.createdAt) : '' },
+              { label: 'Client Since', value: patient?.createdAt ? fmtDate(patient.createdAt) : '' },
             ].map((row, i) => (
               <div key={i} style={{
                 display: 'flex', justifyContent: 'space-between', padding: '16px 0', alignItems: 'center',

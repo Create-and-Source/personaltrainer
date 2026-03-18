@@ -67,7 +67,7 @@ export default function Reports() {
   const avgSpend = patients.length > 0 ? patients.reduce((sum, p) => sum + p.totalSpent, 0) / patients.length : 0;
 
   // Membership breakdown
-  const memberCounts = { None: 0, '8-Class Pack': 0, 'Unlimited Monthly': 0, 'Annual Unlimited': 0 };
+  const memberCounts = { None: 0, '10-Session Pack': 0, 'Unlimited Monthly': 0, 'Premium Monthly': 0 };
   patients.forEach(p => { memberCounts[p.membershipTier || 'None']++; });
 
   const exportCSV = (data, filename) => {
@@ -86,7 +86,7 @@ export default function Reports() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Reports</h1>
-          <p style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>Revenue, classes, instructors, and member analytics</p>
+          <p style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>Revenue, sessions, trainers, and client analytics</p>
         </div>
         <button onClick={() => exportCSV(
           completedAppts.map(a => {
@@ -94,7 +94,7 @@ export default function Reports() {
             const prov = providers.find(p => p.id === a.providerId);
             return { date: a.date, patient: a.patientName, service: svc?.name, provider: prov?.name, revenue: fmt(svc?.price || 0) };
           }),
-          `studio-report-${today.toISOString().slice(0, 10)}.csv`
+          `forge-report-${today.toISOString().slice(0, 10)}.csv`
         )} style={s.pillOutline}>Export CSV</button>
       </div>
 
@@ -102,9 +102,9 @@ export default function Reports() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 28 }}>
         {[
           { label: 'Monthly Revenue', value: fmt(thisMonthRev), sub: revChange >= 0 ? `+${revChange}% vs last month` : `${revChange}% vs last month`, subColor: revChange >= 0 ? s.success : s.danger },
-          { label: 'Classes This Month', value: thisMonthAppts.length, sub: `${lastMonthAppts.length} last month` },
+          { label: 'Sessions This Month', value: thisMonthAppts.length, sub: `${lastMonthAppts.length} last month` },
           { label: 'Retention Rate', value: `${retentionRate}%`, sub: `${activePatients} active of ${patients.length}`, subColor: retentionRate > 70 ? s.success : s.warning },
-          { label: 'Avg Member Spend', value: fmt(avgSpend), sub: `${newPatientsThisMonth} new this month` },
+          { label: 'Avg Client Spend', value: fmt(avgSpend), sub: `${newPatientsThisMonth} new this month` },
         ].map(k => (
           <div key={k.label} style={{ ...s.cardStyle, padding: '20px' }}>
             <div style={{ font: `400 10px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: s.text3, marginBottom: 8 }}>{k.label}</div>
@@ -118,7 +118,7 @@ export default function Reports() {
         {/* Top Classes */}
         <div style={{ ...s.cardStyle, overflow: 'hidden' }}>
           <div style={{ padding: '18px 20px', borderBottom: '1px solid #F0F0F0' }}>
-            <span style={{ font: `600 14px ${s.FONT}`, color: s.text }}>Top Classes</span>
+            <span style={{ font: `600 14px ${s.FONT}`, color: s.text }}>Top Sessions</span>
           </div>
           <div style={{ padding: '12px 20px' }}>
             {topServices.map(([name, count]) => (
@@ -132,14 +132,14 @@ export default function Reports() {
                 </div>
               </div>
             ))}
-            {topServices.length === 0 && <div style={{ padding: 20, font: `400 13px ${s.FONT}`, color: s.text3, textAlign: 'center' }}>No completed classes yet</div>}
+            {topServices.length === 0 && <div style={{ padding: 20, font: `400 13px ${s.FONT}`, color: s.text3, textAlign: 'center' }}>No completed sessions yet</div>}
           </div>
         </div>
 
         {/* Instructor Performance */}
         <div style={{ ...s.cardStyle, overflow: 'hidden' }}>
           <div style={{ padding: '18px 20px', borderBottom: '1px solid #F0F0F0' }}>
-            <span style={{ font: `600 14px ${s.FONT}`, color: s.text }}>Instructor Performance</span>
+            <span style={{ font: `600 14px ${s.FONT}`, color: s.text }}>Trainer Performance</span>
           </div>
           <div>
             {providerStats.map(p => (
@@ -150,7 +150,7 @@ export default function Reports() {
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ font: `600 14px ${s.MONO}`, color: s.text }}>{fmt(p.revenue)}</div>
-                  <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>{p.appointments} classes</div>
+                  <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>{p.appointments} sessions</div>
                 </div>
               </div>
             ))}
@@ -160,11 +160,11 @@ export default function Reports() {
         {/* Membership Breakdown */}
         <div style={{ ...s.cardStyle, padding: 20 }}>
           <div style={{ font: `600 14px ${s.FONT}`, color: s.text, marginBottom: 16 }}>Membership Breakdown</div>
-          {['Annual Unlimited', 'Unlimited Monthly', '8-Class Pack', 'None'].map(tier => (
+          {['Premium Monthly', 'Unlimited Monthly', '10-Session Pack', 'None'].map(tier => (
             <div key={tier} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
               <span style={{
                 width: 10, height: 10, borderRadius: '50%',
-                background: tier === 'Annual Unlimited' ? '#111' : tier === 'Unlimited Monthly' ? '#B8960C' : tier === '8-Class Pack' ? '#999' : '#DDD',
+                background: tier === 'Premium Monthly' ? '#111' : tier === 'Unlimited Monthly' ? '#B8960C' : tier === '10-Session Pack' ? '#999' : '#DDD',
               }} />
               <span style={{ font: `500 13px ${s.FONT}`, color: s.text, flex: 1 }}>{tier}</span>
               <span style={{ font: `500 13px ${s.MONO}`, color: s.text }}>{memberCounts[tier]}</span>

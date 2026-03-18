@@ -8,16 +8,16 @@ function getWaivers() { try { return JSON.parse(localStorage.getItem(WAIVERS_KEY
 function saveWaivers(w) { localStorage.setItem(WAIVERS_KEY, JSON.stringify(w)); }
 
 const TEMPLATES = [
-  // ═══ REQUIRED FOR EVERY MEMBER ═══
+  // ═══ REQUIRED FOR EVERY CLIENT ═══
   { id: 'general', name: 'General Liability Waiver', category: 'Required', content: `GENERAL LIABILITY WAIVER AND RELEASE OF CLAIMS
 
-I, [Member Name], voluntarily choose to participate in fitness classes and activities at [Business Name].
+I, [Client Name], voluntarily choose to participate in fitness sessions and activities at [Business Name].
 
 I understand and acknowledge the following:
 
-1. NATURE OF ACTIVITIES: I understand that pilates, barre, and other fitness classes involve physical exertion, use of equipment (reformers, barres, resistance bands, weights, etc.), and movement that carries inherent risks.
+1. NATURE OF ACTIVITIES: I understand that personal training, fitness sessions, and other physical activities involve physical exertion, use of equipment (free weights, machines, resistance bands, etc.), and movement that carries inherent risks.
 
-2. ASSUMPTION OF RISK: I voluntarily assume all risks associated with participation in fitness classes and activities at [Business Name], including but not limited to:
+2. ASSUMPTION OF RISK: I voluntarily assume all risks associated with participation in fitness sessions and activities at [Business Name], including but not limited to:
    - Muscle strains, sprains, or soreness
    - Joint injuries
    - Slips, trips, or falls
@@ -27,13 +27,13 @@ I understand and acknowledge the following:
 
 3. HEALTH DISCLOSURE: I have truthfully disclosed my complete health history, current injuries, physical limitations, and any conditions that may affect my ability to safely participate in fitness activities.
 
-4. RESPONSIBILITY: I agree to follow all instructions provided by my instructor. I understand that I am responsible for working within my own limits and communicating any pain or discomfort immediately.
+4. RESPONSIBILITY: I agree to follow all instructions provided by my trainer. I understand that I am responsible for working within my own limits and communicating any pain or discomfort immediately.
 
-5. FINANCIAL RESPONSIBILITY: I understand that I am responsible for all fees associated with my membership, class packages, and services.
+5. FINANCIAL RESPONSIBILITY: I understand that I am responsible for all fees associated with my membership, session packages, and services.
 
 I have had the opportunity to ask questions, and all my questions have been answered to my satisfaction. I voluntarily consent to participate.
 
-Member Signature: _________________________
+Client Signature: _________________________
 Date: ____________
 Staff Witness: _________________________` },
 
@@ -67,12 +67,12 @@ Have you been cleared by a physician to exercise? [ ] Yes [ ] No [ ] N/A
 
 FITNESS EXPERIENCE
 What is your current fitness level? [ ] Beginner [ ] Intermediate [ ] Advanced
-Have you done pilates or barre before? [ ] Yes [ ] No
+Have you done personal training before? [ ] Yes [ ] No
 What are your fitness goals? _______________________________________________
 
 I certify that the above information is true, accurate, and complete to the best of my knowledge. I will inform [Business Name] of any changes to my health status.
 
-Member Signature: _________________________
+Client Signature: _________________________
 Date: ____________` },
 
   // ═══ PHOTO & MARKETING ═══
@@ -80,48 +80,48 @@ Date: ____________` },
 
 [Business Name] — Photo Release and Usage Authorization
 
-I authorize [Business Name] and its staff to take photographs and/or videos during my participation in classes for inclusion in my member file.
+I authorize [Business Name] and its staff to take photographs and/or videos during my participation in sessions for inclusion in my client file.
 
 MARKETING USE:
 Please select ONE:
-[ ] OPTION A — NO marketing use. Photos are for my member file ONLY.
+[ ] OPTION A — NO marketing use. Photos are for my client file ONLY.
 [ ] OPTION B — ANONYMOUS use only. Photos may be used but my face will be cropped or obscured so I am NOT identifiable.
 [ ] OPTION C — IDENTIFIABLE use. Photos may be used with my face visible. [Business Name] may tag me on social media with my permission.
 
 TERMS:
 - I will not receive compensation for the use of my photographs
 - I may revoke this consent at any time by submitting a written request
-- My decision regarding marketing use will NOT affect the quality of instruction I receive
+- My decision regarding marketing use will NOT affect the quality of training I receive
 
-Member Signature: _________________________
+Client Signature: _________________________
 Date: ____________` },
 
   // ═══ CANCELLATION POLICY ═══
   { id: 'cancellation', name: 'Cancellation Policy', category: 'Policy', content: `CANCELLATION AND NO-SHOW POLICY ACKNOWLEDGMENT
 
-[Business Name] — Class Policy
+[Business Name] — Session Policy
 
 CANCELLATION POLICY:
-- Classes must be cancelled at least 12 hours in advance through the app or by contacting the studio
-- Late cancellations (less than 12 hours) will result in forfeiture of the class credit
-- Members on unlimited plans will be charged a $15 late cancellation fee
+- Sessions must be cancelled at least 12 hours in advance through the app or by contacting the facility
+- Late cancellations (less than 12 hours) will result in forfeiture of the session credit
+- Clients on unlimited plans will be charged a $15 late cancellation fee
 
 NO-SHOW POLICY:
-- A "no-show" is defined as failure to arrive within 10 minutes of class start time without prior notice
-- No-show fee: forfeiture of class credit or $20 fee for unlimited members
+- A "no-show" is defined as failure to arrive within 10 minutes of session start time without prior notice
+- No-show fee: forfeiture of session credit or $20 fee for unlimited clients
 - After 3 no-shows in a billing period, [Business Name] reserves the right to require prepayment
 
 LATE ARRIVAL:
-- If you arrive more than 5 minutes late, you may not be permitted to join the class for safety reasons
+- If you arrive more than 5 minutes late, you may not be permitted to join the session for safety reasons
 - This will be counted as a late cancellation
 
 MEMBERSHIPS & PACKAGES:
-- Unused class credits do not roll over unless specified in your membership agreement
+- Unused session credits do not roll over unless specified in your membership agreement
 - Membership freezes are available with 7 days advance notice
 
 I have read and understand [Business Name]'s cancellation and no-show policy.
 
-Member Signature: _________________________
+Client Signature: _________________________
 Date: ____________` },
 
   // ═══ MINOR PARTICIPATION ═══
@@ -140,19 +140,19 @@ Relationship: _________________________
 Phone: __________
 Email: _________________________
 
-I, the undersigned parent or legal guardian, hereby grant permission for the above-named minor to participate in pilates, barre, and fitness classes at [Business Name].
+I, the undersigned parent or legal guardian, hereby grant permission for the above-named minor to participate in personal training and fitness sessions at [Business Name].
 
 I acknowledge that:
 1. I have read and understand the General Liability Waiver and assume all risks on behalf of my minor child
 2. I have disclosed any health conditions, injuries, or limitations that may affect my child's participation
-3. My child will follow all instructor directions and studio rules
+3. My child will follow all trainer directions and facility rules
 4. I will remain on the premises or be immediately reachable by phone during my child's participation
 5. Participants under 16 must be accompanied by an adult
 
 EMERGENCY MEDICAL AUTHORIZATION:
 In the event of an emergency, I authorize [Business Name] staff to seek emergency medical treatment for my child if I cannot be reached.
 
-I release [Business Name], its owners, instructors, and staff from any liability arising from my child's participation.
+I release [Business Name], its owners, trainers, and staff from any liability arising from my child's participation.
 
 Parent/Guardian Signature: _________________________
 Date: ____________
@@ -274,7 +274,7 @@ export default function Waivers() {
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 0, marginBottom: 20, background: '#F0F0F0', borderRadius: 8, overflow: 'hidden', width: 'fit-content' }}>
-        {[['waivers', 'Member Waivers'], ['templates', 'Templates']].map(([k, l]) => (
+        {[['waivers', 'Client Waivers'], ['templates', 'Templates']].map(([k, l]) => (
           <button key={k} onClick={() => setTab(k)} style={{
             padding: '9px 20px', background: tab === k ? '#fff' : 'transparent', border: 'none',
             font: `500 13px ${s.FONT}`, color: tab === k ? s.text : s.text3, cursor: 'pointer',
@@ -286,7 +286,7 @@ export default function Waivers() {
       {tab === 'waivers' && (
         <>
           <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search member..." style={{ ...s.input, maxWidth: 240 }} />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search client..." style={{ ...s.input, maxWidth: 240 }} />
             <div style={{ display: 'flex', gap: 6 }}>
               {[['all', 'All'], ['signed', 'Signed'], ['pending', 'Pending']].map(([id, label]) => (
                 <button key={id} onClick={() => setStatusFilter(id)} style={{
@@ -303,7 +303,7 @@ export default function Waivers() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #E5E5E5' }}>
-                  {['Member', 'Form', 'Status', 'Signed', 'Expires', 'Actions'].map(h => (
+                  {['Client', 'Form', 'Status', 'Signed', 'Expires', 'Actions'].map(h => (
                     <th key={h} style={{ padding: '12px 14px', font: `500 11px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: s.text3, textAlign: 'left' }}>{h}</th>
                   ))}
                 </tr>
@@ -371,9 +371,9 @@ export default function Waivers() {
           <div style={{ background: '#fff', borderRadius: 16, padding: 32, maxWidth: 520, width: '90%', boxShadow: s.shadowLg, maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
             <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 20 }}>Send Consent Forms</h2>
             <div style={{ marginBottom: 16 }}>
-              <label style={s.label}>Member</label>
+              <label style={s.label}>Client</label>
               <select value={sendForm.patientId} onChange={e => setSendForm({ ...sendForm, patientId: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
-                <option value="">Select member...</option>
+                <option value="">Select client...</option>
                 {patients.map(p => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}
               </select>
             </div>
@@ -405,7 +405,7 @@ export default function Waivers() {
           <div style={{ background: '#fff', borderRadius: 16, padding: 32, maxWidth: 640, width: '90%', boxShadow: s.shadowLg, maxHeight: '85vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
             <h2 style={{ font: `600 18px ${s.FONT}`, color: s.text, marginBottom: 16 }}>{showPreview.name}</h2>
             <div style={{ font: `400 13px ${s.FONT}`, color: s.text2, lineHeight: 1.8, whiteSpace: 'pre-wrap', background: '#FAFAFA', padding: 20, borderRadius: 10, border: '1px solid #F0F0F0' }}>
-              {showPreview.content.replace(/\[Business Name\]/g, settings.businessName || 'Remedy Pilates & Barre')}
+              {showPreview.content.replace(/\[Business Name\]/g, settings.businessName || 'FORGE Performance Training')}
             </div>
             <button onClick={() => setShowPreview(null)} style={{ ...s.pillGhost, marginTop: 16 }}>Close</button>
           </div>

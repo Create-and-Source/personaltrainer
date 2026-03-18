@@ -22,25 +22,25 @@ function seedReviews() {
     'Abigail Taylor', 'Ella Thomas', 'Scarlett Hernandez', 'Grace Moore', 'Chloe Martin',
     'Victoria Jackson', 'Riley Clark', 'Aria Lewis',
   ];
-  const services = ['Reformer Pilates', 'Barre Sculpt', 'Mat Pilates', 'Power Barre', 'Stretch & Restore', 'Pilates Fusion', 'Cardio Barre', 'Private Session'];
+  const services = ['Strength Training', 'HIIT Circuit', 'Functional Training', 'Power Lifting', 'Recovery + Stretch', 'Athletic Performance', 'Metabolic Conditioning', 'Private Session'];
   const platforms = ['Google', 'Google', 'Google', 'Yelp', 'Google', 'Yelp'];
   const statuses = ['completed', 'completed', 'completed', 'completed', 'pending', 'pending', 'completed', 'completed', 'completed', 'pending'];
   const comments = [
-    'Amazing classes! The instructors are incredible.',
-    'Best pilates studio around. My posture has never been better.',
+    'Amazing sessions! The trainers are incredible.',
+    'Best training gym around. My strength has never been better.',
     'Super professional team. Love the workouts.',
     'Great experience from start to finish. Highly recommend!',
-    'The instructors made me feel so comfortable. Will definitely be back.',
+    'The trainers made me feel so comfortable. Will definitely be back.',
     'Incredible transformation. Worth every penny.',
-    'The barre classes are so challenging and fun every time.',
-    'Five stars is not enough. Absolutely love this studio!',
-    'Clean facility, friendly staff, amazing classes.',
-    'I was nervous but the instructors put me at ease. Love the results!',
+    'The HIIT sessions are so challenging and fun every time.',
+    'Five stars is not enough. Absolutely love this gym!',
+    'Clean facility, friendly staff, amazing sessions.',
+    'I was nervous but the trainers put me at ease. Love the results!',
     'Been coming here for 2 years and always leave feeling strong.',
-    'The Reformer Pilates was life-changing for my back pain.',
+    'The strength training was life-changing for my back pain.',
     'Professional, knowledgeable, and the results speak for themselves.',
     'My friends keep asking what I have been doing differently. Thank you!',
-    'Top-notch instruction and beautiful studio.',
+    'Top-notch training and great facility.',
   ];
 
   const seed = names.map((name, i) => {
@@ -74,7 +74,7 @@ export default function Reviews() {
   const [toast, setToast] = useState(null);
 
   const settings = getSettings();
-  const businessName = settings.businessName || 'Remedy Pilates & Barre';
+  const businessName = settings.businessName || 'FORGE Performance Training';
 
   const reviews = getReviews();
 
@@ -120,7 +120,7 @@ export default function Reviews() {
       'Great experience! Highly recommend.',
       'Love my results. The staff is amazing!',
       'Professional and caring team. Will be back!',
-      'Best studio I have ever been to.',
+      'Best gym I have ever been to.',
     ];
     const all = getReviews().map(r => r.id === id ? {
       ...r,
@@ -195,7 +195,7 @@ export default function Reviews() {
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search members or classes..." style={{ ...s.input, maxWidth: 260 }} />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients or sessions..." style={{ ...s.input, maxWidth: 260 }} />
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {[['all', 'All'], ['pending', 'Pending'], ['completed', 'Completed'], ['google', 'Google'], ['yelp', 'Yelp']].map(([id, label]) => (
             <button key={id} onClick={() => setFilter(id)} style={{

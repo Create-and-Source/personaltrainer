@@ -3,20 +3,20 @@ import { useStyles } from '../theme';
 import { getEmails, addEmail, getPatients, getAppointments, getSettings, subscribe } from '../data/store';
 
 const TEMPLATES = {
-  appointment: { name: 'Class Reminder', icon: '', desc: 'Remind members of upcoming classes', subject: 'Your Class is Coming Up!', body: 'Hi [Member],\n\nThis is a friendly reminder about your upcoming class:\n\nClass: [Class]\nDate: [Date]\nTime: [Time]\nInstructor: [Instructor]\n\nPlease arrive 10 minutes early. If you need to reschedule, reply to this email or call us.\n\nSee you soon!' },
-  followup: { name: 'Post-Class Follow-Up', icon: '', desc: 'Check in after a class', subject: 'How Are You Feeling After Your Class?', body: 'Hi [Member],\n\nWe hope you are feeling wonderful after your recent [Class]!\n\nHere are some recovery tips:\n- [Recovery tip 1]\n- [Recovery tip 2]\n- [Recovery tip 3]\n\nIf you have any questions or concerns, do not hesitate to reach out.\n\nTo keep your momentum going, we recommend booking your next class soon.\n\nWarmly,\n[Your Studio] Team' },
-  promo: { name: 'Special Offer', icon: '', desc: 'Promote a deal or package', subject: 'Exclusive Offer Just For You', body: 'Hi [Member],\n\nWe have something special for you!\n\n[Offer details — e.g., 20% off your next class pack]\n\nThis offer is valid through [end date]. Book online or reply to this email to reserve your spot.\n\nLimited availability — do not miss out!\n\nBest,\n[Your Studio] Team' },
-  newsletter: { name: 'Monthly Newsletter', icon: '', desc: 'Monthly updates and tips', subject: 'Monthly Update from [Your Studio]', body: 'Hi [Member],\n\nHere is what is new this month:\n\nNEW CLASSES\n- [New class or workshop]\n\nFITNESS TIPS\n[Seasonal wellness advice]\n\nSPECIAL OFFERS\n- [Current promotions]\n\nUPCOMING\n- [Events or schedule updates]\n\nThank you for being part of our community.\n\nWarmly,\n[Your Studio] Team' },
-  reengagement: { name: 'We Miss You', icon: '', desc: 'Re-engage lapsed members', subject: 'It Has Been a While — We Would Love to See You', body: 'Hi [Member],\n\nWe noticed it has been a while since your last class and wanted to check in!\n\nYour last class was [Class] on [Date]. To keep your progress going, we recommend booking your next session.\n\nAs a welcome back, enjoy [offer] on your next visit.\n\nBook online or reply to schedule.\n\nWe miss you!\n[Your Studio] Team' },
+  appointment: { name: 'Session Reminder', icon: '', desc: 'Remind clients of upcoming sessions', subject: 'Your Session is Coming Up!', body: 'Hi [Client],\n\nThis is a friendly reminder about your upcoming session:\n\nSession: [Session]\nDate: [Date]\nTime: [Time]\nTrainer: [Trainer]\n\nPlease arrive 10 minutes early. If you need to reschedule, reply to this email or call us.\n\nSee you soon!' },
+  followup: { name: 'Post-Session Follow-Up', icon: '', desc: 'Check in after a session', subject: 'How Are You Feeling After Your Session?', body: 'Hi [Client],\n\nWe hope you are feeling wonderful after your recent [Session]!\n\nHere are some recovery tips:\n- [Recovery tip 1]\n- [Recovery tip 2]\n- [Recovery tip 3]\n\nIf you have any questions or concerns, do not hesitate to reach out.\n\nTo keep your momentum going, we recommend booking your next session soon.\n\nWarmly,\n[Your Gym] Team' },
+  promo: { name: 'Special Offer', icon: '', desc: 'Promote a deal or package', subject: 'Exclusive Offer Just For You', body: 'Hi [Client],\n\nWe have something special for you!\n\n[Offer details — e.g., 20% off your next session pack]\n\nThis offer is valid through [end date]. Book online or reply to this email to reserve your spot.\n\nLimited availability — do not miss out!\n\nBest,\n[Your Gym] Team' },
+  newsletter: { name: 'Monthly Newsletter', icon: '', desc: 'Monthly updates and tips', subject: 'Monthly Update from [Your Gym]', body: 'Hi [Client],\n\nHere is what is new this month:\n\nNEW SESSIONS\n- [New session or workshop]\n\nFITNESS TIPS\n[Seasonal wellness advice]\n\nSPECIAL OFFERS\n- [Current promotions]\n\nUPCOMING\n- [Events or schedule updates]\n\nThank you for being part of our community.\n\nWarmly,\n[Your Gym] Team' },
+  reengagement: { name: 'We Miss You', icon: '', desc: 'Re-engage lapsed clients', subject: 'It Has Been a While — We Would Love to See You', body: 'Hi [Client],\n\nWe noticed it has been a while since your last session and wanted to check in!\n\nYour last session was [Session] on [Date]. To keep your progress going, we recommend booking your next session.\n\nAs a welcome back, enjoy [offer] on your next visit.\n\nBook online or reply to schedule.\n\nWe miss you!\n[Your Gym] Team' },
   blank: { name: 'Start from Scratch', icon: '', desc: 'Empty canvas', subject: '', body: '' },
 };
 
 const AUDIENCES = [
-  { id: 'all', name: 'All Members', desc: 'Everyone in your system' },
-  { id: 'members', name: 'Active Members', desc: 'Members with membership' },
+  { id: 'all', name: 'All Clients', desc: 'Everyone in your system' },
+  { id: 'members', name: 'Active Clients', desc: 'Clients with membership' },
   { id: 'recent', name: 'Recent Visitors', desc: 'Visited in last 30 days' },
-  { id: 'lapsed', name: 'Lapsed Members', desc: 'No visit in 90+ days' },
-  { id: 'vip', name: 'VIP / High Spend', desc: 'Top spending members' },
+  { id: 'lapsed', name: 'Lapsed Clients', desc: 'No visit in 90+ days' },
+  { id: 'vip', name: 'VIP / High Spend', desc: 'Top spending clients' },
 ];
 
 export default function Email() {
@@ -53,8 +53,8 @@ export default function Email() {
   const selectTemplate = (key) => {
     setTemplate(key);
     const tpl = TEMPLATES[key];
-    setSubject(tpl.subject.replace('[Your Studio]', settings.businessName || 'Remedy Pilates & Barre'));
-    setBody(tpl.body.replace(/\[Remedy Pilates & Barre\]/g, settings.businessName || 'Remedy Pilates & Barre'));
+    setSubject(tpl.subject.replace('[Your Gym]', settings.businessName || 'FORGE Performance Training'));
+    setBody(tpl.body.replace(/\[FORGE Performance Training\]/g, settings.businessName || 'FORGE Performance Training'));
   };
 
   const handleSend = () => {
@@ -99,7 +99,7 @@ export default function Email() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
           <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Email</h1>
-          <p style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>Compose and send branded emails to your members</p>
+          <p style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>Compose and send branded emails to your clients</p>
         </div>
       </div>
 
@@ -131,7 +131,7 @@ export default function Email() {
                   }}>
                     <div style={{ font: `600 14px ${s.FONT}`, color: audience === a.id ? s.accent : s.text, marginBottom: 4 }}>{a.name}</div>
                     <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, marginBottom: 6 }}>{a.desc}</div>
-                    <div style={{ font: `600 12px ${s.MONO}`, color: s.accent }}>{getAudienceCount(a.id)} members</div>
+                    <div style={{ font: `600 12px ${s.MONO}`, color: s.accent }}>{getAudienceCount(a.id)} clients</div>
                   </button>
                 ))}
               </div>
@@ -198,7 +198,7 @@ export default function Email() {
               <div style={{ background: '#F5F5F5', borderRadius: 12, padding: 24, marginBottom: 20 }}>
                 <div style={{ background: '#fff', borderRadius: 10, overflow: 'hidden', boxShadow: s.shadow, maxWidth: 520, margin: '0 auto' }}>
                   <div style={{ background: s.accent, padding: '20px 24px', textAlign: 'center' }}>
-                    <div style={{ font: `600 16px ${s.FONT}`, color: s.accentText }}>{settings.businessName || 'Remedy Pilates & Barre'}</div>
+                    <div style={{ font: `600 16px ${s.FONT}`, color: s.accentText }}>{settings.businessName || 'FORGE Performance Training'}</div>
                     <div style={{ font: `400 11px ${s.FONT}`, color: s.accentText, opacity: 0.7 }}>{settings.tagline || ''}</div>
                   </div>
                   <div style={{ padding: '24px' }}>
@@ -214,7 +214,7 @@ export default function Email() {
               <div style={{ ...s.cardStyle, padding: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <div>
                   <div style={{ font: `500 14px ${s.FONT}`, color: s.text }}>Recipients</div>
-                  <div style={{ font: `400 13px ${s.FONT}`, color: s.text2 }}>{audienceLabel} — {getAudienceCount()} members</div>
+                  <div style={{ font: `400 13px ${s.FONT}`, color: s.text2 }}>{audienceLabel} — {getAudienceCount()} clients</div>
                 </div>
                 <button onClick={() => alert('Test email sent to your inbox!')} style={s.pillOutline}>Send Test</button>
               </div>
@@ -222,7 +222,7 @@ export default function Email() {
               <div style={{ display: 'flex', gap: 10 }}>
                 <button onClick={() => setStep(3)} style={s.pillGhost}>Back</button>
                 <button onClick={handleSend} disabled={sending} style={{ ...s.pillAccent, opacity: sending ? 0.6 : 1 }}>
-                  {sending ? 'Sending...' : `Send to ${getAudienceCount()} members`}
+                  {sending ? 'Sending...' : `Send to ${getAudienceCount()} clients`}
                 </button>
               </div>
             </div>

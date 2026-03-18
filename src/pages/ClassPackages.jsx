@@ -47,7 +47,7 @@ export default function ClassPackages() {
           planName: plan.name,
           patientName: plan.patientName,
           patientId: plan.patientId,
-          providerName: prov?.name?.split(',')[0] || 'Instructor',
+          providerName: prov?.name?.split(',')[0] || 'Trainer',
           providerId: plan.providerId,
           sessionIdx: idx,
         });
@@ -124,18 +124,18 @@ export default function ClassPackages() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ font: `600 28px ${s.FONT}`, color: s.text, marginBottom: 6, letterSpacing: '-0.3px' }}>Class Packages</h1>
-          <p style={{ font: `400 14px ${s.FONT}`, color: s.text3 }}>Multi-class member packages — track every step of the journey</p>
+          <h1 style={{ font: `600 28px ${s.FONT}`, color: s.text, marginBottom: 6, letterSpacing: '-0.3px' }}>Training Programs</h1>
+          <p style={{ font: `400 14px ${s.FONT}`, color: s.text3 }}>Multi-session client programs — track every step of the journey</p>
         </div>
-        <button onClick={openNew} style={s.pillAccent}>+ New Package</button>
+        <button onClick={openNew} style={s.pillAccent}>+ New Program</button>
       </div>
 
       {/* KPIs */}
       <div className="stagger-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 28 }}>
         {[
-          { label: 'Active Packages', value: activePlans, color: s.accent },
+          { label: 'Active Programs', value: activePlans, color: s.accent },
           { label: 'Completed', value: completedPlans, color: s.success },
-          { label: 'Classes Done', value: `${completedSessions}/${totalSessions}`, color: s.text },
+          { label: 'Sessions Done', value: `${completedSessions}/${totalSessions}`, color: s.text },
           { label: 'Today', value: todaySessions.length, color: todaySessions.length > 0 ? s.accent : s.text3 },
         ].map(k => (
           <div key={k.label} style={{ ...s.cardStyle, padding: '18px 20px' }}>
@@ -156,12 +156,12 @@ export default function ClassPackages() {
             <option value="completed">Completed</option>
           </select>
           <select value={instructorFilter} onChange={e => setInstructorFilter(e.target.value)} style={{ ...s.input, width: 'auto', cursor: 'pointer' }}>
-            <option value="all">All Instructors</option>
+            <option value="all">All Trainers</option>
             {providers.map(p => <option key={p.id} value={p.id}>{p.name.split(',')[0]}</option>)}
           </select>
         </div>
         <div style={{ display: 'flex', gap: 0, background: 'rgba(0,0,0,0.04)', borderRadius: 10, overflow: 'hidden' }}>
-          {[['plans', 'Packages'], ['timeline', 'Timeline']].map(([v, l]) => (
+          {[['plans', 'Programs'], ['timeline', 'Timeline']].map(([v, l]) => (
             <button key={v} onClick={() => setView(v)} style={{
               padding: '8px 18px', background: view === v ? 'rgba(255,255,255,0.8)' : 'transparent', border: 'none',
               font: `500 12px ${s.FONT}`, color: view === v ? s.text : s.text3, cursor: 'pointer',
@@ -205,7 +205,7 @@ export default function ClassPackages() {
                         }}>{planStatus}</span>
                       </div>
                       <div style={{ font: `400 13px ${s.FONT}`, color: s.text2 }}>
-                        {plan.patientName} — {prov?.name?.split(',')[0] || 'Instructor'}
+                        {plan.patientName} — {prov?.name?.split(',')[0] || 'Trainer'}
                         {nextSession?.date && <span style={{ color: s.text3 }}> — Next: {new Date(nextSession.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
                       </div>
                     </div>
@@ -276,8 +276,8 @@ export default function ClassPackages() {
                       );
                     })}
                     <div style={{ padding: '14px 24px', display: 'flex', gap: 8 }}>
-                      <button onClick={() => openEdit(plan)} style={{ ...s.pillOutline, padding: '6px 14px', fontSize: 11 }}>Edit Package</button>
-                      <button onClick={() => { if (confirm('Delete this class package?')) deleteClassPackage(plan.id); }} style={{ ...s.pillGhost, padding: '6px 14px', fontSize: 11, color: s.danger }}>Delete</button>
+                      <button onClick={() => openEdit(plan)} style={{ ...s.pillOutline, padding: '6px 14px', fontSize: 11 }}>Edit Program</button>
+                      <button onClick={() => { if (confirm('Delete this program?')) deleteClassPackage(plan.id); }} style={{ ...s.pillGhost, padding: '6px 14px', fontSize: 11, color: s.danger }}>Delete</button>
                     </div>
                   </div>
                 )}
@@ -286,8 +286,8 @@ export default function ClassPackages() {
           })}
           {filtered.length === 0 && (
             <div style={{ ...s.cardStyle, padding: 48, textAlign: 'center' }}>
-              <div style={{ font: `400 14px ${s.FONT}`, color: s.text3, marginBottom: 12 }}>No packages match your filters</div>
-              <button onClick={openNew} style={s.pillAccent}>Create Package</button>
+              <div style={{ font: `400 14px ${s.FONT}`, color: s.text3, marginBottom: 12 }}>No programs match your filters</div>
+              <button onClick={openNew} style={s.pillAccent}>Create Program</button>
             </div>
           )}
         </div>
@@ -296,7 +296,7 @@ export default function ClassPackages() {
       {/* === TIMELINE VIEW === */}
       {view === 'timeline' && (
         <div>
-          <div style={{ font: `600 15px ${s.FONT}`, color: s.text, marginBottom: 16 }}>Upcoming Classes</div>
+          <div style={{ font: `600 15px ${s.FONT}`, color: s.text, marginBottom: 16 }}>Upcoming Sessions</div>
           <div style={{ position: 'relative', paddingLeft: 24 }}>
             {/* Vertical line */}
             <div style={{ position: 'absolute', left: 10, top: 0, bottom: 0, width: 2, background: 'rgba(0,0,0,0.06)', borderRadius: 1 }} />
@@ -354,7 +354,7 @@ export default function ClassPackages() {
               );
             })}
             {upcomingSessions.length === 0 && (
-              <div style={{ padding: 32, textAlign: 'center', font: `400 13px ${s.FONT}`, color: s.text3 }}>No upcoming classes</div>
+              <div style={{ padding: 32, textAlign: 'center', font: `400 13px ${s.FONT}`, color: s.text3 }}>No upcoming sessions</div>
             )}
           </div>
         </div>
@@ -364,22 +364,22 @@ export default function ClassPackages() {
       {showForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }} onClick={() => setShowForm(false)}>
           <div style={{ background: '#fff', borderRadius: 20, padding: 32, maxWidth: 600, width: '90%', boxShadow: s.shadowLg, maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
-            <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 24 }}>{editPlan ? 'Edit Class Package' : 'New Class Package'}</h2>
+            <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 24 }}>{editPlan ? 'Edit Training Program' : 'New Training Program'}</h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={s.label}>Member</label>
+                <label style={s.label}>Client</label>
                 <select value={form.patientId} onChange={e => setForm({ ...form, patientId: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
-                  <option value="">Select member...</option>
+                  <option value="">Select client...</option>
                   {patients.map(p => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}
                 </select>
               </div>
               <div>
-                <label style={s.label}>Package Name</label>
-                <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} style={s.input} placeholder="e.g., Reformer Foundations" />
+                <label style={s.label}>Program Name</label>
+                <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} style={s.input} placeholder="e.g., 12-Week Muscle Builder" />
               </div>
               <div>
-                <label style={s.label}>Instructor</label>
+                <label style={s.label}>Trainer</label>
                 <select value={form.providerId} onChange={e => setForm({ ...form, providerId: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
                   <option value="">Select...</option>
                   {providers.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -388,7 +388,7 @@ export default function ClassPackages() {
             </div>
 
             {/* Classes */}
-            <div style={{ font: `600 14px ${s.FONT}`, color: s.text, marginBottom: 12 }}>Classes ({form.sessions.length})</div>
+            <div style={{ font: `600 14px ${s.FONT}`, color: s.text, marginBottom: 12 }}>Sessions ({form.sessions.length})</div>
             {form.sessions.map((ses, idx) => (
               <div key={idx} style={{ padding: '10px 14px', background: 'rgba(0,0,0,0.02)', borderRadius: 10, marginBottom: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
@@ -413,7 +413,7 @@ export default function ClassPackages() {
                   <input type="date" value={sessionForm.date} onChange={e => setSessionForm({ ...sessionForm, date: e.target.value })} style={{ ...s.input, fontSize: 12, padding: '8px 10px' }} />
                 </div>
                 <div>
-                  <label style={{ ...s.label, fontSize: 10 }}>Class Name</label>
+                  <label style={{ ...s.label, fontSize: 10 }}>Session Name</label>
                   <input value={sessionForm.name} onChange={e => setSessionForm({ ...sessionForm, name: e.target.value })} style={{ ...s.input, fontSize: 12, padding: '8px 10px' }} placeholder="Override name" />
                 </div>
                 <div>
@@ -421,12 +421,12 @@ export default function ClassPackages() {
                   <input value={sessionForm.notes} onChange={e => setSessionForm({ ...sessionForm, notes: e.target.value })} style={{ ...s.input, fontSize: 12, padding: '8px 10px' }} placeholder="Optional" />
                 </div>
               </div>
-              <button onClick={addSession} style={{ ...s.pillOutline, padding: '6px 14px', fontSize: 11, marginTop: 10 }}>+ Add Class</button>
+              <button onClick={addSession} style={{ ...s.pillOutline, padding: '6px 14px', fontSize: 11, marginTop: 10 }}>+ Add Session</button>
             </div>
 
             <div style={{ display: 'flex', gap: 12, marginTop: 24, justifyContent: 'flex-end' }}>
               <button onClick={() => setShowForm(false)} style={s.pillGhost}>Cancel</button>
-              <button onClick={handleSave} style={s.pillAccent}>{editPlan ? 'Save Changes' : 'Create Package'}</button>
+              <button onClick={handleSave} style={s.pillAccent}>{editPlan ? 'Save Changes' : 'Create Program'}</button>
             </div>
           </div>
         </div>

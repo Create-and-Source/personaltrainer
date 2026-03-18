@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTheme, useStyles, PRESETS } from '../theme';
-import { getSettings, updateSettings, getProviders, addProvider, updateProvider, getServices, addService, updateService, deleteService, getLocations, addLocation, subscribe } from '../data/store';
+import { getSettings, updateSettings, getProviders, addProvider, updateProvider, getServices, addService, updateService, deleteService, subscribe } from '../data/store';
 
 export default function Settings() {
   const s = useStyles();
@@ -15,7 +15,7 @@ export default function Settings() {
   // Service form
   const [showSvcForm, setShowSvcForm] = useState(false);
   const [editSvc, setEditSvc] = useState(null);
-  const [svcForm, setSvcForm] = useState({ name: '', category: 'Pilates', duration: 50, price: 0, unit: 'per class', description: '' });
+  const [svcForm, setSvcForm] = useState({ name: '', category: 'Training', duration: 50, price: 0, unit: 'per session', description: '' });
 
   // Provider form
   const [showProvForm, setShowProvForm] = useState(false);
@@ -24,7 +24,6 @@ export default function Settings() {
 
   const providers = getProviders();
   const services = getServices();
-  const locations = getLocations();
 
   const handleSaveSettings = () => {
     updateSettings(settings);
@@ -88,15 +87,15 @@ export default function Settings() {
     { id: 'payments', label: 'Payments' },
     { id: 'integrations', label: 'Integrations' },
     { id: 'services', label: 'Services' },
-    { id: 'providers', label: 'Instructors' },
-    { id: 'locations', label: 'Locations' },
+    { id: 'providers', label: 'Trainers' },
+    
   ];
 
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Settings</h1>
-        <p style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>Configure your studio platform — brand it for any client demo</p>
+        <p style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>Configure your gym platform — brand it for any client demo</p>
       </div>
 
       {/* Tabs */}
@@ -115,11 +114,11 @@ export default function Settings() {
         <div style={{ maxWidth: 520 }}>
           <div style={{ ...s.cardStyle, padding: 24 }}>
             {[
-              { key: 'businessName', label: 'Business Name', placeholder: 'Remedy Pilates & Barre' },
-              { key: 'tagline', label: 'Tagline', placeholder: 'Move Better. Feel Better.' },
-              { key: 'email', label: 'Email', placeholder: 'info@remedypilates.com' },
+              { key: 'businessName', label: 'Business Name', placeholder: 'FORGE Performance Training' },
+              { key: 'tagline', label: 'Tagline', placeholder: 'Build Strength. Build Confidence.' },
+              { key: 'email', label: 'Email', placeholder: 'info@forgeperformance.com' },
               { key: 'phone', label: 'Phone', placeholder: '(480) 555-0100' },
-              { key: 'website', label: 'Website', placeholder: 'remedypilates.com' },
+              { key: 'website', label: 'Website', placeholder: 'forgeperformance.com' },
               { key: 'founded', label: 'Founded', placeholder: '2018' },
             ].map(f => (
               <div key={f.key} style={{ marginBottom: 16 }}>
@@ -169,7 +168,7 @@ export default function Settings() {
           <div style={{ ...s.cardStyle, padding: 24 }}>
             <div style={{ font: `600 15px ${s.FONT}`, color: s.text, marginBottom: 16 }}>Brand Color</div>
             <p style={{ font: `400 13px ${s.FONT}`, color: s.text2, marginBottom: 20 }}>
-              Pick the studio's brand color. This changes the entire platform accent instantly.
+              Pick the gym's brand color. This changes the entire platform accent instantly.
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
@@ -215,7 +214,7 @@ export default function Settings() {
           <div style={{ ...s.cardStyle, padding: 24, marginBottom: 20 }}>
             <div style={{ font: `600 15px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Payment Processing</div>
             <p style={{ font: `400 13px ${s.FONT}`, color: s.text3, marginBottom: 20 }}>
-              Connect your existing payment processor. Your members pay through your account — we never touch the money.
+              Connect your existing payment processor. Your clients pay through your account — we never touch the money.
             </p>
             <div style={{ display: 'grid', gap: 12 }}>
               {[
@@ -252,13 +251,13 @@ export default function Settings() {
           <div style={{ ...s.cardStyle, padding: 24 }}>
             <div style={{ font: `600 15px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Membership Packages</div>
             <p style={{ font: `400 13px ${s.FONT}`, color: s.text3, marginBottom: 20 }}>
-              Offer flexible payment options for class packages and memberships.
+              Offer flexible payment options for session packages and memberships.
             </p>
             <div style={{ display: 'grid', gap: 12 }}>
               {[
-                { id: 'afterpay', name: 'Afterpay', desc: 'Buy now, pay in 4 interest-free installments. Great for class packages.', color: '#B2FCE4' },
+                { id: 'afterpay', name: 'Afterpay', desc: 'Buy now, pay in 4 interest-free installments. Great for session packages.', color: '#B2FCE4' },
                 { id: 'klarna', name: 'Klarna', desc: 'Flexible pay-over-time for memberships and private sessions.', color: '#FFB3C7' },
-                { id: 'affirm', name: 'Affirm', desc: 'Monthly payment plans for annual memberships and teacher training.', color: '#4A4AF4' },
+                { id: 'affirm', name: 'Affirm', desc: 'Monthly payment plans for premium memberships and training programs.', color: '#4A4AF4' },
               ].map(p => (
                 <div key={p.id} style={{ ...s.cardStyle, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
                   <div style={{ width: 44, height: 44, borderRadius: 12, background: `${p.color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -294,9 +293,9 @@ export default function Settings() {
             </p>
             <div style={{ display: 'grid', gap: 12 }}>
               {[
-                { id: 'instagram', name: 'Instagram', desc: 'DMs, comments, story replies', color: '#E1306C', handle: '@remedypilates' },
-                { id: 'facebook', name: 'Facebook', desc: 'Messenger, page messages', color: '#1877F2', handle: 'Remedy Pilates & Barre' },
-                { id: 'tiktok', name: 'TikTok', desc: 'DMs, comment replies', color: '#FE2C55', handle: '@remedypilates' },
+                { id: 'instagram', name: 'Instagram', desc: 'DMs, comments, story replies', color: '#E1306C', handle: '@forgeperformance' },
+                { id: 'facebook', name: 'Facebook', desc: 'Messenger, page messages', color: '#1877F2', handle: 'FORGE Performance Training' },
+                { id: 'tiktok', name: 'TikTok', desc: 'DMs, comment replies', color: '#FE2C55', handle: '@forgeperformance' },
               ].map(p => (
                 <div key={p.id} style={{ ...s.cardStyle, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
                   <div style={{ width: 44, height: 44, borderRadius: 12, background: `${p.color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -385,7 +384,7 @@ export default function Settings() {
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <span style={{ font: `500 14px ${s.FONT}`, color: s.text }}>{services.length} services</span>
-            <button onClick={() => { setEditSvc(null); setSvcForm({ name: '', category: 'Pilates', duration: 50, price: 0, unit: 'per class', description: '' }); setShowSvcForm(true); }} style={s.pillAccent}>+ Add Service</button>
+            <button onClick={() => { setEditSvc(null); setSvcForm({ name: '', category: 'Training', duration: 50, price: 0, unit: 'per session', description: '' }); setShowSvcForm(true); }} style={s.pillAccent}>+ Add Service</button>
           </div>
           <div style={s.tableWrap}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -408,7 +407,7 @@ export default function Settings() {
                     <td style={{ padding: '12px 14px', font: `500 13px ${s.MONO}`, color: s.text }}>${(svc.price / 100).toFixed(0)} {svc.unit}</td>
                     <td style={{ padding: '12px 14px' }}>
                       <div style={{ display: 'flex', gap: 4 }}>
-                        <button onClick={() => { setEditSvc(svc); setSvcForm({ name: svc.name, category: svc.category, duration: svc.duration, price: svc.price, unit: svc.unit || 'per class', description: svc.description || '' }); setShowSvcForm(true); }} style={{ ...s.pillGhost, padding: '4px 8px', fontSize: 10 }}>Edit</button>
+                        <button onClick={() => { setEditSvc(svc); setSvcForm({ name: svc.name, category: svc.category, duration: svc.duration, price: svc.price, unit: svc.unit || 'per session', description: svc.description || '' }); setShowSvcForm(true); }} style={{ ...s.pillGhost, padding: '4px 8px', fontSize: 10 }}>Edit</button>
                         <button onClick={() => { if (confirm('Delete?')) deleteService(svc.id); }} style={{ ...s.pillGhost, padding: '4px 8px', fontSize: 10, color: s.danger }}>×</button>
                       </div>
                     </td>
@@ -424,8 +423,8 @@ export default function Settings() {
       {tab === 'providers' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <span style={{ font: `500 14px ${s.FONT}`, color: s.text }}>{providers.length} instructors</span>
-            <button onClick={() => { setEditProv(null); setProvForm({ name: '', title: '', specialties: '', color: '#111' }); setShowProvForm(true); }} style={s.pillAccent}>+ Add Instructor</button>
+            <span style={{ font: `500 14px ${s.FONT}`, color: s.text }}>{providers.length} trainers</span>
+            <button onClick={() => { setEditProv(null); setProvForm({ name: '', title: '', specialties: '', color: '#111' }); setShowProvForm(true); }} style={s.pillAccent}>+ Add Trainer</button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
             {providers.map(p => (
@@ -453,27 +452,6 @@ export default function Settings() {
         </div>
       )}
 
-      {/* Locations */}
-      {tab === 'locations' && (
-        <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
-            {locations.map(l => (
-              <div key={l.id} style={{ ...s.cardStyle, padding: 20 }}>
-                <div style={{ font: `600 15px ${s.FONT}`, color: s.text, marginBottom: 8 }}>{l.name}</div>
-                <div style={{ font: `400 13px ${s.FONT}`, color: s.text2, marginBottom: 4 }}>{l.address}</div>
-                <div style={{ font: `400 13px ${s.FONT}`, color: s.text3, marginBottom: 8 }}>{l.phone}</div>
-                {l.rooms && (
-                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                    {l.rooms.map(r => (
-                      <span key={r} style={{ padding: '3px 8px', borderRadius: 6, background: '#F5F5F5', font: `400 11px ${s.FONT}`, color: s.text2 }}>{r}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Service Form Modal */}
       {showSvcForm && (
@@ -488,7 +466,7 @@ export default function Settings() {
               <div>
                 <label style={s.label}>Category</label>
                 <select value={svcForm.category} onChange={e => setSvcForm({ ...svcForm, category: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
-                  <option>Pilates</option><option>Equipment</option><option>Barre</option><option>Strength</option><option>Wellness</option><option>Private</option><option>Specialty</option><option>Training</option>
+                  <option>Training</option><option>Strength</option><option>HIIT</option><option>Conditioning</option><option>Wellness</option><option>Private</option><option>Specialty</option><option>Recovery</option>
                 </select>
               </div>
               <div>
@@ -520,7 +498,7 @@ export default function Settings() {
       {showProvForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }} onClick={() => setShowProvForm(false)}>
           <div style={{ background: '#fff', borderRadius: 16, padding: 32, maxWidth: 480, width: '90%', boxShadow: s.shadowLg }} onClick={e => e.stopPropagation()}>
-            <h2 style={{ font: `600 18px ${s.FONT}`, color: s.text, marginBottom: 20 }}>{editProv ? 'Edit Instructor' : 'Add Instructor'}</h2>
+            <h2 style={{ font: `600 18px ${s.FONT}`, color: s.text, marginBottom: 20 }}>{editProv ? 'Edit Trainer' : 'Add Trainer'}</h2>
             <div style={{ display: 'grid', gap: 14 }}>
               <div>
                 <label style={s.label}>Full Name</label>
@@ -528,11 +506,11 @@ export default function Settings() {
               </div>
               <div>
                 <label style={s.label}>Title</label>
-                <input value={provForm.title} onChange={e => setProvForm({ ...provForm, title: e.target.value })} style={s.input} placeholder="Lead Instructor" />
+                <input value={provForm.title} onChange={e => setProvForm({ ...provForm, title: e.target.value })} style={s.input} placeholder="Lead Trainer" />
               </div>
               <div>
                 <label style={s.label}>Specialties (comma separated)</label>
-                <input value={provForm.specialties} onChange={e => setProvForm({ ...provForm, specialties: e.target.value })} style={s.input} placeholder="Reformer, Mat, Barre" />
+                <input value={provForm.specialties} onChange={e => setProvForm({ ...provForm, specialties: e.target.value })} style={s.input} placeholder="Strength, HIIT, Mobility" />
               </div>
             </div>
             <div style={{ display: 'flex', gap: 10, marginTop: 20, justifyContent: 'flex-end' }}>

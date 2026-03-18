@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useStyles } from '../theme';
-import { getInventory, addInventoryItem, updateInventoryItem, adjustStock, getLocations, subscribe } from '../data/store';
+import { getInventory, addInventoryItem, updateInventoryItem, adjustStock, subscribe } from '../data/store';
 
 // Format a quantity: show decimals only when needed (e.g. 47 → "47", 47.5 → "47.5")
 const fmtQty = (q) => {
@@ -18,23 +18,20 @@ export default function Inventory() {
 
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState('All');
-  const [locFilter, setLocFilter] = useState('All');
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [showAdjust, setShowAdjust] = useState(null);
   const [adjustQty, setAdjustQty] = useState(0);
   const [adjustReason, setAdjustReason] = useState('');
-  const [form, setForm] = useState({ name: '', category: 'Equipment', sku: '', lotNumber: '', quantity: 0, reorderAt: 5, unitCost: 0, location: 'LOC-1', expirationDate: '' });
+  const [form, setForm] = useState({ name: '', category: 'Equipment', sku: '', lotNumber: '', quantity: 0, reorderAt: 5, unitCost: 0, expirationDate: '' });
 
   const inventory = getInventory();
-  const locations = getLocations();
 
   const categories = [...new Set(inventory.map(i => i.category))];
 
   const filtered = inventory.filter(i => {
     if (search && !i.name.toLowerCase().includes(search.toLowerCase()) && !i.sku?.toLowerCase().includes(search.toLowerCase())) return false;
     if (catFilter !== 'All' && i.category !== catFilter) return false;
-    if (locFilter !== 'All' && i.location !== locFilter) return false;
     return true;
   });
 
@@ -66,7 +63,7 @@ export default function Inventory() {
 
   const openEdit = (item) => {
     setEditItem(item);
-    setForm({ name: item.name, category: item.category, sku: item.sku || '', lotNumber: item.lotNumber || '', quantity: item.quantity, reorderAt: item.reorderAt, unitCost: item.unitCost || 0, location: item.location, expirationDate: item.expirationDate || '' });
+    setForm({ name: item.name, category: item.category, sku: item.sku || '', lotNumber: item.lotNumber || '', quantity: item.quantity, reorderAt: item.reorderAt, unitCost: item.unitCost || 0, expirationDate: item.expirationDate || '' });
     setShowForm(true);
   };
 
@@ -84,7 +81,7 @@ export default function Inventory() {
           <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Inventory</h1>
           <p style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>{inventory.length} items — Track equipment, retail products, and supplies</p>
         </div>
-        <button onClick={() => { setEditItem(null); setForm({ name: '', category: 'Equipment', sku: '', lotNumber: '', quantity: 0, reorderAt: 5, unitCost: 0, location: 'LOC-1', expirationDate: '' }); setShowForm(true); }} style={s.pillAccent}>
+        <button onClick={() => { setEditItem(null); setForm({ name: '', category: 'Equipment', sku: '', lotNumber: '', quantity: 0, reorderAt: 5, unitCost: 0, expirationDate: '' }); setShowForm(true); }} style={s.pillAccent}>
           + Add Item
         </button>
       </div>
@@ -112,10 +109,6 @@ export default function Inventory() {
           <option value="All">All Categories</option>
           {categories.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
-        <select value={locFilter} onChange={e => setLocFilter(e.target.value)} style={{ ...s.input, width: 'auto', cursor: 'pointer' }}>
-          <option value="All">All Locations</option>
-          {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-        </select>
       </div>
 
       {/* Table */}
@@ -132,13 +125,11 @@ export default function Inventory() {
             <tbody>
               {filtered.map(item => {
                 const sl = stockLevel(item);
-                const loc = locations.find(l => l.id === item.location);
                 const daysUntilExp = item.expirationDate ? Math.floor((new Date(item.expirationDate) - new Date()) / (1000 * 60 * 60 * 24)) : null;
                 return (
                   <tr key={item.id} style={{ borderBottom: '1px solid #F5F5F5' }}>
                     <td style={{ padding: '14px', font: `500 13px ${s.FONT}`, color: s.text }}>
                       {item.name}
-                      {loc && <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>{loc.name}</div>}
                       {item.lotNumber && <div style={{ font: `400 11px ${s.MONO}`, color: s.text3, marginTop: 2 }}>Lot: {item.lotNumber}</div>}
                     </td>
                     <td style={{ padding: '14px', font: `400 12px ${s.MONO}`, color: s.text3 }}>{item.sku || '—'}</td>
@@ -184,7 +175,7 @@ export default function Inventory() {
               <select value={adjustReason} onChange={e => setAdjustReason(e.target.value)} style={{ ...s.input, cursor: 'pointer' }}>
                 <option value="">Select reason...</option>
                 <option value="Received shipment">Received shipment</option>
-                <option value="Used in class">Used in class</option>
+                <option value="Used in session">Used in session</option>
                 <option value="Damaged/expired">Damaged / Expired</option>
                 <option value="Returned to vendor">Returned to vendor</option>
                 <option value="Inventory count correction">Count correction</option>
@@ -236,12 +227,6 @@ export default function Inventory() {
               <div>
                 <label style={s.label}>Unit Cost (cents)</label>
                 <input type="number" value={form.unitCost} onChange={e => setForm({ ...form, unitCost: parseInt(e.target.value) || 0 })} style={s.input} />
-              </div>
-              <div>
-                <label style={s.label}>Location</label>
-                <select value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
-                  {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                </select>
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={s.label}>Expiration Date</label>

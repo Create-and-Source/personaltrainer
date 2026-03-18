@@ -10,8 +10,8 @@ export default function Home() {
   const { theme } = useTheme();
   const nav = useNavigate();
   const settings = getSettings();
-  const name = settings.businessName || 'Remedy Pilates & Barre';
-  const tagline = settings.tagline || "If you're over the common workout, you've found the Remedy.";
+  const name = settings.businessName || 'FORGE Performance Training';
+  const tagline = settings.tagline || "Train Hard. Train Smart. Get Results.";
 
   // Pull real data for the dashboard preview
   const patients = getPatients();
@@ -56,7 +56,7 @@ export default function Home() {
             {name[0]}
           </div>
           <span style={{ font: `600 16px ${s.FONT}`, color: '#fff' }}>{name}</span>
-          <span style={{ font: `400 10px ${s.MONO}`, color: 'rgba(255,255,255,0.3)', marginLeft: 8 }}>Est. 2008</span>
+          <span style={{ font: `400 10px ${s.MONO}`, color: 'rgba(255,255,255,0.3)', marginLeft: 8 }}>Est. 2020</span>
         </div>
         <div className="home-nav-btns" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <button onClick={() => nav('/book')} style={{
@@ -87,13 +87,13 @@ export default function Home() {
           font: `300 48px ${s.FONT}`, color: '#fff', marginBottom: 12,
           letterSpacing: '-1px', lineHeight: 1.1,
         }}>
-          The platform that runs your <span style={{ fontWeight: 600 }}>studio</span>
+          The platform that runs your <span style={{ fontWeight: 600 }}>training</span>
         </h1>
         <p style={{
           font: `300 16px ${s.FONT}`, color: 'rgba(255,255,255,0.4)',
           maxWidth: 480, margin: '0 auto 32px', lineHeight: 1.6,
         }}>
-          Three Arizona studios. Reformer, Tower, Chair, Barre, TRX — all in one beautiful platform.
+          Online personal training — anywhere, anytime. Strength, HIIT, Boxing, Nutrition — all in one powerful platform.
         </p>
         <button onClick={() => nav('/admin')} style={{
           padding: '14px 40px', borderRadius: 100, border: 'none',
@@ -126,7 +126,7 @@ export default function Home() {
           <div style={{
             flex: 1, background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '5px 14px',
             font: `400 11px ${s.MONO}`, color: 'rgba(255,255,255,0.3)', textAlign: 'center',
-          }}>remedypilates.com/admin</div>
+          }}>forgetraining.com/admin</div>
         </div>
 
         {/* Dashboard content */}
@@ -149,9 +149,9 @@ export default function Home() {
           {/* KPI cards */}
           <div className="home-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 16 }}>
             {[
-              { label: "Today's Appts", value: todayAppts.length },
+              { label: "Today's Sessions", value: todayAppts.length },
               { label: 'Monthly Revenue', value: fmt(monthRevenue) },
-              { label: 'Active Members', value: patients.length },
+              { label: 'Active Clients', value: patients.length },
               { label: 'Retention Alerts', value: pendingAlerts },
             ].map(k => (
               <div key={k.label} style={{
@@ -191,7 +191,7 @@ export default function Home() {
         display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
         padding: '0 24px 40px', position: 'relative', zIndex: 10,
       }}>
-        {['3 Locations', 'Reformer · Tower · Chair', 'Barre & TRX', 'Member Portal', 'Class Packages', 'Online Booking', 'Memberships', 'Teacher Training', 'White-Label Branding'].map(f => (
+        {['100% Online', 'Strength & Conditioning', 'HIIT & Boxing', 'Client Portal', 'Training Programs', 'Online Booking', 'Packages', 'Nutrition Coaching', 'White-Label Branding'].map(f => (
           <span key={f} style={{
             padding: '6px 14px', borderRadius: 100, font: `400 11px ${s.FONT}`,
             color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.08)',
@@ -205,8 +205,8 @@ export default function Home() {
         position: 'relative', zIndex: 10, flexWrap: 'wrap',
       }}>
         {[
-          { label: '$49', sub: 'Unlimited First Month', desc: 'Try every class, every day, any location' },
-          { label: '$35', sub: 'Intro Private Session', desc: 'One-on-one with a certified instructor' },
+          { label: '$49', sub: 'Intro Session', desc: 'Movement assessment, goal setting, and your first custom workout' },
+          { label: '$99', sub: '10-Session Starter Pack', desc: 'Ten sessions at our best new-client rate' },
         ].map(offer => (
           <div key={offer.sub} onClick={() => nav('/book')} style={{
             padding: '24px 32px', borderRadius: 16, cursor: 'pointer',
@@ -231,7 +231,7 @@ export default function Home() {
       }}>
         {[
           { label: 'Admin Dashboard', path: '/admin' },
-          { label: 'Member Portal', path: '/portal' },
+          { label: 'Client Portal', path: '/portal' },
           { label: 'Online Booking', path: '/book' },
         ].map(l => (
           <button key={l.label} onClick={() => nav(l.path)} style={{

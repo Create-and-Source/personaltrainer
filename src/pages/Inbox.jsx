@@ -145,7 +145,7 @@ function initInbox() {
       { id: 'm21', from: 'them', text: 'Hello?? The class is in the morning and I need to know asap', time: ago(2), read: false },
     ]},
     { id: 'DM-7', handle: '@harper.fit', name: 'Harper Anderson', avatar: 'HA', patientId: null, platform: 'facebook', unread: 1, lastActivity: ago(20), avgResponseTime: null, messages: [
-      { id: 'm22', from: 'them', text: 'Hi! Which location is closer to Arcadia? I am trying to figure out if I should go to the Scottsdale or Tempe studio.', time: ago(20), read: false },
+      { id: 'm22', from: 'them', text: 'Hi! I just found your page. Do you offer online training packages? I am looking for something I can do from home.', time: ago(20), read: false },
     ]},
     { id: 'DM-8', handle: '@grace.trx', name: 'Grace Taylor', avatar: 'GT', patientId: null, platform: 'tiktok', unread: 2, lastActivity: ago(3), avgResponseTime: null, messages: [
       { id: 'm23', from: 'them', text: 'I just saw your TRX class video! That looks so hard but so fun. Is it good for beginners?', time: ago(10), read: false },

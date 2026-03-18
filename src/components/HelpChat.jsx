@@ -6,42 +6,42 @@ import { getSettings } from '../data/store';
 const KNOWLEDGE = [
   {
     keywords: ['dashboard', 'home', 'overview', 'kpi'],
-    response: "Your Dashboard is command central! It shows today's key metrics — revenue, appointments, new members, and membership stats. You'll also see upcoming appointments, quick-action buttons, and any alerts that need attention. It refreshes every time you visit so you're always up to date.",
-    suggestions: ['How do appointments work?', 'Tell me about members', 'What are reports?'],
+    response: "Your Dashboard is command central! It shows today's key metrics — revenue, sessions, new clients, and membership stats. You'll also see upcoming sessions, quick-action buttons, and any alerts that need attention. It refreshes every time you visit so you're always up to date.",
+    suggestions: ['How do sessions work?', 'Tell me about clients', 'What are reports?'],
   },
   {
-    keywords: ['member', 'members', 'add member', 'search member', 'filter'],
-    response: "The Members page is your full client directory. You can search by name, filter by membership tier or location, and click any member to see their full profile — visit history, membership status, wallet balance, treatment plans, and more. To add a new member, just hit the + button in the top right.",
-    suggestions: ['How do memberships work?', 'What about treatment plans?', 'Tell me about the wallet'],
+    keywords: ['client', 'clients', 'add client', 'search client', 'filter'],
+    response: "The Clients page is your full client directory. You can search by name, filter by membership tier or location, and click any client to see their full profile — session history, membership status, wallet balance, training programs, and more. To add a new client, just hit the + button in the top right.",
+    suggestions: ['How do memberships work?', 'What about training programs?', 'Tell me about the wallet'],
   },
   {
-    keywords: ['schedule', 'appointment', 'appointments', 'booking', 'book', 'calendar'],
-    response: "The Schedule page shows all your appointments in Day, Week, or List view. You can book new appointments from here — just pick a member, service, instructor, date, and time. Each appointment card shows the status (pending, confirmed, completed) and you can update it with a click. Drag-and-drop coming soon!",
-    suggestions: ['How does check-in work?', 'What about treatment plans?', 'Tell me about the waitlist'],
+    keywords: ['schedule', 'session', 'sessions', 'booking', 'book', 'calendar'],
+    response: "The Schedule page shows all your sessions in Day, Week, or List view. You can book new sessions from here — just pick a client, service, trainer, date, and time. Each session card shows the status (pending, confirmed, completed) and you can update it with a click. Drag-and-drop coming soon!",
+    suggestions: ['How does check-in work?', 'What about training programs?', 'Tell me about the waitlist'],
   },
   {
-    keywords: ['treatment plan', 'treatment plans', 'multi-session', 'progress'],
-    response: "Treatment Plans let you map out multi-session protocols for a member — like a 6-class reformer series or a rehab + strength combo plan. Each session has its own status, date, and notes. You can track progress over time and see everything in a visual timeline. Great for keeping members on track!",
-    suggestions: ['How do clinical charts work?', 'Tell me about photos', 'What about members?'],
+    keywords: ['training program', 'training programs', 'multi-session', 'progress'],
+    response: "Training Programs let you map out multi-session plans for a client — like a 6-week strength program or a rehab + conditioning combo plan. Each session has its own status, date, and notes. You can track progress over time and see everything in a visual timeline. Great for keeping clients on track!",
+    suggestions: ['How does progress tracking work?', 'Tell me about photos', 'What about clients?'],
   },
   {
-    keywords: ['clinical chart', 'clinical charts', 'soap', 'charting', 'chart', 'notes'],
-    response: "Clinical Charts is where you document everything. Create SOAP notes (Subjective, Objective, Assessment, Plan) for each visit. Track member progress, document form assessments, and note areas of focus. Everything saves to the member's chart history.",
-    suggestions: ['How do photos work?', 'What about waivers?', 'Tell me about treatment plans'],
+    keywords: ['progress tracking', 'progress', 'soap', 'tracking', 'notes'],
+    response: "Progress Tracking is where you document everything. Create session notes for each visit. Track client progress, document movement assessments, and note areas of focus. Everything saves to the client's history.",
+    suggestions: ['How do photos work?', 'What about waivers?', 'Tell me about training programs'],
   },
   {
     keywords: ['photo', 'photos', 'before and after', 'before after', 'documentation'],
-    response: "The Before & After page lets you capture and organize photo documentation. Take photos at standard angles for consistency, tag them by treatment type, and track visual progress over time. Consent for photo usage is tracked per member so you know what's cleared for marketing.",
-    suggestions: ['How do waivers work?', 'Tell me about social media', 'What about clinical charts?'],
+    response: "The Before & After page lets you capture and organize photo documentation. Take photos at standard angles for consistency, tag them by training type, and track visual progress over time. Consent for photo usage is tracked per client so you know what's cleared for marketing.",
+    suggestions: ['How do waivers work?', 'Tell me about social media', 'What about progress tracking?'],
   },
   {
     keywords: ['waiver', 'waivers', 'consent', 'signature', 'e-sign'],
-    response: "Consent & Waivers has 15 built-in templates covering treatments, photo releases, general consent, and more. Members can e-sign right on a tablet or you can send waivers digitally for them to sign before they arrive. All signed documents are stored in the member's profile.",
-    suggestions: ['How does check-in work?', 'Tell me about aftercare', 'What about members?'],
+    response: "Waivers has 15 built-in templates covering training liability, photo releases, general consent, and more. Clients can e-sign right on a tablet or you can send waivers digitally for them to sign before they arrive. All signed documents are stored in the client's profile.",
+    suggestions: ['How does check-in work?', 'Tell me about aftercare', 'What about clients?'],
   },
   {
     keywords: ['aftercare', 'post-care', 'follow up', 'follow-up', 'sequence'],
-    response: "Aftercare automates your post-treatment communication. There are templates for different class types. When a class is completed, the follow-up sequence triggers automatically: recovery tips, check-in, and rebooking reminders. Members feel taken care of without your team lifting a finger!",
+    response: "Aftercare automates your post-session communication. There are templates for different session types. When a session is completed, the follow-up sequence triggers automatically: recovery tips, check-in, and rebooking reminders. Clients feel taken care of without your team lifting a finger!",
     suggestions: ['How do text messages work?', 'What about email?', 'Tell me about retention'],
   },
   {
@@ -51,32 +51,32 @@ const KNOWLEDGE = [
   },
   {
     keywords: ['retention', 'lapsed', 'win back', 'inactive'],
-    response: "The Retention page uses smart alerts to flag members who haven't been in for a while. You'll see how many days since their last visit, what service they had, and a suggested re-engagement action. Mark members as contacted once you've reached out so your team stays coordinated. It's your secret weapon for keeping members coming back!",
+    response: "The Retention page uses smart alerts to flag clients who haven't trained in a while. You'll see how many days since their last visit, what service they had, and a suggested re-engagement action. Mark clients as contacted once you've reached out so your team stays coordinated. It's your secret weapon for keeping clients coming back!",
     suggestions: ['How do text messages work?', 'What about email?', 'Tell me about the waitlist'],
   },
   {
     keywords: ['waitlist', 'backfill', 'cancellation', 'wait list'],
-    response: "The Waitlist is a smart backfill tool. When members want a specific time slot that's not available, add them to the waitlist. If a cancellation opens up, the system can notify waitlisted members automatically. It helps you keep your schedule full and reduce no-show gaps.",
+    response: "The Waitlist is a smart backfill tool. When clients want a specific time slot that's not available, add them to the waitlist. If a cancellation opens up, the system can notify waitlisted clients automatically. It helps you keep your schedule full and reduce no-show gaps.",
     suggestions: ['How does the schedule work?', 'Tell me about retention', 'What about check-in?'],
   },
   {
     keywords: ['review', 'reviews', 'google review', 'star', 'rating', 'reputation'],
-    response: "The Reviews page helps you manage your online reputation. After appointments, you can trigger Google review requests to happy members. Track your star ratings, see recent reviews, and monitor your reputation score over time. More 5-star reviews = more new members finding you!",
+    response: "The Reviews page helps you manage your online reputation. After sessions, you can trigger Google review requests to happy clients. Track your star ratings, see recent reviews, and monitor your reputation score over time. More 5-star reviews = more new clients finding you!",
     suggestions: ['How does email work?', 'Tell me about text messages', 'What about social media?'],
   },
   {
     keywords: ['dm', 'inbox', 'instagram', 'messages', 'direct message', 'message'],
-    response: "The DM Inbox is a shared team inbox that pulls in messages from Instagram (and more platforms coming soon). Your whole team can see and respond to messages, assign conversations to specific staff members, and keep track of response times. No more missed DMs!",
+    response: "The DM Inbox is a shared team inbox that pulls in messages from Instagram (and more platforms coming soon). Your whole team can see and respond to messages, assign conversations to specific staff, and keep track of response times. No more missed DMs!",
     suggestions: ['How does email work?', 'What about text messages?', 'Tell me about social media'],
   },
   {
     keywords: ['email', 'newsletter', 'email blast', 'email wizard'],
-    response: "The Email page has a visual email builder — pick a template, customize the content, choose your audience (all members, members only, lapsed members, etc.), and preview before sending. You can see stats on past emails like recipient count and send date. Perfect for newsletters, promotions, and announcements.",
+    response: "The Email page has a visual email builder — pick a template, customize the content, choose your audience (all clients, active clients, lapsed clients, etc.), and preview before sending. You can see stats on past emails like recipient count and send date. Perfect for newsletters, promotions, and announcements.",
     suggestions: ['How do text messages work?', 'What about the DM inbox?', 'Tell me about social media'],
   },
   {
     keywords: ['text', 'sms', 'text message', 'text blast'],
-    response: "Text Messages lets you send individual texts or blasts to member groups. There are templates for reminders, follow-ups, promotions, review requests, and re-engagement. Pick your audience, customize the message, and send. Texts have way higher open rates than email — your members will actually see these!",
+    response: "Text Messages lets you send individual texts or blasts to client groups. There are templates for reminders, follow-ups, promotions, review requests, and re-engagement. Pick your audience, customize the message, and send. Texts have way higher open rates than email — your clients will actually see these!",
     suggestions: ['How does email work?', 'What about the DM inbox?', 'Tell me about aftercare'],
   },
   {
@@ -85,67 +85,67 @@ const KNOWLEDGE = [
     suggestions: ['How does the DM inbox work?', 'What about email?', 'Tell me about reviews'],
   },
   {
-    keywords: ['membership', 'memberships', 'tier', 'member', 'auto-deduct', 'unit tracking'],
-    response: "Memberships lets you set up tiered membership programs — think 8-Class Pack, Unlimited Monthly, Annual Unlimited. Each tier can include monthly class credits, discounts on packages, and wallet credits. Credits auto-deduct when classes are attended, and you can track each member's usage and remaining balance.",
-    suggestions: ['How does the wallet work?', 'Tell me about referrals', 'What about members?'],
+    keywords: ['membership', 'memberships', 'tier', 'client', 'auto-deduct', 'unit tracking'],
+    response: "Memberships lets you set up tiered membership programs — think 8-Session Pack, Unlimited Monthly, Annual Unlimited. Each tier can include monthly session credits, discounts on packages, and wallet credits. Credits auto-deduct when sessions are completed, and you can track each client's usage and remaining balance.",
+    suggestions: ['How does the wallet work?', 'Tell me about referrals', 'What about clients?'],
   },
   {
-    keywords: ['wallet', 'gift card', 'gift cards', 'credits', 'loyalty', 'points', 'member wallet'],
-    response: "Member Wallet tracks every member's stored value — gift card balances, loyalty points, membership credits, and prepaid packages. You can add or deduct manually, issue gift cards, and members can see their balance in the member portal. It's like a personal account for each client.",
-    suggestions: ['How do memberships work?', 'Tell me about referrals', 'What about the member portal?'],
+    keywords: ['wallet', 'gift card', 'gift cards', 'credits', 'loyalty', 'points', 'client wallet'],
+    response: "Client Wallet tracks every client's stored value — gift card balances, loyalty points, membership credits, and prepaid packages. You can add or deduct manually, issue gift cards, and clients can see their balance in the client portal. It's like a personal account for each client.",
+    suggestions: ['How do memberships work?', 'Tell me about referrals', 'What about the client portal?'],
   },
   {
     keywords: ['referral', 'referrals', 'refer', 'refer a friend'],
-    response: "Referrals tracks your member-to-member referral program. Each member gets a unique referral link they can share (available in the member portal). When a referred friend books, both the referrer and the new member can receive rewards — credits, discounts, whatever you configure. Word of mouth, tracked and rewarded!",
-    suggestions: ['How does the wallet work?', 'What about the member portal?', 'Tell me about memberships'],
+    response: "Referrals tracks your client-to-client referral program. Each client gets a unique referral link they can share (available in the client portal). When a referred friend books, both the referrer and the new client can receive rewards — credits, discounts, whatever you configure. Word of mouth, tracked and rewarded!",
+    suggestions: ['How does the wallet work?', 'What about the client portal?', 'Tell me about memberships'],
   },
   {
     keywords: ['report', 'reports', 'revenue', 'analytics', 'csv', 'export'],
-    response: "Reports gives you the business insights you need — revenue breakdowns, top services, instructor performance, member acquisition trends, and more. Every report can be filtered by date range and exported to CSV for your accountant or team meetings. Knowledge is power!",
+    response: "Reports gives you the business insights you need — revenue breakdowns, top services, trainer performance, client acquisition trends, and more. Every report can be filtered by date range and exported to CSV for your accountant or team meetings. Knowledge is power!",
     suggestions: ['Tell me about the dashboard', 'What about settings?', 'How do memberships work?'],
   },
   {
     keywords: ['setting', 'settings', 'business info', 'branding', 'payment', 'integration', 'configure'],
-    response: "Settings is where you configure everything — your business name, contact info, tagline, brand colors, payment processing, and integrations. This is also where you manage locations, instructors, service menu, and more. If something looks off or you want to customize, Settings is the place to go.",
+    response: "Settings is where you configure everything — your business name, contact info, tagline, brand colors, payment processing, and integrations. This is also where you manage locations, trainers, service menu, and more. If something looks off or you want to customize, Settings is the place to go.",
     suggestions: ['How do I change brand colors?', 'Tell me about the dashboard', 'What about reports?'],
   },
   {
-    keywords: ['check-in', 'check in', 'checkin', 'front desk', 'arrival', 'verification', 'pregnancy'],
-    response: "Check-In is your front desk flow. When a member arrives, find their appointment and start the check-in process. It verifies their contact info, date of birth, allergies, medications, and includes a pregnancy screening question. Once checked in, the member status updates across the system so instructors know who's ready.",
-    suggestions: ['How does the schedule work?', 'Tell me about waivers', 'What about members?'],
+    keywords: ['check-in', 'check in', 'checkin', 'front desk', 'arrival', 'verification'],
+    response: "Check-In is your front desk flow. When a client arrives, find their session and start the check-in process. It verifies their contact info, date of birth, and any health considerations. Once checked in, the client status updates across the system so trainers know who's ready.",
+    suggestions: ['How does the schedule work?', 'Tell me about waivers', 'What about clients?'],
   },
   {
-    keywords: ['portal', 'member portal', 'self-service'],
-    response: "The Member Portal lives at /portal and gives your members self-service access. They can view upcoming appointments, see their wallet balance, check membership status, access aftercare instructions, sign waivers, and share referral links. It's branded to match your studio's look and feel.",
+    keywords: ['portal', 'client portal', 'self-service'],
+    response: "The Client Portal lives at /portal and gives your clients self-service access. They can view upcoming sessions, see their wallet balance, check membership status, access aftercare instructions, sign waivers, and share referral links. It's branded to match your business look and feel.",
     suggestions: ['How does online booking work?', 'Tell me about referrals', 'What about waivers?'],
   },
   {
     keywords: ['book online', 'online booking', 'public booking', 'booking page'],
-    response: "Your public booking page at /book lets new and existing members schedule appointments online. They can browse your service menu, pick a instructor and time, and confirm their booking. It's fully branded and mobile-friendly — perfect for linking from your website, Instagram, or Google listing.",
-    suggestions: ['What about the member portal?', 'Tell me about the schedule', 'How does check-in work?'],
+    response: "Your public booking page at /book lets new and existing clients schedule sessions online. They can browse your service menu, pick a trainer and time, and confirm their booking. It's fully branded and mobile-friendly — perfect for linking from your website, Instagram, or Google listing.",
+    suggestions: ['What about the client portal?', 'Tell me about the schedule', 'How does check-in work?'],
   },
   {
     keywords: ['branding', 'brand', 'colors', 'theme', 'color', 'accent'],
     response: "You can change your brand color anytime from the sidebar — look for the colored circle at the bottom. Pick from preset color themes (Gold, Rose, Ocean, Sage, Plum, Coral, Slate) or set a completely custom hex color. Your accent color flows through the entire platform — buttons, highlights, badges, everything.",
-    suggestions: ['Tell me about settings', 'What about the member portal?', 'How does online booking work?'],
+    suggestions: ['Tell me about settings', 'What about the client portal?', 'How does online booking work?'],
   },
   {
     keywords: ['help', 'what can you do', 'topics', 'menu'],
     response: [
       "I can help you with pretty much any feature on the platform! Here are some topics you can ask about:",
-      "- Dashboard, Members, Schedule, Treatment Plans\n- Clinical Charts, Photos, Waivers, Aftercare\n- Inventory, Retention, Waitlist, Reviews\n- DM Inbox, Email, Text Messages, Social Media\n- Memberships, Wallet & Gift Cards, Referrals\n- Reports, Settings, Check-In, Member Portal\n- Branding & Colors, Online Booking",
+      "- Dashboard, Clients, Schedule, Training Programs\n- Progress Tracking, Photos, Waivers, Aftercare\n- Inventory, Retention, Waitlist, Reviews\n- DM Inbox, Email, Text Messages, Social Media\n- Memberships, Wallet & Gift Cards, Referrals\n- Reports, Settings, Check-In, Client Portal\n- Branding & Colors, Online Booking",
       "Just ask about any of those and I'll walk you through it!"
     ],
-    suggestions: ['How does the dashboard work?', 'Tell me about members', 'What about memberships?'],
+    suggestions: ['How does the dashboard work?', 'Tell me about clients', 'What about memberships?'],
   },
   {
     keywords: ['pricing', 'price', 'cost', 'plan', 'subscription'],
-    response: "For pricing details, head over to the /pricing page where you can see the full breakdown. The platform runs on a straightforward model designed for fitness studio businesses.",
+    response: "For pricing details, head over to the /pricing page where you can see the full breakdown. The platform runs on a straightforward model designed for personal training businesses.",
     suggestions: ['Tell me about settings', 'What about reports?', 'How does the dashboard work?'],
   },
   {
     keywords: ['how much', 'per month', 'monthly'],
-    response: "The platform is $1,500/month — that includes everything you see here: scheduling, charting, marketing tools, member portal, online booking, memberships, the whole suite. No hidden fees, no per-user charges. One price, full platform.",
+    response: "The platform is $1,500/month — that includes everything you see here: scheduling, progress tracking, marketing tools, client portal, online booking, memberships, the whole suite. No hidden fees, no per-user charges. One price, full platform.",
     suggestions: ['Tell me about settings', 'What can you help with?', 'How does the dashboard work?'],
   },
 ];
@@ -222,7 +222,7 @@ function TypingDots() {
 export default function HelpChat() {
   const s = useStyles();
   const settings = getSettings();
-  const businessName = settings.businessName || 'Remedy Pilates & Barre';
+  const businessName = settings.businessName || 'FORGE Personal Training';
 
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -264,7 +264,7 @@ export default function HelpChat() {
         setMessages([{
           from: 'bot',
           text: `Hey! Welcome to ${businessName}. I can help you navigate the platform, explain any feature, or point you in the right direction. What can I help with?`,
-          suggestions: ['Show me what you can do', 'How does the dashboard work?', 'Tell me about members'],
+          suggestions: ['Show me what you can do', 'How does the dashboard work?', 'Tell me about clients'],
         }]);
       }, 500);
     }

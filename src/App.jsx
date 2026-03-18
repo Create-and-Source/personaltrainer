@@ -29,6 +29,8 @@ const Settings = lazy(() => import('./pages/Settings'));
 const Portal = lazy(() => import('./pages/Portal'));
 const BookOnline = lazy(() => import('./pages/BookOnline'));
 const Pricing = lazy(() => import('./pages/Pricing'));
+const WorkoutBuilder = lazy(() => import('./pages/WorkoutBuilder'));
+const Progress = lazy(() => import('./pages/Progress'));
 
 function Loader() {
   return <div style={{ padding: 60, textAlign: 'center', color: '#999', font: "400 14px 'Inter', sans-serif" }}>Loading...</div>;
@@ -54,6 +56,8 @@ export default function App() {
                 <Route path="/members" element={<Members />} />
                 <Route path="/schedule" element={<Schedule />} />
                 <Route path="/classes" element={<ClassPackages />} />
+                <Route path="/workouts" element={<WorkoutBuilder />} />
+                <Route path="/progress" element={<Progress />} />
                 <Route path="/waivers" element={<Waivers />} />
                 <Route path="/memberships" element={<Memberships />} />
                 <Route path="/wallet" element={<Wallet />} />

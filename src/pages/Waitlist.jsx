@@ -15,18 +15,18 @@ function seedWaitlist() {
   const d = (offset) => { const dt = new Date(now); dt.setDate(dt.getDate() + offset); return dt.toISOString(); };
 
   const entries = [
-    { name: 'Sophia Brown', patientId: 'PAT-1002', service: 'Reformer Pilates', preferredDays: ['Monday', 'Wednesday'], preferredTimes: 'Morning', status: 'waiting' },
-    { name: 'Ava Jones', patientId: 'PAT-1003', service: 'Barre Sculpt', preferredDays: ['Tuesday', 'Thursday'], preferredTimes: 'Afternoon', status: 'notified' },
-    { name: 'Mia Miller', patientId: 'PAT-1005', service: 'Power Reformer', preferredDays: ['Friday'], preferredTimes: 'Morning', status: 'waiting' },
-    { name: 'Charlotte Davis', patientId: 'PAT-1006', service: 'Mat Pilates', preferredDays: ['Monday', 'Tuesday'], preferredTimes: 'Any', status: 'confirmed' },
-    { name: 'Amelia Thompson', patientId: 'PAT-1007', service: 'Hot Pilates', preferredDays: ['Wednesday', 'Friday'], preferredTimes: 'Morning', status: 'booked' },
-    { name: 'Harper White', patientId: 'PAT-1008', service: 'Barre Cardio', preferredDays: ['Thursday'], preferredTimes: 'Afternoon', status: 'waiting' },
-    { name: 'Evelyn Lopez', patientId: 'PAT-1009', service: 'Stretch & Restore', preferredDays: ['Monday', 'Wednesday', 'Friday'], preferredTimes: 'Morning', status: 'expired' },
-    { name: 'Abigail Taylor', patientId: 'PAT-1010', service: 'Private Reformer Session', preferredDays: ['Tuesday'], preferredTimes: 'Afternoon', status: 'notified' },
-    { name: 'Ella Thomas', patientId: 'PAT-1011', service: 'Barre + Pilates Fusion', preferredDays: ['Monday', 'Thursday'], preferredTimes: 'Any', status: 'waiting' },
-    { name: 'Scarlett Hernandez', patientId: 'PAT-1012', service: 'Reformer Pilates', preferredDays: ['Wednesday'], preferredTimes: 'Morning', status: 'booked' },
-    { name: 'Grace Moore', patientId: 'PAT-1013', service: 'Prenatal Pilates', preferredDays: ['Friday'], preferredTimes: 'Afternoon', status: 'waiting' },
-    { name: 'Chloe Martin', patientId: 'PAT-1014', service: 'TRX + Pilates', preferredDays: ['Tuesday', 'Thursday'], preferredTimes: 'Morning', status: 'confirmed' },
+    { name: 'Sophia Brown', patientId: 'PAT-1002', service: 'Strength Training', preferredDays: ['Monday', 'Wednesday'], preferredTimes: 'Morning', status: 'waiting' },
+    { name: 'Ava Jones', patientId: 'PAT-1003', service: 'HIIT Circuit', preferredDays: ['Tuesday', 'Thursday'], preferredTimes: 'Afternoon', status: 'notified' },
+    { name: 'Mia Miller', patientId: 'PAT-1005', service: 'Power Lifting', preferredDays: ['Friday'], preferredTimes: 'Morning', status: 'waiting' },
+    { name: 'Charlotte Davis', patientId: 'PAT-1006', service: 'Functional Training', preferredDays: ['Monday', 'Tuesday'], preferredTimes: 'Any', status: 'confirmed' },
+    { name: 'Amelia Thompson', patientId: 'PAT-1007', service: 'Metabolic Conditioning', preferredDays: ['Wednesday', 'Friday'], preferredTimes: 'Morning', status: 'booked' },
+    { name: 'Harper White', patientId: 'PAT-1008', service: 'Athletic Performance', preferredDays: ['Thursday'], preferredTimes: 'Afternoon', status: 'waiting' },
+    { name: 'Evelyn Lopez', patientId: 'PAT-1009', service: 'Recovery + Stretch', preferredDays: ['Monday', 'Wednesday', 'Friday'], preferredTimes: 'Morning', status: 'expired' },
+    { name: 'Abigail Taylor', patientId: 'PAT-1010', service: 'Private Training Session', preferredDays: ['Tuesday'], preferredTimes: 'Afternoon', status: 'notified' },
+    { name: 'Ella Thomas', patientId: 'PAT-1011', service: 'Strength + Cardio Fusion', preferredDays: ['Monday', 'Thursday'], preferredTimes: 'Any', status: 'waiting' },
+    { name: 'Scarlett Hernandez', patientId: 'PAT-1012', service: 'Strength Training', preferredDays: ['Wednesday'], preferredTimes: 'Morning', status: 'booked' },
+    { name: 'Grace Moore', patientId: 'PAT-1013', service: 'Prenatal Fitness', preferredDays: ['Friday'], preferredTimes: 'Afternoon', status: 'waiting' },
+    { name: 'Chloe Martin', patientId: 'PAT-1014', service: 'TRX + Core', preferredDays: ['Tuesday', 'Thursday'], preferredTimes: 'Morning', status: 'confirmed' },
   ];
 
   const seed = entries.map((e, i) => ({
@@ -124,7 +124,7 @@ export default function Waitlist() {
     if (waiting.length === 0) return;
     const all = getWaitlist().map(e => e.status === 'waiting' ? { ...e, status: 'notified', notifiedAt: new Date().toISOString() } : e);
     setWaitlist(all);
-    setToast(`Notified ${waiting.length} waitlisted members`);
+    setToast(`Notified ${waiting.length} waitlisted clients`);
     setTimeout(() => setToast(null), 3000);
     setTick(t => t + 1);
   };
@@ -211,7 +211,7 @@ export default function Waitlist() {
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search members or classes..." style={{ ...s.input, maxWidth: 260 }} />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients or sessions..." style={{ ...s.input, maxWidth: 260 }} />
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {[['all', 'All'], ['waiting', 'Waiting'], ['notified', 'Notified'], ['confirmed', 'Confirmed'], ['booked', 'Booked'], ['expired', 'Expired']].map(([id, label]) => (
             <button key={id} onClick={() => setFilter(id)} style={{

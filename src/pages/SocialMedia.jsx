@@ -8,19 +8,19 @@ const loadConns = () => { try { return JSON.parse(localStorage.getItem(CONN_KEY)
 const saveConns = (c) => localStorage.setItem(CONN_KEY, JSON.stringify(c));
 
 const CONTENT_TYPES = [
-  { id: 'service', label: 'Class Spotlight', desc: 'Highlight a class' },
+  { id: 'service', label: 'Session Spotlight', desc: 'Highlight a session' },
   { id: 'before-after', label: 'Before & After', desc: 'Show transformation results' },
   { id: 'education', label: 'Educational', desc: 'Tips, myths, fitness advice' },
   { id: 'promo', label: 'Promotion', desc: 'Special offer or deal' },
   { id: 'team', label: 'Meet the Team', desc: 'Staff spotlight' },
-  { id: 'testimonial', label: 'Testimonial', desc: 'Member review' },
+  { id: 'testimonial', label: 'Testimonial', desc: 'Client review' },
   { id: 'custom', label: 'Custom', desc: 'Write anything' },
 ];
 
 const TONES = ['Professional', 'Friendly', 'Luxurious', 'Educational', 'Playful', 'Urgent'];
 
 function generateCopy(type, platforms, tone, settings) {
-  const name = settings.businessName || 'Remedy Pilates & Barre';
+  const name = settings.businessName || 'FORGE Performance Training';
   const posts = [];
   const toneWord = tone === 'Luxurious' ? 'Indulge in' : tone === 'Friendly' ? 'We love helping you with' : tone === 'Urgent' ? 'Limited time:' : 'Discover';
 
@@ -28,22 +28,22 @@ function generateCopy(type, platforms, tone, settings) {
     const pl = p.toLowerCase();
     let text = '';
     if (type === 'service') {
-      if (pl === 'instagram') text = `${toneWord} the art of [Service Name]\n\nAt ${name}, every class is personalized to your unique fitness goals.\n\n[Describe the treatment and its benefits]\n\nBook your consultation — link in bio\n\n#Pilates #Barre #[ServiceHashtag] #Fitness #Beauty #SelfCare`;
-      else if (pl === 'facebook') text = `${toneWord} our [Service Name] treatment\n\n[Describe the treatment, benefits, and what makes it special]\n\nResults you can see. Confidence you can feel.\n\nBook online: ${settings.email || 'remedypilates.com'}`;
-      else if (pl === 'tiktok') text = `POV: You just got [Service] and your body is GLOWING\n\n#Pilates #Barre #GlowUp #Wellness #Beauty`;
-      else if (pl === 'x') text = `${toneWord} [Service] at ${name}.\n\n[One-liner about the treatment]\n\nBook now: ${settings.email || ''}\n\n#Pilates #Barre`;
-      else if (pl === 'linkedin') text = `At ${name}, we combine mindful movement with personalized instruction.\n\n[Describe the treatment and its clinical benefits]\n\nOur team of certified instructors delivers results backed by movement science.\n\n#PilatesStudio #Pilates #Fitness`;
+      if (pl === 'instagram') text = `${toneWord} the art of [Service Name]\n\nAt ${name}, every session is personalized to your unique fitness goals.\n\n[Describe the session and its benefits]\n\nBook your consultation — link in bio\n\n#PersonalTraining #Strength #[ServiceHashtag] #Fitness #Performance #Results`;
+      else if (pl === 'facebook') text = `${toneWord} our [Service Name] session\n\n[Describe the session, benefits, and what makes it special]\n\nResults you can see. Confidence you can feel.\n\nBook online: ${settings.email || 'forgeperformance.com'}`;
+      else if (pl === 'tiktok') text = `POV: You just crushed [Service] and your body is GLOWING\n\n#PersonalTraining #Strength #GlowUp #Fitness #Performance`;
+      else if (pl === 'x') text = `${toneWord} [Service] at ${name}.\n\n[One-liner about the session]\n\nBook now: ${settings.email || ''}\n\n#PersonalTraining #Strength`;
+      else if (pl === 'linkedin') text = `At ${name}, we combine evidence-based training with personalized coaching.\n\n[Describe the session and its performance benefits]\n\nOur team of certified trainers delivers results backed by sports science.\n\n#PersonalTraining #Fitness #Performance`;
     } else if (type === 'before-after') {
-      if (pl === 'instagram') text = `The results speak for themselves\n\nBefore → After\n[Treatment Name]\n[Number] sessions\n\nEvery journey is unique. Book your consultation to create your personalized plan.\n\nLink in bio\n\n#BeforeAndAfter #Pilates #Results #Transformation #${name.replace(/\s/g, '')}`;
-      else text = `Real results from real members.\n\n[Treatment] — [number] sessions\n\nSee what is possible at ${name}.\n\n#BeforeAndAfter #Pilates`;
+      if (pl === 'instagram') text = `The results speak for themselves\n\nBefore → After\n[Program Name]\n[Number] sessions\n\nEvery journey is unique. Book your consultation to create your personalized plan.\n\nLink in bio\n\n#BeforeAndAfter #PersonalTraining #Results #Transformation #${name.replace(/\s/g, '')}`;
+      else text = `Real results from real clients.\n\n[Program] — [number] sessions\n\nSee what is possible at ${name}.\n\n#BeforeAndAfter #PersonalTraining`;
     } else if (type === 'promo') {
-      if (pl === 'instagram') text = `SPECIAL OFFER\n\n[Offer details — e.g., 20% off your first class pack this month]\n\nValid through [end date]\nBook now — link in bio\n\nLimited spots available.\n\n#Pilates #SpecialOffer #Fitness #${name.replace(/\s/g, '')}`;
+      if (pl === 'instagram') text = `SPECIAL OFFER\n\n[Offer details — e.g., 20% off your first session pack this month]\n\nValid through [end date]\nBook now — link in bio\n\nLimited spots available.\n\n#PersonalTraining #SpecialOffer #Fitness #${name.replace(/\s/g, '')}`;
       else text = `Special offer at ${name}!\n\n[Offer details]\n\nBook by [end date] to save.\n\n${settings.phone || ''}`;
     } else if (type === 'education') {
-      if (pl === 'instagram') text = `DID YOU KNOW?\n\n[Educational fact about skincare/treatment]\n\n[2-3 sentences expanding on the topic]\n\nHave questions? Drop them in the comments\n\n#FitnessTips #Pilates #Education #Movement #Beauty`;
-      else text = `Fitness tip from ${name}:\n\n[Educational content]\n\nYour body deserves science-backed movement.`;
+      if (pl === 'instagram') text = `DID YOU KNOW?\n\n[Educational fact about training/fitness]\n\n[2-3 sentences expanding on the topic]\n\nHave questions? Drop them in the comments\n\n#FitnessTips #PersonalTraining #Education #Strength #Performance`;
+      else text = `Fitness tip from ${name}:\n\n[Educational content]\n\nYour body deserves science-backed training.`;
     } else {
-      text = `[Your custom post for ${p}]\n\n#Pilates #${name.replace(/\s/g, '')}`;
+      text = `[Your custom post for ${p}]\n\n#PersonalTraining #${name.replace(/\s/g, '')}`;
     }
     posts.push({ platform: pl, text });
   }
@@ -329,7 +329,7 @@ export default function SocialMedia() {
                       [Image/Video]
                     </div>
                     <div style={{ padding: '12px 14px' }}>
-                      <div style={{ font: `600 12px ${s.FONT}`, color: s.text, marginBottom: 4 }}>{settings.businessName || 'remedypilates'}</div>
+                      <div style={{ font: `600 12px ${s.FONT}`, color: s.text, marginBottom: 4 }}>{settings.businessName || 'forgeperformance'}</div>
                       <div style={{ font: `400 12px ${s.FONT}`, color: s.text2, lineHeight: 1.5, whiteSpace: 'pre-wrap', maxHeight: 200, overflowY: 'auto' }}>
                         {activePost?.text || 'Select a platform'}
                       </div>

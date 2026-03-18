@@ -43,9 +43,9 @@ if (!document.getElementById(MEM_ANIM_ID)) {
 
 const TIER_BADGE = {
   'Drop-in': null,
-  '8-Class Pack': { bg: '#F1F5F9', color: '#64748B', border: '#CBD5E1' },
+  '10-Session Pack': { bg: '#F1F5F9', color: '#64748B', border: '#CBD5E1' },
   'Unlimited Monthly': { bg: '#FFFBEB', color: '#B8960C', border: '#FDE68A' },
-  'Annual Unlimited': { bg: '#F5F3FF', color: '#7C3AED', border: '#DDD6FE' },
+  'Premium Monthly': { bg: '#F5F3FF', color: '#7C3AED', border: '#DDD6FE' },
 };
 
 export default function Members() {
@@ -99,7 +99,7 @@ export default function Members() {
   };
 
   const handleDelete = (id) => {
-    if (confirm('Delete this member?')) {
+    if (confirm('Delete this client?')) {
       deletePatient(id);
       if (selected?.id === id) { setSelected(null); setShowForm(false); }
       if (detail?.id === id) setDetail(null);
@@ -123,12 +123,12 @@ export default function Members() {
     transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
   };
 
-  const filterOptions = ['All', 'Drop-in', '8-Class Pack', 'Unlimited Monthly', 'Annual Unlimited'];
+  const filterOptions = ['All', 'Drop-in', '10-Session Pack', 'Unlimited Monthly', 'Premium Monthly'];
   const sortOptions = [
-    { value: 'lastVisit', label: 'Last Class' },
+    { value: 'lastVisit', label: 'Last Session' },
     { value: 'name', label: 'Name' },
     { value: 'spent', label: 'Top Spenders' },
-    { value: 'visits', label: 'Most Classes' },
+    { value: 'visits', label: 'Most Sessions' },
   ];
 
   return (
@@ -139,18 +139,18 @@ export default function Members() {
         animation: 'memFadeInUp 0.4s cubic-bezier(0.16,1,0.3,1) both',
       }}>
         <div>
-          <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4, letterSpacing: '-0.3px' }}>Members</h1>
-          <p style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>{members.length} total members</p>
+          <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4, letterSpacing: '-0.3px' }}>Clients</h1>
+          <p style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>{members.length} total clients</p>
         </div>
         <button onClick={() => { setSelected(null); setForm({ firstName: '', lastName: '', email: '', phone: '', dob: '', gender: 'Female', goals: '', notes: '', membershipTier: 'None' }); setShowForm(true); }} style={s.pillAccent}>
-          + Add Member
+          + Add Client
         </button>
       </div>
 
       {/* Stats Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 24 }}>
         {[
-          { label: 'Total Members', value: members.length, icon: (
+          { label: 'Total Clients', value: members.length, icon: (
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={s.accent} strokeWidth="1.5" strokeLinecap="round">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
@@ -165,7 +165,7 @@ export default function Members() {
               <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
             </svg>
           )},
-          { label: 'Active Members', value: activeMembers, icon: (
+          { label: 'Active Clients', value: activeMembers, icon: (
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={s.accent} strokeWidth="1.5" strokeLinecap="round">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>
@@ -201,7 +201,7 @@ export default function Members() {
             style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }}>
             <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search members..."
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients..."
             style={{ ...s.input, paddingLeft: 40, background: 'rgba(255,255,255,0.5)', borderRadius: 100 }} />
         </div>
 
@@ -284,7 +284,7 @@ export default function Members() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
                     <div>
-                      <div style={{ font: `500 9px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: s.text3, marginBottom: 3 }}>Classes</div>
+                      <div style={{ font: `500 9px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: s.text3, marginBottom: 3 }}>Sessions</div>
                       <div style={{ font: `600 16px ${s.FONT}`, color: s.text }}>{p.visitCount}</div>
                     </div>
                     <div>
@@ -292,7 +292,7 @@ export default function Members() {
                       <div style={{ font: `600 16px ${s.FONT}`, color: s.text }}>{fmt(p.totalSpent)}</div>
                     </div>
                     <div>
-                      <div style={{ font: `500 9px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: s.text3, marginBottom: 3 }}>Last Class</div>
+                      <div style={{ font: `500 9px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: s.text3, marginBottom: 3 }}>Last Session</div>
                       <div style={{ font: `500 12px ${s.FONT}`, color: s.text2 }}>
                         {p.lastVisit ? new Date(p.lastVisit + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '---'}
                       </div>
@@ -303,9 +303,9 @@ export default function Members() {
             })}
             {filtered.length === 0 && (
               <div style={{ ...glass, padding: 48, textAlign: 'center', gridColumn: '1 / -1' }}>
-                <div style={{ font: `400 14px ${s.FONT}`, color: s.text3, marginBottom: 12 }}>No members found</div>
+                <div style={{ font: `400 14px ${s.FONT}`, color: s.text3, marginBottom: 12 }}>No clients found</div>
                 <button onClick={() => { setSelected(null); setForm({ firstName: '', lastName: '', email: '', phone: '', dob: '', gender: 'Female', goals: '', notes: '', membershipTier: 'None' }); setShowForm(true); }} style={s.pillAccent}>
-                  + Add Member
+                  + Add Client
                 </button>
               </div>
             )}
@@ -319,7 +319,7 @@ export default function Members() {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                    {['Member', 'Contact', 'Membership', 'Classes', 'Total Spent', 'Last Class', ''].map(h => (
+                    {['Client', 'Contact', 'Membership', 'Sessions', 'Total Spent', 'Last Session', ''].map(h => (
                       <th key={h} style={{ padding: '14px 18px', font: `500 10px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.2, color: s.text3, textAlign: 'left' }}>{h}</th>
                     ))}
                   </tr>
@@ -372,7 +372,7 @@ export default function Members() {
                     );
                   })}
                   {filtered.length === 0 && (
-                    <tr><td colSpan="7" style={{ padding: 48, textAlign: 'center', font: `400 13px ${s.FONT}`, color: s.text3 }}>No members found</td></tr>
+                    <tr><td colSpan="7" style={{ padding: 48, textAlign: 'center', font: `400 13px ${s.FONT}`, color: s.text3 }}>No clients found</td></tr>
                   )}
                 </tbody>
               </table>
@@ -431,7 +431,7 @@ export default function Members() {
                   { label: 'Phone', value: detail.phone },
                   { label: 'DOB', value: detail.dob || '---' },
                   { label: 'Gender', value: detail.gender },
-                  { label: 'Classes Attended', value: detail.visitCount },
+                  { label: 'Sessions Attended', value: detail.visitCount },
                   { label: 'Total Spent', value: fmt(detail.totalSpent) },
                 ].map(f => (
                   <div key={f.label}>
@@ -459,10 +459,10 @@ export default function Members() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={s.text2} strokeWidth="1.5" strokeLinecap="round">
                   <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
-                Recent Classes
+                Recent Sessions
               </div>
               {memberClasses(detail.id).length === 0 ? (
-                <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, padding: '8px 0' }}>No classes found</div>
+                <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, padding: '8px 0' }}>No sessions found</div>
               ) : memberClasses(detail.id).map(a => {
                 const svc = services.find(sv => sv.id === a.serviceId);
                 const statusColor = a.status === 'completed' ? s.success : a.status === 'confirmed' ? s.accent : s.warning;
@@ -473,7 +473,7 @@ export default function Members() {
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   }}>
                     <div>
-                      <div style={{ font: `500 12px ${s.FONT}`, color: s.text }}>{svc?.name || 'Class'}</div>
+                      <div style={{ font: `500 12px ${s.FONT}`, color: s.text }}>{svc?.name || 'Session'}</div>
                       <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>
                         {new Date(a.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </div>
@@ -528,7 +528,7 @@ export default function Members() {
             boxShadow: s.shadowLg, maxHeight: '90vh', overflowY: 'auto',
             animation: 'memFadeInUp 0.35s cubic-bezier(0.16,1,0.3,1) both',
           }} onClick={e => e.stopPropagation()}>
-            <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 24 }}>{selected ? 'Edit Member' : 'New Member'}</h2>
+            <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 24 }}>{selected ? 'Edit Client' : 'New Client'}</h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               {[
@@ -552,14 +552,14 @@ export default function Members() {
               <div>
                 <label style={s.label}>Membership</label>
                 <select value={form.membershipTier} onChange={e => setForm({ ...form, membershipTier: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
-                  <option>Drop-in</option><option>8-Class Pack</option><option>Unlimited Monthly</option><option>Annual Unlimited</option>
+                  <option>Drop-in</option><option>10-Session Pack</option><option>Unlimited Monthly</option><option>Premium Monthly</option>
                 </select>
               </div>
             </div>
 
             <div style={{ marginTop: 16 }}>
               <label style={s.label}>Goals</label>
-              <input value={form.goals} onChange={e => setForm({ ...form, goals: e.target.value })} style={s.input} placeholder="e.g., Improve flexibility, Build core strength" />
+              <input value={form.goals} onChange={e => setForm({ ...form, goals: e.target.value })} style={s.input} placeholder="e.g., Build muscle, Lose weight, Get stronger" />
             </div>
             <div style={{ marginTop: 16 }}>
               <label style={s.label}>Notes</label>
@@ -568,7 +568,7 @@ export default function Members() {
 
             <div style={{ display: 'flex', gap: 12, marginTop: 24, justifyContent: 'flex-end' }}>
               <button onClick={() => setShowForm(false)} style={s.pillGhost}>Cancel</button>
-              <button onClick={handleSave} style={s.pillAccent}>{selected ? 'Save Changes' : 'Add Member'}</button>
+              <button onClick={handleSave} style={s.pillAccent}>{selected ? 'Save Changes' : 'Add Client'}</button>
             </div>
           </div>
         </div>

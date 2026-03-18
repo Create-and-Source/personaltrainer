@@ -1,23 +1,23 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useStyles } from '../theme';
 import {
-  getServices, getProviders, getLocations, getAppointments,
+  getServices, getProviders, getAppointments,
   addAppointment, getSettings, subscribe,
 } from '../data/store';
 
 const fmt = (cents) => cents === 0 ? 'Complimentary' : `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 0 })}`;
 
-const CATEGORIES = ['All', 'Pilates', 'Equipment', 'Barre', 'Strength', 'Private', 'Specialty', 'Wellness', 'Training'];
+const CATEGORIES = ['All', 'Strength', 'HIIT', 'Boxing', 'Nutrition', 'Private', 'Specialty', 'Group', 'Training'];
 
 // Merge similar categories for display
 const DISPLAY_CATEGORIES = [
   { label: 'All', match: () => true },
-  { label: 'Pilates', match: (c) => c === 'Pilates' },
-  { label: 'Equipment', match: (c) => c === 'Equipment' },
-  { label: 'Barre', match: (c) => c === 'Barre' },
   { label: 'Strength', match: (c) => c === 'Strength' },
+  { label: 'HIIT', match: (c) => c === 'HIIT' },
+  { label: 'Boxing', match: (c) => c === 'Boxing' },
+  { label: 'Nutrition', match: (c) => c === 'Nutrition' },
   { label: 'Private', match: (c) => c === 'Private' },
-  { label: 'Specialty', match: (c) => c === 'Specialty' || c === 'Wellness' || c === 'Training' },
+  { label: 'Specialty', match: (c) => c === 'Specialty' || c === 'Group' || c === 'Training' },
 ];
 
 /* --- keyframe injection (once) --- */
@@ -111,11 +111,10 @@ export default function BookOnline() {
   // Data
   const services = getServices();
   const providers = getProviders();
-  const locations = getLocations();
   const settings = getSettings();
   const appointments = getAppointments();
 
-  const businessName = settings.businessName || 'Remedy Pilates & Barre';
+  const businessName = settings.businessName || 'FORGE Performance Training';
   const tagline = settings.tagline || '';
 
   // Build 14 days from today
@@ -236,7 +235,7 @@ export default function BookOnline() {
       time: selectedTime,
       duration: selectedService.duration || 30,
       status: 'pending',
-      location: locations[0]?.id || 'LOC-1',
+
       notes: form.notes,
       source: 'online-booking',
     });
@@ -259,13 +258,13 @@ export default function BookOnline() {
     const ics = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//RemedyPilates//Booking//EN',
+      'PRODID:-//FORGETraining//Booking//EN',
       'BEGIN:VEVENT',
       `DTSTART:${startTime}`,
       `DTEND:${endTime}`,
       `SUMMARY:${selectedService?.name} at ${businessName}`,
-      `DESCRIPTION:Instructor: ${selectedProvider?.name}`,
-      `LOCATION:${locations[0]?.address || ''}`,
+      `DESCRIPTION:Trainer: ${selectedProvider?.name}`,
+      `LOCATION:Online Session`,
       'END:VEVENT',
       'END:VCALENDAR',
     ].join('\r\n');
@@ -379,7 +378,7 @@ export default function BookOnline() {
             fontSize: 11, fontFamily: s.MONO, textTransform: 'uppercase',
             letterSpacing: 3, color: s.accent, marginBottom: 12, fontWeight: 600,
           }}>
-            Book Your Class
+            Book Your Session
           </div>
           <h1 style={{
             fontSize: 32, fontWeight: 300, color: s.text, margin: 0,
@@ -441,8 +440,8 @@ export default function BookOnline() {
             fontSize: 11, fontFamily: s.MONO, textTransform: 'uppercase',
             letterSpacing: 1.5, color: s.text3, fontWeight: 500,
           }}>
-            {step === 1 && 'Choose Your Class'}
-            {step === 2 && 'Select Instructor & Time'}
+            {step === 1 && 'Choose Your Session'}
+            {step === 2 && 'Select Trainer & Time'}
             {step === 3 && 'Confirm Your Booking'}
           </div>
         )}
@@ -520,13 +519,13 @@ export default function BookOnline() {
                   fontSize: 15, fontWeight: 600, color: s.text,
                   marginBottom: 8,
                 }}>
-                  Unlimited First Month
+                  Intro Session
                 </div>
                 <div style={{
                   fontSize: 13, color: s.text2, lineHeight: 1.5,
                   marginBottom: 16,
                 }}>
-                  Try every class at any location for 30 days
+                  Movement assessment, goal setting, and your first custom workout
                 </div>
                 <div style={{
                   display: 'inline-block',
@@ -590,19 +589,19 @@ export default function BookOnline() {
                   fontSize: 36, fontWeight: 700, color: s.accent,
                   marginTop: 8, marginBottom: 4, lineHeight: 1,
                 }}>
-                  $35
+                  $99
                 </div>
                 <div style={{
                   fontSize: 15, fontWeight: 600, color: s.text,
                   marginBottom: 8,
                 }}>
-                  Intro Private Session
+                  10-Session Starter Pack
                 </div>
                 <div style={{
                   fontSize: 13, color: s.text2, lineHeight: 1.5,
                   marginBottom: 16,
                 }}>
-                  One-on-one with a certified instructor to learn the equipment
+                  Ten sessions at our best new-client rate
                 </div>
                 <div style={{
                   display: 'inline-block',
@@ -620,7 +619,7 @@ export default function BookOnline() {
         )}
 
         {/* ════════════════════════════════════════ */}
-        {/*  STEP 1: Choose Class                    */}
+        {/*  STEP 1: Choose Session                   */}
         {/* ════════════════════════════════════════ */}
         {step === 1 && (
           <div className="book-slideIn" key="step1">
@@ -629,7 +628,7 @@ export default function BookOnline() {
               <div style={{ position: 'relative' }}>
                 <input
                   type="text"
-                  placeholder="Search classes..."
+                  placeholder="Search sessions..."
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                   style={{
@@ -683,7 +682,7 @@ export default function BookOnline() {
                   ...glass, padding: 40, textAlign: 'center', color: s.text3,
                   fontSize: 14,
                 }}>
-                  No classes found. Try a different search.
+                  No sessions found. Try a different search.
                 </div>
               )}
               {filteredServices.map((svc, i) => {
@@ -811,7 +810,7 @@ export default function BookOnline() {
         )}
 
         {/* ════════════════════════════════════════ */}
-        {/*  STEP 2: Instructor & Time               */}
+        {/*  STEP 2: Trainer & Time                   */}
         {/* ════════════════════════════════════════ */}
         {step === 2 && (
           <div className="book-slideIn" key="step2">
@@ -843,7 +842,7 @@ export default function BookOnline() {
 
             {/* Instructor selection */}
             <div style={{ marginBottom: 24 }}>
-              <div style={{ ...s.label, marginBottom: 12 }}>Choose Instructor</div>
+              <div style={{ ...s.label, marginBottom: 12 }}>Choose Trainer</div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 {displayProviders.map(prov => {
                   const sel = selectedProvider?.id === prov.id;
@@ -1060,12 +1059,12 @@ export default function BookOnline() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 13, color: s.text3 }}>Class</span>
+                  <span style={{ fontSize: 13, color: s.text3 }}>Session</span>
                   <span style={{ fontSize: 14, fontWeight: 600, color: s.text }}>{selectedService?.name}</span>
                 </div>
                 <div style={{ height: 1, background: 'rgba(0,0,0,0.04)' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 13, color: s.text3 }}>Instructor</span>
+                  <span style={{ fontSize: 13, color: s.text3 }}>Trainer</span>
                   <span style={{ fontSize: 14, fontWeight: 500, color: s.text }}>{selectedProvider?.name}</span>
                 </div>
                 <div style={{ height: 1, background: 'rgba(0,0,0,0.04)' }} />
@@ -1200,7 +1199,7 @@ export default function BookOnline() {
                   e.currentTarget.style.boxShadow = `0 4px 20px ${s.accent}40`;
                 }}
               >
-                Book Class
+                Book Session
               </button>
             </div>
           </div>
@@ -1258,8 +1257,8 @@ export default function BookOnline() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {[
-                  ['Class', selectedService?.name],
-                  ['Instructor', selectedProvider?.name],
+                  ['Session', selectedService?.name],
+                  ['Trainer', selectedProvider?.name],
                   ['Date', fmtDateLong(booked.date)],
                   ['Time', formatTime(booked.time)],
                   ['Duration', `${selectedService?.duration || 30} minutes`],
@@ -1336,7 +1335,7 @@ export default function BookOnline() {
                   maxWidth: 320,
                 }}
               >
-                Book Another Class
+                Book Another Session
               </button>
             </div>
           </div>
@@ -1348,9 +1347,7 @@ export default function BookOnline() {
           fontSize: 11, color: s.text3,
           fontFamily: s.MONO, letterSpacing: 0.5,
         }}>
-          {locations[0]?.address && (
-            <div style={{ marginBottom: 4 }}>{locations[0].address}</div>
-          )}
+
           {settings.phone && (
             <div>{settings.phone}</div>
           )}

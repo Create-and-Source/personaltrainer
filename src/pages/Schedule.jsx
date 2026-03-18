@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useStyles } from '../theme';
-import { getAppointments, addAppointment, updateAppointment, deleteAppointment, getPatients, getServices, getProviders, getLocations, subscribe } from '../data/store';
+import { getAppointments, addAppointment, updateAppointment, deleteAppointment, getPatients, getServices, getProviders, subscribe } from '../data/store';
 
 export default function Schedule() {
   const s = useStyles();
@@ -11,17 +11,15 @@ export default function Schedule() {
   const [currentDate, setCurrentDate] = useState(new Date().toISOString().slice(0, 10));
   const [showForm, setShowForm] = useState(false);
   const [editAppt, setEditAppt] = useState(null);
-  const [form, setForm] = useState({ patientId: '', serviceId: '', providerId: '', date: '', time: '', duration: 30, location: 'LOC-1', room: '', notes: '' });
-  const [locationFilter, setLocationFilter] = useState('all');
+  const [form, setForm] = useState({ patientId: '', serviceId: '', providerId: '', date: '', time: '', duration: 30, notes: '' });
   const [gridDetail, setGridDetail] = useState(null);
 
   const appointments = getAppointments();
   const patients = getPatients();
   const services = getServices();
   const providers = getProviders();
-  const locations = getLocations();
 
-  const filteredAppointments = locationFilter === 'all' ? appointments : appointments.filter(a => a.location === locationFilter);
+  const filteredAppointments = appointments;
   const dayAppts = filteredAppointments.filter(a => a.date === currentDate).sort((a, b) => a.time.localeCompare(b.time));
 
   // Week view
@@ -43,10 +41,10 @@ export default function Schedule() {
   // Category colors for class grid
   const categoryColor = (cat) => {
     const colors = {
-      Equipment: { bg: '#EFF6FF', border: '#3B82F6', text: '#1E40AF' },
-      Pilates: { bg: '#F0FDF4', border: '#22C55E', text: '#166534' },
-      Barre: { bg: '#FDF2F8', border: '#EC4899', text: '#9D174D' },
-      Strength: { bg: '#FFF7ED', border: '#F97316', text: '#9A3412' },
+      Strength: { bg: '#EFF6FF', border: '#3B82F6', text: '#1E40AF' },
+      Cardio: { bg: '#F0FDF4', border: '#22C55E', text: '#166534' },
+      Group: { bg: '#FDF2F8', border: '#EC4899', text: '#9D174D' },
+      Performance: { bg: '#FFF7ED', border: '#F97316', text: '#9A3412' },
       Wellness: { bg: '#F0FDFA', border: '#14B8A6', text: '#115E59' },
       Private: { bg: '#F9FAFB', border: '#9CA3AF', text: '#374151' },
     };
@@ -55,10 +53,10 @@ export default function Schedule() {
 
   // Capacity by category
   const getCapacity = (cat) => {
-    if (cat === 'Equipment') return 12;
-    if (cat === 'Pilates' || cat === 'Barre') return 20;
+    if (cat === 'Strength') return 12;
+    if (cat === 'Cardio' || cat === 'Group') return 20;
     if (cat === 'Private') return 8;
-    if (cat === 'Strength' || cat === 'Wellness') return 15;
+    if (cat === 'Performance' || cat === 'Wellness') return 15;
     return 12;
   };
 
@@ -80,7 +78,7 @@ export default function Schedule() {
 
   // Group appointments into class blocks for the grid
   const buildClassGrid = () => {
-    const filteredAppts = locationFilter === 'all' ? appointments : appointments.filter(a => a.location === locationFilter);
+    const filteredAppts = appointments;
     // Group by date + time + serviceId to form "classes"
     const classMap = {};
     filteredAppts.forEach(a => {
@@ -114,13 +112,13 @@ export default function Schedule() {
 
   const openNew = (date, time) => {
     setEditAppt(null);
-    setForm({ patientId: '', serviceId: '', providerId: '', date: date || currentDate, time: time || '09:00', duration: 30, location: 'LOC-1', room: '', notes: '' });
+    setForm({ patientId: '', serviceId: '', providerId: '', date: date || currentDate, time: time || '09:00', duration: 30, notes: '' });
     setShowForm(true);
   };
 
   const openEdit = (appt) => {
     setEditAppt(appt);
-    setForm({ patientId: appt.patientId, serviceId: appt.serviceId, providerId: appt.providerId, date: appt.date, time: appt.time, duration: appt.duration, location: appt.location, room: appt.room || '', notes: appt.notes || '' });
+    setForm({ patientId: appt.patientId, serviceId: appt.serviceId, providerId: appt.providerId, date: appt.date, time: appt.time, duration: appt.duration, notes: appt.notes || '' });
     setShowForm(true);
   };
 
@@ -174,9 +172,9 @@ export default function Schedule() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Schedule</h1>
-          <p style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>{dayAppts.length} classes {view === 'day' || view === 'list' ? 'today' : 'this week'}</p>
+          <p style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>{dayAppts.length} sessions {view === 'day' || view === 'list' ? 'today' : 'this week'}</p>
         </div>
-        <button onClick={() => openNew()} style={s.pillAccent}>+ Book Class</button>
+        <button onClick={() => openNew()} style={s.pillAccent}>+ Book Session</button>
       </div>
 
       {/* Controls */}
@@ -190,11 +188,6 @@ export default function Schedule() {
           <button onClick={() => setCurrentDate(new Date().toISOString().slice(0, 10))} style={{ ...s.pillGhost, padding: '6px 12px', fontSize: 11 }}>Today</button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {/* Location filter */}
-          <select value={locationFilter} onChange={e => setLocationFilter(e.target.value)} style={{ ...s.input, width: 'auto', padding: '7px 12px', fontSize: 12, borderRadius: 8 }}>
-            <option value="all">All Locations</option>
-            {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-          </select>
           <div style={{ display: 'flex', gap: 0, background: 'rgba(0,0,0,0.04)', borderRadius: 8, overflow: 'hidden' }}>
             {['day', 'week', 'grid', 'list'].map(v => (
               <button key={v} onClick={() => setView(v)} style={{
@@ -202,7 +195,7 @@ export default function Schedule() {
                 font: `500 12px ${s.FONT}`, color: view === v ? s.text : s.text3, cursor: 'pointer',
                 borderRadius: view === v ? 8 : 0, boxShadow: view === v ? s.shadow : 'none',
                 textTransform: 'capitalize',
-              }}>{v === 'grid' ? 'Class Grid' : v}</button>
+              }}>{v === 'grid' ? 'Session Grid' : v}</button>
             ))}
           </div>
         </div>
@@ -266,7 +259,7 @@ export default function Schedule() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #E5E5E5' }}>
-                {['Time', 'Member', 'Class', 'Instructor', 'Status', 'Actions'].map(h => (
+                {['Time', 'Client', 'Session', 'Trainer', 'Status', 'Actions'].map(h => (
                   <th key={h} style={{ padding: '12px 16px', font: `500 11px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: s.text3, textAlign: 'left' }}>{h}</th>
                 ))}
               </tr>
@@ -299,7 +292,7 @@ export default function Schedule() {
                 );
               })}
               {dayAppts.length === 0 && (
-                <tr><td colSpan="6" style={{ padding: 40, textAlign: 'center', font: `400 13px ${s.FONT}`, color: s.text3 }}>No classes for this day</td></tr>
+                <tr><td colSpan="6" style={{ padding: 40, textAlign: 'center', font: `400 13px ${s.FONT}`, color: s.text3 }}>No sessions for this day</td></tr>
               )}
             </tbody>
           </table>
@@ -412,7 +405,7 @@ export default function Schedule() {
 
               {/* Legend */}
               <div style={{ padding: '16px 12px', display: 'flex', flexWrap: 'wrap', gap: 16, borderTop: '1px solid rgba(0,0,0,0.04)' }}>
-                {['Equipment', 'Pilates', 'Barre', 'Strength', 'Wellness', 'Private'].map(cat => {
+                {['Strength', 'Cardio', 'Group', 'Performance', 'Wellness', 'Private', 'Assessment'].map(cat => {
                   const cc = categoryColor(cat);
                   return (
                     <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -448,7 +441,7 @@ export default function Schedule() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
                     <div style={{ background: 'rgba(0,0,0,0.02)', borderRadius: 10, padding: '10px 14px' }}>
-                      <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Instructor</div>
+                      <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Trainer</div>
                       <div style={{ font: `500 13px ${s.FONT}`, color: s.text }}>{cls.instructor}</div>
                     </div>
                     <div style={{ background: 'rgba(0,0,0,0.02)', borderRadius: 10, padding: '10px 14px' }}>
@@ -466,7 +459,7 @@ export default function Schedule() {
                   </div>
                   {/* Attendee list */}
                   <div style={{ marginBottom: 16 }}>
-                    <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Enrolled Members</div>
+                    <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Enrolled Clients</div>
                     {cls.attendees.map((a, i) => (
                       <div key={i} style={{ padding: '6px 0', borderBottom: i < cls.attendees.length - 1 ? '1px solid rgba(0,0,0,0.04)' : 'none', display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ font: `400 13px ${s.FONT}`, color: s.text }}>{a.patientName}</span>
@@ -480,7 +473,7 @@ export default function Schedule() {
                   </div>
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
                     <button onClick={() => setGridDetail(null)} style={s.pillGhost}>Close</button>
-                    <button onClick={() => { openNew(cls.date, cls.time); setGridDetail(null); }} style={s.pillAccent}>Book Into Class</button>
+                    <button onClick={() => { openNew(cls.date, cls.time); setGridDetail(null); }} style={s.pillAccent}>Book Session</button>
                   </div>
                 </>
               );
@@ -525,25 +518,25 @@ export default function Schedule() {
       {showForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }} onClick={() => setShowForm(false)}>
           <div style={{ background: '#fff', borderRadius: 16, padding: 32, maxWidth: 520, width: '90%', boxShadow: s.shadowLg, maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
-            <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 24 }}>{editAppt ? 'Edit Booking' : 'Book Class'}</h2>
+            <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 24 }}>{editAppt ? 'Edit Session' : 'Book Session'}</h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={s.label}>Member</label>
+                <label style={s.label}>Client</label>
                 <select value={form.patientId} onChange={e => setForm({ ...form, patientId: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
-                  <option value="">Select member...</option>
+                  <option value="">Select client...</option>
                   {patients.map(p => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}
                 </select>
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={s.label}>Class</label>
+                <label style={s.label}>Session Type</label>
                 <select value={form.serviceId} onChange={e => { const svc = services.find(sv => sv.id === e.target.value); setForm({ ...form, serviceId: e.target.value, duration: svc?.duration || 30 }); }} style={{ ...s.input, cursor: 'pointer' }}>
-                  <option value="">Select class...</option>
+                  <option value="">Select session...</option>
                   {services.map(sv => <option key={sv.id} value={sv.id}>{sv.name} ({sv.duration}min)</option>)}
                 </select>
               </div>
               <div>
-                <label style={s.label}>Instructor</label>
+                <label style={s.label}>Trainer</label>
                 <select value={form.providerId} onChange={e => setForm({ ...form, providerId: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
                   <option value="">Select...</option>
                   {(() => {
@@ -551,12 +544,6 @@ export default function Schedule() {
                     const filtered = svc ? providers.filter(p => p.specialties?.some(sp => svc.name.includes(sp) || sp.includes(svc.name) || svc.category === 'Consultation')) : providers;
                     return (filtered.length > 0 ? filtered : providers).map(p => <option key={p.id} value={p.id}>{p.name}</option>);
                   })()}
-                </select>
-              </div>
-              <div>
-                <label style={s.label}>Location</label>
-                <select value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
-                  {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                 </select>
               </div>
               <div>
@@ -570,10 +557,6 @@ export default function Schedule() {
               <div>
                 <label style={s.label}>Duration (min)</label>
                 <input type="number" value={form.duration} onChange={e => setForm({ ...form, duration: parseInt(e.target.value) || 30 })} style={s.input} />
-              </div>
-              <div>
-                <label style={s.label}>Room</label>
-                <input value={form.room} onChange={e => setForm({ ...form, room: e.target.value })} style={s.input} placeholder="e.g., Studio A" />
               </div>
             </div>
             <div style={{ marginTop: 16 }}>

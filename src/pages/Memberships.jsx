@@ -20,15 +20,15 @@ function getPatients() {
 }
 
 const TIERS = {
-  '8-Class Pack': { price: 149, color: '#94A3B8', bg: '#F8FAFC', allocations: [{ service: 'Group Classes', units: 8, unit: 'classes' }] },
-  'Unlimited Monthly': { price: 199, color: '#A68A4C', bg: '#FAF7F2', allocations: [{ service: 'Group Classes', units: 99, unit: 'unlimited' }, { service: 'Balance + Stretch', units: 4, unit: 'classes' }] },
-  'Annual Unlimited': { price: 179, color: '#7C3AED', bg: '#F5F3FF', allocations: [{ service: 'Group Classes', units: 99, unit: 'unlimited' }, { service: 'Private Session', units: 1, unit: 'session' }, { service: 'Balance + Stretch', units: 4, unit: 'classes' }] },
+  '10-Session Pack': { price: 149, color: '#94A3B8', bg: '#F8FAFC', allocations: [{ service: 'Group Sessions', units: 10, unit: 'sessions' }] },
+  'Unlimited Monthly': { price: 199, color: '#A68A4C', bg: '#FAF7F2', allocations: [{ service: 'Group Sessions', units: 99, unit: 'unlimited' }, { service: 'Recovery + Stretch', units: 4, unit: 'sessions' }] },
+  'Premium Monthly': { price: 179, color: '#7C3AED', bg: '#F5F3FF', allocations: [{ service: 'Group Sessions', units: 99, unit: 'unlimited' }, { service: 'Private Session', units: 1, unit: 'session' }, { service: 'Recovery + Stretch', units: 4, unit: 'sessions' }] },
 };
 
 const TIER_FEATURES = {
-  '8-Class Pack': ['8 group classes per month', '10% off retail', 'Online booking priority'],
-  'Unlimited Monthly': ['Unlimited group classes', '4 Balance + Stretch classes', '15% off retail', 'Priority booking', 'Free mat rental'],
-  'Annual Unlimited': ['Unlimited group classes', '1 Private Session per month', '4 Balance + Stretch classes', '20% off retail', 'VIP priority booking', 'Guest passes (2/month)', 'Exclusive member events'],
+  '10-Session Pack': ['10 group sessions per month', '10% off retail', 'Online booking priority'],
+  'Unlimited Monthly': ['Unlimited group sessions', '4 Recovery + Stretch sessions', '15% off retail', 'Priority booking', 'Free towel service'],
+  'Premium Monthly': ['Unlimited group sessions', '1 Private Session per month', '4 Recovery + Stretch sessions', '20% off retail', 'VIP priority booking', 'Guest passes (2/month)', 'Exclusive client events'],
 };
 
 function seedMemberships() {
@@ -40,25 +40,25 @@ function seedMemberships() {
   const d = (offset) => { const dt = new Date(now); dt.setDate(dt.getDate() + offset); return dt.toISOString().slice(0, 10); };
 
   const memberships = [
-    { id: 'MEM-1', patientId: patients[0].id, patientName: `${patients[0].firstName} ${patients[0].lastName}`, tier: 'Unlimited Monthly', startDate: d(-60), nextBilling: d(0), credits: 25, status: 'active', wallet: [{ service: 'Group Classes', remaining: 99, total: 99 }, { service: 'Balance + Stretch', remaining: 2, total: 4 }] },
-    { id: 'MEM-2', patientId: patients[1].id, patientName: `${patients[1].firstName} ${patients[1].lastName}`, tier: 'Annual Unlimited', startDate: d(-90), nextBilling: d(5), credits: 0, status: 'active', wallet: [{ service: 'Group Classes', remaining: 99, total: 99 }, { service: 'Private Session', remaining: 1, total: 1 }, { service: 'Balance + Stretch', remaining: 3, total: 4 }] },
-    { id: 'MEM-3', patientId: patients[2].id, patientName: `${patients[2].firstName} ${patients[2].lastName}`, tier: '8-Class Pack', startDate: d(-30), nextBilling: d(1), credits: 50, status: 'active', wallet: [{ service: 'Group Classes', remaining: 5, total: 8 }] },
-    { id: 'MEM-4', patientId: patients[3].id, patientName: `${patients[3].firstName} ${patients[3].lastName}`, tier: 'Unlimited Monthly', startDate: d(-120), nextBilling: d(10), credits: 0, status: 'active', wallet: [{ service: 'Group Classes', remaining: 99, total: 99 }, { service: 'Balance + Stretch', remaining: 4, total: 4 }] },
-    { id: 'MEM-5', patientId: patients[4].id, patientName: `${patients[4].firstName} ${patients[4].lastName}`, tier: 'Annual Unlimited', startDate: d(-45), nextBilling: d(15), credits: 100, status: 'active', wallet: [{ service: 'Group Classes', remaining: 99, total: 99 }, { service: 'Private Session', remaining: 0, total: 1 }, { service: 'Balance + Stretch', remaining: 1, total: 4 }] },
-    { id: 'MEM-6', patientId: patients[5].id, patientName: `${patients[5].firstName} ${patients[5].lastName}`, tier: '8-Class Pack', startDate: d(-15), nextBilling: d(15), credits: 0, status: 'active', wallet: [{ service: 'Group Classes', remaining: 8, total: 8 }] },
-    { id: 'MEM-7', patientId: patients[6].id, patientName: `${patients[6].firstName} ${patients[6].lastName}`, tier: 'Unlimited Monthly', startDate: d(-75), nextBilling: d(14), credits: 75, status: 'active', wallet: [{ service: 'Group Classes', remaining: 99, total: 99 }, { service: 'Balance + Stretch', remaining: 0, total: 4 }] },
-    { id: 'MEM-8', patientId: patients[7].id, patientName: `${patients[7].firstName} ${patients[7].lastName}`, tier: 'Annual Unlimited', startDate: d(-180), nextBilling: d(3), credits: 0, status: 'active', wallet: [{ service: 'Group Classes', remaining: 99, total: 99 }, { service: 'Private Session', remaining: 1, total: 1 }, { service: 'Balance + Stretch', remaining: 4, total: 4 }] },
-    { id: 'MEM-9', patientId: patients[8].id, patientName: `${patients[8].firstName} ${patients[8].lastName}`, tier: 'Unlimited Monthly', startDate: d(-200), nextBilling: d(-5), credits: 0, status: 'paused', wallet: [{ service: 'Group Classes', remaining: 99, total: 99 }, { service: 'Balance + Stretch', remaining: 3, total: 4 }] },
-    { id: 'MEM-10', patientId: patients[9].id, patientName: `${patients[9].firstName} ${patients[9].lastName}`, tier: '8-Class Pack', startDate: d(-10), nextBilling: d(20), credits: 0, status: 'active', wallet: [{ service: 'Group Classes', remaining: 6, total: 8 }] },
+    { id: 'MEM-1', patientId: patients[0].id, patientName: `${patients[0].firstName} ${patients[0].lastName}`, tier: 'Unlimited Monthly', startDate: d(-60), nextBilling: d(0), credits: 25, status: 'active', wallet: [{ service: 'Group Sessions', remaining: 99, total: 99 }, { service: 'Recovery + Stretch', remaining: 2, total: 4 }] },
+    { id: 'MEM-2', patientId: patients[1].id, patientName: `${patients[1].firstName} ${patients[1].lastName}`, tier: 'Premium Monthly', startDate: d(-90), nextBilling: d(5), credits: 0, status: 'active', wallet: [{ service: 'Group Sessions', remaining: 99, total: 99 }, { service: 'Private Session', remaining: 1, total: 1 }, { service: 'Recovery + Stretch', remaining: 3, total: 4 }] },
+    { id: 'MEM-3', patientId: patients[2].id, patientName: `${patients[2].firstName} ${patients[2].lastName}`, tier: '10-Session Pack', startDate: d(-30), nextBilling: d(1), credits: 50, status: 'active', wallet: [{ service: 'Group Sessions', remaining: 7, total: 10 }] },
+    { id: 'MEM-4', patientId: patients[3].id, patientName: `${patients[3].firstName} ${patients[3].lastName}`, tier: 'Unlimited Monthly', startDate: d(-120), nextBilling: d(10), credits: 0, status: 'active', wallet: [{ service: 'Group Sessions', remaining: 99, total: 99 }, { service: 'Recovery + Stretch', remaining: 4, total: 4 }] },
+    { id: 'MEM-5', patientId: patients[4].id, patientName: `${patients[4].firstName} ${patients[4].lastName}`, tier: 'Premium Monthly', startDate: d(-45), nextBilling: d(15), credits: 100, status: 'active', wallet: [{ service: 'Group Sessions', remaining: 99, total: 99 }, { service: 'Private Session', remaining: 0, total: 1 }, { service: 'Recovery + Stretch', remaining: 1, total: 4 }] },
+    { id: 'MEM-6', patientId: patients[5].id, patientName: `${patients[5].firstName} ${patients[5].lastName}`, tier: '10-Session Pack', startDate: d(-15), nextBilling: d(15), credits: 0, status: 'active', wallet: [{ service: 'Group Sessions', remaining: 10, total: 10 }] },
+    { id: 'MEM-7', patientId: patients[6].id, patientName: `${patients[6].firstName} ${patients[6].lastName}`, tier: 'Unlimited Monthly', startDate: d(-75), nextBilling: d(14), credits: 75, status: 'active', wallet: [{ service: 'Group Sessions', remaining: 99, total: 99 }, { service: 'Recovery + Stretch', remaining: 0, total: 4 }] },
+    { id: 'MEM-8', patientId: patients[7].id, patientName: `${patients[7].firstName} ${patients[7].lastName}`, tier: 'Premium Monthly', startDate: d(-180), nextBilling: d(3), credits: 0, status: 'active', wallet: [{ service: 'Group Sessions', remaining: 99, total: 99 }, { service: 'Private Session', remaining: 1, total: 1 }, { service: 'Recovery + Stretch', remaining: 4, total: 4 }] },
+    { id: 'MEM-9', patientId: patients[8].id, patientName: `${patients[8].firstName} ${patients[8].lastName}`, tier: 'Unlimited Monthly', startDate: d(-200), nextBilling: d(-5), credits: 0, status: 'paused', wallet: [{ service: 'Group Sessions', remaining: 99, total: 99 }, { service: 'Recovery + Stretch', remaining: 3, total: 4 }] },
+    { id: 'MEM-10', patientId: patients[9].id, patientName: `${patients[9].firstName} ${patients[9].lastName}`, tier: '10-Session Pack', startDate: d(-10), nextBilling: d(20), credits: 0, status: 'active', wallet: [{ service: 'Group Sessions', remaining: 8, total: 10 }] },
   ];
 
   const packages = [
     { id: 'PKG-1', patientId: patients[0].id, patientName: `${patients[0].firstName} ${patients[0].lastName}`, name: '5 Private Sessions', service: 'Private Session', totalSessions: 5, usedSessions: 2, purchaseDate: d(-45), expiresDate: d(45), status: 'active' },
-    { id: 'PKG-2', patientId: patients[2].id, patientName: `${patients[2].firstName} ${patients[2].lastName}`, name: '10 Reformer Classes', service: 'Reformer Pilates', totalSessions: 10, usedSessions: 3, purchaseDate: d(-90), expiresDate: d(90), status: 'active' },
-    { id: 'PKG-3', patientId: patients[4].id, patientName: `${patients[4].firstName} ${patients[4].lastName}`, name: '5 Barre Classes', service: 'Barre', totalSessions: 5, usedSessions: 1, purchaseDate: d(-30), expiresDate: d(60), status: 'active' },
-    { id: 'PKG-4', patientId: patients[7].id, patientName: `${patients[7].firstName} ${patients[7].lastName}`, name: '8 Balance + Stretch', service: 'Balance + Stretch', totalSessions: 8, usedSessions: 8, purchaseDate: d(-120), expiresDate: d(-10), status: 'completed' },
+    { id: 'PKG-2', patientId: patients[2].id, patientName: `${patients[2].firstName} ${patients[2].lastName}`, name: '10 Strength Sessions', service: 'Strength Training', totalSessions: 10, usedSessions: 3, purchaseDate: d(-90), expiresDate: d(90), status: 'active' },
+    { id: 'PKG-3', patientId: patients[4].id, patientName: `${patients[4].firstName} ${patients[4].lastName}`, name: '5 HIIT Sessions', service: 'HIIT', totalSessions: 5, usedSessions: 1, purchaseDate: d(-30), expiresDate: d(60), status: 'active' },
+    { id: 'PKG-4', patientId: patients[7].id, patientName: `${patients[7].firstName} ${patients[7].lastName}`, name: '8 Recovery + Stretch', service: 'Recovery + Stretch', totalSessions: 8, usedSessions: 8, purchaseDate: d(-120), expiresDate: d(-10), status: 'completed' },
     { id: 'PKG-5', patientId: patients[10].id, patientName: `${patients[10].firstName} ${patients[10].lastName}`, name: '5 Private Sessions', service: 'Private Session', totalSessions: 5, usedSessions: 0, purchaseDate: d(-5), expiresDate: d(85), status: 'active' },
-    { id: 'PKG-6', patientId: patients[3].id, patientName: `${patients[3].firstName} ${patients[3].lastName}`, name: '10 Mat Pilates', service: 'Mat Pilates', totalSessions: 10, usedSessions: 9, purchaseDate: d(-150), expiresDate: d(14), status: 'active' },
+    { id: 'PKG-6', patientId: patients[3].id, patientName: `${patients[3].firstName} ${patients[3].lastName}`, name: '10 Group Sessions', service: 'Group Training', totalSessions: 10, usedSessions: 9, purchaseDate: d(-150), expiresDate: d(14), status: 'active' },
   ];
 
   setMemberships(memberships);
@@ -146,7 +146,7 @@ export default function Memberships() {
 
   // Filter
   const filteredMemberships = memberships.filter(m => {
-    if (filter === '8-Class Pack' || filter === 'Unlimited Monthly' || filter === 'Annual Unlimited') {
+    if (filter === '10-Session Pack' || filter === 'Unlimited Monthly' || filter === 'Premium Monthly') {
       if (m.tier !== filter) return false;
     }
     if (filter === 'paused' && m.status !== 'paused') return false;
@@ -167,7 +167,7 @@ export default function Memberships() {
   // KPIs
   const activeMemberships = memberships.filter(m => m.status === 'active').length;
   const mrr = memberships.filter(m => m.status === 'active').reduce((sum, m) => sum + (TIERS[m.tier]?.price || 0), 0);
-  const tierBreakdown = { '8-Class Pack': memberships.filter(m => m.tier === '8-Class Pack').length, 'Unlimited Monthly': memberships.filter(m => m.tier === 'Unlimited Monthly').length, 'Annual Unlimited': memberships.filter(m => m.tier === 'Annual Unlimited').length };
+  const tierBreakdown = { '10-Session Pack': memberships.filter(m => m.tier === '10-Session Pack').length, 'Unlimited Monthly': memberships.filter(m => m.tier === 'Unlimited Monthly').length, 'Premium Monthly': memberships.filter(m => m.tier === 'Premium Monthly').length };
   const activePackages = packages.filter(p => p.status === 'active').length;
 
   // Alerts
@@ -225,15 +225,15 @@ export default function Memberships() {
   };
 
   const tierGradients = {
-    '8-Class Pack': 'linear-gradient(135deg, #94A3B8, #B0BEC5, #94A3B8)',
+    '10-Session Pack': 'linear-gradient(135deg, #94A3B8, #B0BEC5, #94A3B8)',
     'Unlimited Monthly': 'linear-gradient(135deg, #D4A017, #F0C850, #D4A017)',
-    'Annual Unlimited': 'linear-gradient(135deg, #7C3AED, #A78BFA, #7C3AED)',
+    'Premium Monthly': 'linear-gradient(135deg, #7C3AED, #A78BFA, #7C3AED)',
   };
 
   const tierGlowShadows = {
-    '8-Class Pack': '0 8px 32px rgba(148,163,184,0.18), 0 2px 4px rgba(0,0,0,0.03)',
+    '10-Session Pack': '0 8px 32px rgba(148,163,184,0.18), 0 2px 4px rgba(0,0,0,0.03)',
     'Unlimited Monthly': '0 8px 32px rgba(212,160,23,0.18), 0 2px 4px rgba(0,0,0,0.03)',
-    'Annual Unlimited': '0 8px 32px rgba(124,58,237,0.18), 0 2px 4px rgba(0,0,0,0.03)',
+    'Premium Monthly': '0 8px 32px rgba(124,58,237,0.18), 0 2px 4px rgba(0,0,0,0.03)',
   };
 
   const stagger = (i) => ({
@@ -249,7 +249,7 @@ export default function Memberships() {
           Memberships & Packages
         </h1>
         <p style={{ font: `400 15px ${s.FONT}`, color: s.text2, lineHeight: 1.5 }}>
-          Manage membership wallets, service allocations, and treatment packages
+          Manage membership wallets, session allocations, and training packages
         </p>
       </div>
 
@@ -307,7 +307,7 @@ export default function Memberships() {
                     width: 8, height: 8, borderRadius: '50%',
                     background: tier.color, display: 'inline-block', opacity: 0.6,
                   }} />
-                  {tierBreakdown[name]} active member{tierBreakdown[name] !== 1 ? 's' : ''}
+                  {tierBreakdown[name]} active client{tierBreakdown[name] !== 1 ? 's' : ''}
                 </div>
 
                 {/* Divider */}
@@ -336,7 +336,7 @@ export default function Memberships() {
                     boxShadow: isHovered ? `0 4px 20px ${tier.color}33` : 'none',
                   }}
                 >
-                  View {name} Members
+                  View {name} Clients
                 </button>
               </div>
             </div>
@@ -348,7 +348,7 @@ export default function Memberships() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 32 }}>
         {[
           { label: 'Monthly Revenue', value: `$${mrr.toLocaleString()}`, icon: '$', color: s.success, sub: 'Recurring' },
-          { label: 'Total Members', value: activeMemberships, icon: '#', color: s.accent, sub: 'Active' },
+          { label: 'Total Clients', value: activeMemberships, icon: '#', color: s.accent, sub: 'Active' },
           { label: 'Active Packages', value: activePackages, icon: '~', color: '#7C3AED', sub: 'In progress' },
           { label: 'Alerts', value: alerts.length, icon: '!', color: alerts.length > 0 ? s.warning : s.success, sub: alerts.length > 0 ? 'Need attention' : 'All clear' },
         ].map((k, i) => (
@@ -477,7 +477,7 @@ export default function Memberships() {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder={tab === 'memberships' ? 'Search members...' : 'Search packages...'}
+            placeholder={tab === 'memberships' ? 'Search clients...' : 'Search packages...'}
             style={{
               ...s.input, maxWidth: 280, paddingLeft: 40,
               borderRadius: 12,
@@ -487,7 +487,7 @@ export default function Memberships() {
 
         {tab === 'memberships' && (
           <div style={{ display: 'flex', gap: 6 }}>
-            {[['all', 'All'], ['8-Class Pack', '8-Class Pack'], ['Unlimited Monthly', 'Unlimited Monthly'], ['Annual Unlimited', 'Annual Unlimited'], ['paused', 'Paused']].map(([id, label]) => (
+            {[['all', 'All'], ['10-Session Pack', '10-Session Pack'], ['Unlimited Monthly', 'Unlimited Monthly'], ['Premium Monthly', 'Premium Monthly'], ['paused', 'Paused']].map(([id, label]) => (
               <button
                 key={id}
                 onClick={() => setFilter(id)}
@@ -718,7 +718,7 @@ export default function Memberships() {
           <table style={{ width: '100%', borderCollapse: 'collapse', font: `400 13px ${s.FONT}` }}>
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                {['Member', 'Tier', 'Status', 'Next Billing', 'Credits', 'Wallet Summary', ''].map(h => (
+                {['Client', 'Tier', 'Status', 'Next Billing', 'Credits', 'Wallet Summary', ''].map(h => (
                   <th key={h} style={{
                     padding: '14px 18px', textAlign: 'left',
                     font: `500 9px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.5,
@@ -937,7 +937,7 @@ export default function Memberships() {
           <table style={{ width: '100%', borderCollapse: 'collapse', font: `400 13px ${s.FONT}` }}>
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                {['Member', 'Package', 'Class', 'Progress', 'Expires', 'Status', ''].map(h => (
+                {['Client', 'Package', 'Session', 'Progress', 'Expires', 'Status', ''].map(h => (
                   <th key={h} style={{
                     padding: '14px 18px', textAlign: 'left',
                     font: `500 9px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.5,

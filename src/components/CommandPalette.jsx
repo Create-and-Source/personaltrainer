@@ -7,15 +7,15 @@ import { getPatients, getServices } from '../data/store';
 const PAGES = [
   { path: '/admin', label: 'Dashboard', section: 'Overview' },
   { path: '/admin/checkin', label: 'Check-In', section: 'Overview' },
-  { path: '/admin/patients', label: 'Patients', section: 'Patients' },
-  { path: '/admin/schedule', label: 'Schedule', section: 'Patients' },
-  { path: '/admin/treatments', label: 'Treatment Plans', section: 'Patients' },
-  { path: '/admin/charts', label: 'Clinical Charts', section: 'Patients' },
-  { path: '/admin/photos', label: 'Before & After', section: 'Patients' },
-  { path: '/admin/waivers', label: 'Consent & Waivers', section: 'Patients' },
-  { path: '/admin/aftercare', label: 'Aftercare', section: 'Patients' },
+  { path: '/admin/patients', label: 'Clients', section: 'Clients' },
+  { path: '/admin/schedule', label: 'Schedule', section: 'Clients' },
+  { path: '/admin/treatments', label: 'Training Programs', section: 'Clients' },
+  { path: '/admin/charts', label: 'Progress Tracking', section: 'Clients' },
+  { path: '/admin/photos', label: 'Before & After', section: 'Clients' },
+  { path: '/admin/waivers', label: 'Waivers', section: 'Clients' },
+  { path: '/admin/aftercare', label: 'Aftercare', section: 'Clients' },
   { path: '/admin/memberships', label: 'Memberships', section: 'Billing' },
-  { path: '/admin/wallet', label: 'Member Wallet', section: 'Billing' },
+  { path: '/admin/wallet', label: 'Client Wallet', section: 'Billing' },
   { path: '/admin/referrals', label: 'Referrals', section: 'Billing' },
   { path: '/admin/inventory', label: 'Inventory', section: 'Operations' },
   { path: '/admin/retention', label: 'Retention', section: 'Operations' },
@@ -30,11 +30,11 @@ const PAGES = [
 ];
 
 const QUICK_ACTIONS = [
-  { id: 'action-new-patient', label: 'New Member', subtitle: 'Add a new member record', path: '/admin/patients', icon: 'user-plus' },
-  { id: 'action-book-apt', label: 'Book Class', subtitle: 'Schedule a new class booking', path: '/admin/schedule', icon: 'calendar-plus' },
+  { id: 'action-new-patient', label: 'New Client', subtitle: 'Add a new client record', path: '/admin/patients', icon: 'user-plus' },
+  { id: 'action-book-apt', label: 'Book Session', subtitle: 'Schedule a new training session', path: '/admin/schedule', icon: 'calendar-plus' },
   { id: 'action-send-email', label: 'Send Email', subtitle: 'Compose a marketing email', path: '/admin/email', icon: 'mail' },
-  { id: 'action-send-text', label: 'Send Text', subtitle: 'Send SMS to members', path: '/admin/texts', icon: 'message' },
-  { id: 'action-new-chart', label: 'New Chart', subtitle: 'Start a clinical chart', path: '/admin/charts', icon: 'clipboard' },
+  { id: 'action-send-text', label: 'Send Text', subtitle: 'Send SMS to clients', path: '/admin/texts', icon: 'message' },
+  { id: 'action-new-chart', label: 'New Program', subtitle: 'Start a training program', path: '/admin/charts', icon: 'clipboard' },
 ];
 
 // ── SVG Icons ──
@@ -90,7 +90,7 @@ const Icons = {
 const TIER_COLORS = {
   'Annual Unlimited': { bg: '#F0EDFF', text: '#6D28D9', label: 'Annual Unlimited' },
   'Unlimited Monthly': { bg: '#FEF3C7', text: '#92400E', label: 'Unlimited Monthly' },
-  '8-Class Pack': { bg: '#F1F5F9', text: '#475569', label: '8-Class Pack' },
+  '8-Class Pack': { bg: '#F1F5F9', text: '#475569', label: '8-Session Pack' },
 };
 
 function formatPrice(cents) {
@@ -126,14 +126,14 @@ export default function CommandPalette({ open, onClose }) {
       }));
     }
 
-    // Patients (only when searching)
+    // Clients (only when searching)
     if (q.length >= 1) {
       const patients = getPatients();
       const patientMatches = patients
         .filter(p => `${p.firstName} ${p.lastName}`.toLowerCase().includes(q))
         .slice(0, 5);
       if (patientMatches.length) {
-        items.push({ type: 'header', label: 'Patients' });
+        items.push({ type: 'header', label: 'Clients' });
         patientMatches.forEach(p => items.push({
           type: 'patient', id: p.id,
           label: `${p.firstName} ${p.lastName}`,
@@ -266,7 +266,7 @@ export default function CommandPalette({ open, onClose }) {
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search pages, members, classes..."
+            placeholder="Search pages, clients, sessions..."
             style={{
               flex: 1, border: 'none', outline: 'none', background: 'transparent',
               font: "400 15px 'Inter', sans-serif", color: '#111',

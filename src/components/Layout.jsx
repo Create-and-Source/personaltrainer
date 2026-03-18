@@ -11,15 +11,17 @@ const NAV_ITEMS = [
     { path: '/admin', label: 'Dashboard', icon: 'grid' },
     { path: '/admin/checkin', label: 'Check-In', icon: 'clipboard' },
   ]},
-  { section: 'Members', items: [
+  { section: 'Clients', items: [
     { path: '/admin/members', label: 'Members', icon: 'users' },
     { path: '/admin/schedule', label: 'Schedule', icon: 'calendar' },
-    { path: '/admin/classes', label: 'Class Packages', icon: 'clipboard' },
-    { path: '/admin/waivers', label: 'Liability Waivers', icon: 'clipboard' },
+    { path: '/admin/classes', label: 'Training Programs', icon: 'clipboard' },
+    { path: '/admin/workouts', label: 'Workout Builder', icon: 'dumbbell' },
+    { path: '/admin/progress', label: 'Progress Tracking', icon: 'bar-chart' },
+    { path: '/admin/waivers', label: 'Waivers', icon: 'clipboard' },
   ]},
   { section: 'Billing', items: [
     { path: '/admin/memberships', label: 'Memberships', icon: 'users' },
-    { path: '/admin/wallet', label: 'Member Wallet', icon: 'package' },
+    { path: '/admin/wallet', label: 'Client Wallet', icon: 'package' },
     { path: '/admin/referrals', label: 'Referrals', icon: 'share' },
   ]},
   { section: 'Operations', items: [
@@ -53,6 +55,7 @@ const ICONS = {
   message: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>,
   share: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>,
   'bar-chart': <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>,
+  dumbbell: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M6.5 6.5h11M6.5 17.5h11"/><rect x="2" y="6.5" width="4.5" height="11" rx="1"/><rect x="17.5" y="6.5" width="4.5" height="11" rx="1"/><line x1="12" y1="6.5" x2="12" y2="17.5"/></svg>,
   settings: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>,
   menu: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
   x: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
@@ -181,10 +184,10 @@ export default function Layout({ children }) {
         {!collapsed && (
           <div>
             <div style={{ font: "600 14px 'Inter', sans-serif", color: '#FFFFFF', lineHeight: 1.2 }}>
-              {settings.businessName || 'Remedy'}
+              {settings.businessName || 'FORGE'}
             </div>
             <div style={{ font: "400 11px 'Inter', sans-serif", color: sidebarMuted }}>
-              {settings.tagline || 'Studio'}
+              {settings.tagline || 'Personal Training'}
             </div>
           </div>
         )}

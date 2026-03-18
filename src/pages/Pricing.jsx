@@ -26,7 +26,7 @@ export default function Pricing() {
           <div style={{ font: `500 11px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 2, color: s.text3, marginBottom: 12 }}>Pricing Strategy</div>
           <h1 style={{ font: `600 36px ${s.FONT}`, color: s.text, marginBottom: 8, letterSpacing: '-0.5px' }}>How We Got to $1,500/month</h1>
           <p style={{ font: `400 16px ${s.FONT}`, color: s.text2, maxWidth: 600, margin: '0 auto' }}>
-            Research-backed pricing for Get Stoa's pilates studio platform. Here's the math.
+            Research-backed pricing for Get Stoa's personal training platform. Here's the math.
           </p>
         </div>
 
@@ -38,9 +38,9 @@ export default function Pricing() {
           <div style={{ display: 'grid', gap: 8 }}>
             {[
               { name: 'Vagaro', price: '$120/mo', features: 'Booking + basic POS', missing: 'No EMR, no DM inbox, no retention, inventory breaks constantly', color: '#E5E5E5' },
-              { name: 'Fresha', price: 'Free (hidden fees)', features: 'Booking + basic POS', missing: 'No clinical features at all, charges members fees, no HIPAA', color: '#E5E5E5' },
+              { name: 'Fresha', price: 'Free (hidden fees)', features: 'Booking + basic POS', missing: 'No clinical features at all, charges clients fees, no HIPAA', color: '#E5E5E5' },
               { name: 'Aesthetic Record', price: '$120/mo', features: 'EMR + charting', missing: 'No marketing, no booking UX, steep learning curve', color: '#E5E5E5' },
-              { name: 'Mangomint', price: '$245/mo', features: 'Nice UI + booking', missing: 'No clinical depth, no DM inbox, no member portal', color: '#E5E5E5' },
+              { name: 'Mangomint', price: '$245/mo', features: 'Nice UI + booking', missing: 'No clinical depth, no DM inbox, no client portal', color: '#E5E5E5' },
               { name: 'Boulevard', price: '$425/mo', features: 'Premium booking + POS', missing: 'No DM inbox, no retention engine, checkout errors hard to fix', color: '#FEF3C7' },
               { name: 'Zenoti', price: '$400-800/mo', features: 'Enterprise all-in-one', missing: 'Expensive, complex, slow support, bills before system is live', color: '#FEF3C7' },
               { name: 'AestheticsPro', price: '$150-250/mo', features: 'EMR + marketing', missing: 'Marketing templates outdated, tablet issues, clunky UX', color: '#E5E5E5' },
@@ -61,7 +61,7 @@ export default function Pricing() {
 
         {/* ═══ SECTION 2: The Frankenstack ═══ */}
         <div style={{ ...glass, padding: 32, marginBottom: 24 }}>
-          <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 6 }}>2. What studios Actually Pay Today (The Frankenstack)</h2>
+          <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 6 }}>2. What Training Facilities Actually Pay Today (The Frankenstack)</h2>
           <p style={{ font: `400 14px ${s.FONT}`, color: s.text2, marginBottom: 20 }}>When you add up all the tools they juggle, plus staff time managing them:</p>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 6 }}>
@@ -104,7 +104,7 @@ export default function Pricing() {
           </div>
 
           <div style={{ marginTop: 16, padding: 16, background: 'rgba(0,0,0,0.03)', borderRadius: 12, font: `400 13px ${s.FONT}`, color: s.text2, textAlign: 'center' }}>
-            And they STILL don't have: DM Inbox, Member Portal, Retention Engine, Waitlist, Aftercare Automation, or Referral Tracking.
+            And they STILL don't have: DM Inbox, Client Portal, Retention Engine, Waitlist, Aftercare Automation, or Referral Tracking.
           </div>
         </div>
 
@@ -116,25 +116,25 @@ export default function Pricing() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {[
               { name: 'Scheduling & Calendar', star: false },
-              { name: 'Member Management (30+ fields)', star: false },
+              { name: 'Client Management (30+ fields)', star: false },
               { name: 'Clinical Charts (SOAP + injection/body/scalp maps)', star: true },
-              { name: 'Treatment Plans with progress tracking', star: false },
+              { name: 'Training Programs with progress tracking', star: false },
               { name: '15 Consent Forms with e-signature', star: false },
               { name: 'Before & After Photos (face + body + scalp angles)', star: false },
               { name: 'Inventory with expiry + unit tracking', star: false },
-              { name: 'Member Check-In with service-aware pregnancy check', star: true },
+              { name: 'Client Check-In with service-aware health check', star: true },
               { name: 'Aftercare Auto-Sequences (12 templates)', star: true },
               { name: 'DM Inbox — Instagram + Facebook + TikTok', star: true },
               { name: 'Email Marketing (6 templates, wizard)', star: false },
               { name: 'SMS Text Blasts + Individual Messages', star: false },
               { name: 'Social Media Post Creator (multi-platform)', star: false },
-              { name: 'Retention Engine (lapsed member alerts)', star: true },
+              { name: 'Retention Engine (lapsed client alerts)', star: true },
               { name: 'Smart Waitlist with auto-backfill', star: true },
               { name: 'Google Review Solicitation', star: true },
               { name: 'Referral Tracking + Credits', star: true },
               { name: 'Membership Wallets (unit tracking, auto-deduct)', star: true },
-              { name: 'Member Wallet (gift cards, credits, loyalty)', star: true },
-              { name: 'Member Portal (9-section luxury app)', star: true },
+              { name: 'Client Wallet (gift cards, credits, loyalty)', star: true },
+              { name: 'Client Portal (9-section luxury app)', star: true },
               { name: 'Online Booking (3-step premium flow)', star: false },
               { name: 'Reports + CSV Export', star: false },
               { name: 'White-Label Branding (instant color theming)', star: true },
@@ -183,7 +183,7 @@ export default function Pricing() {
                 <li>Replaces 6-8 separate subscriptions</li>
                 <li>12 features no competitor has</li>
                 <li>One login instead of eight</li>
-                <li>Member portal drives retention = more revenue</li>
+                <li>Client portal drives retention = more revenue</li>
               </ul>
             </div>
             <div style={{ padding: 20, borderRadius: 14, background: 'rgba(0,0,0,0.03)' }}>
@@ -210,9 +210,9 @@ export default function Pricing() {
           }}>
             "You're paying $750 to $1,400 a month for 6 to 8 different tools that don't talk to each other, plus 25 hours a month of someone's time stitching it all together.
             <br /><br />
-            I'm replacing ALL of it — plus features none of those tools have — for $1,500 a month. One platform. Your brand. Your colors. Your members see a portal with your name, not Vagaro's.
+            I'm replacing ALL of it — plus features none of those tools have — for $1,500 a month. One platform. Your brand. Your colors. Your clients see a portal with your name, not Vagaro's.
             <br /><br />
-            You save money, save time, and your members get a better experience. Can I show you?"
+            You save money, save time, and your clients get a better experience. Can I show you?"
           </div>
         </div>
 
@@ -224,15 +224,15 @@ export default function Pricing() {
           <div style={{ display: 'grid', gap: 10 }}>
             {[
               { priority: 'P0', task: 'Database (DynamoDB or RDS)', desc: 'Replace all localStorage with real persistence. The store.js has clean CRUD functions — same API, just swap localStorage for DB calls.', effort: '1-2 weeks' },
-              { priority: 'P0', task: 'Auth (Cognito)', desc: 'Role-based login: admin, provider, staff, member (portal). JWT tokens. The role system is already built in the UI.', effort: '3-5 days' },
-              { priority: 'P1', task: 'Square/Stripe Connect (Lambda)', desc: 'OAuth flow — pilates studio connects their existing account. We never touch money. Just store access tokens and fire charges through their account.', effort: '3-5 days' },
+              { priority: 'P0', task: 'Auth (Cognito)', desc: 'Role-based login: admin, provider, staff, client (portal). JWT tokens. The role system is already built in the UI.', effort: '3-5 days' },
+              { priority: 'P1', task: 'Square/Stripe Connect (Lambda)', desc: 'OAuth flow — training facility connects their existing account. We never touch money. Just store access tokens and fire charges through their account.', effort: '3-5 days' },
               { priority: 'P1', task: 'Twilio (SMS)', desc: 'Replace simulated text sends with real Twilio API calls. The message templates and audience targeting are all built.', effort: '2-3 days' },
-              { priority: 'P1', task: 'Instagram Graph API', desc: 'Make DM Inbox real. OAuth connect to pilates studio IG Business account. Webhook listener for incoming DMs. Send replies via API.', effort: '1 week' },
+              { priority: 'P1', task: 'Instagram Graph API', desc: 'Make DM Inbox real. OAuth connect to training facility IG Business account. Webhook listener for incoming DMs. Send replies via API.', effort: '1 week' },
               { priority: 'P1', task: 'Email (SES or SendGrid)', desc: 'Replace simulated email sends. Templates are built, just need delivery.', effort: '2-3 days' },
               { priority: 'P2', task: 'S3 (Photo Storage)', desc: 'Before/after photos, profile images. Upload from the existing photo UI.', effort: '2-3 days' },
               { priority: 'P2', task: 'Google Business Profile API', desc: 'Read/reply to Google reviews from within the Reviews page.', effort: '3-5 days' },
               { priority: 'P2', task: 'Push Notifications (SNS)', desc: 'Service worker is registered. Just need SNS to send push events.', effort: '2-3 days' },
-              { priority: 'P3', task: 'Cherry/CareCredit API', desc: 'Embed member financing in checkout flow.', effort: '3-5 days' },
+              { priority: 'P3', task: 'Cherry/CareCredit API', desc: 'Embed client financing in checkout flow.', effort: '3-5 days' },
             ].map(item => (
               <div key={item.task} style={{
                 display: 'grid', gridTemplateColumns: '50px 1fr auto', gap: 12, padding: '14px 18px',

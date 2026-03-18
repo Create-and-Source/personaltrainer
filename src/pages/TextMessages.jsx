@@ -3,9 +3,9 @@ import { useStyles } from '../theme';
 import { getTextMessages, addTextMessage, getPatients, getAppointments, getSettings, subscribe } from '../data/store';
 
 const TEMPLATES = [
-  { id: 'reminder', name: 'Class Reminder', preview: 'Hi {name}, reminder: your {service} class is tomorrow at {time}. Reply C to confirm or R to reschedule.' },
-  { id: 'confirm', name: 'Booking Confirmation', preview: 'Hi {name}, your {service} class is confirmed for {date} at {time}. We look forward to seeing you!' },
-  { id: 'followup', name: 'Post-Class Check-In', preview: 'Hi {name}, how are you feeling after your {service} class yesterday? If you have any questions, reply here or call us.' },
+  { id: 'reminder', name: 'Session Reminder', preview: 'Hi {name}, reminder: your {service} session is tomorrow at {time}. Reply C to confirm or R to reschedule.' },
+  { id: 'confirm', name: 'Booking Confirmation', preview: 'Hi {name}, your {service} session is confirmed for {date} at {time}. We look forward to seeing you!' },
+  { id: 'followup', name: 'Post-Session Check-In', preview: 'Hi {name}, how are you feeling after your {service} session yesterday? If you have any questions, reply here or call us.' },
   { id: 'promo', name: 'Special Offer', preview: 'Hi {name}, exclusive offer: [offer details]. Book by [date] to save. Reply BOOK or call us!' },
   { id: 'reactivation', name: 'We Miss You', preview: 'Hi {name}, it has been a while! We would love to see you. Enjoy [offer] on your next visit. Reply BOOK to schedule.' },
   { id: 'birthday', name: 'Birthday', preview: 'Happy birthday, {name}! 🎂 Enjoy a special gift from us: [offer]. Valid this month. We hope your day is beautiful!' },
@@ -106,7 +106,7 @@ export default function TextMessages() {
               </button>
               <button onClick={() => setSendMode('individual')} style={{ ...s.cardStyle, padding: '14px 18px', flex: 1, cursor: 'pointer', textAlign: 'left', borderColor: sendMode === 'individual' ? s.accent : '#E5E5E5', borderWidth: sendMode === 'individual' ? 2 : 1 }}>
                 <div style={{ font: `600 13px ${s.FONT}`, color: sendMode === 'individual' ? s.accent : s.text }}>Individual</div>
-                <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>Pick specific members</div>
+                <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>Pick specific clients</div>
               </button>
             </div>
 
@@ -115,7 +115,7 @@ export default function TextMessages() {
               <div style={{ marginBottom: 20 }}>
                 <label style={s.label}>Audience</label>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {[['all', 'All Members'], ['upcoming', 'Upcoming Appts'], ['members', 'Members'], ['lapsed', 'Lapsed (90+ days)']].map(([id, name]) => (
+                  {[['all', 'All Clients'], ['upcoming', 'Upcoming Appts'], ['members', 'Clients'], ['lapsed', 'Lapsed (90+ days)']].map(([id, name]) => (
                     <button key={id} onClick={() => setAudience(id)} style={{
                       ...s.pill, padding: '7px 14px', fontSize: 12,
                       background: audience === id ? s.accent : 'transparent',
@@ -130,7 +130,7 @@ export default function TextMessages() {
             {/* Patient picker (individual mode) */}
             {sendMode === 'individual' && (
               <div style={{ marginBottom: 20 }}>
-                <label style={s.label}>Select Members ({selectedPatients.length} selected)</label>
+                <label style={s.label}>Select Clients ({selectedPatients.length} selected)</label>
                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or phone..." style={{ ...s.input, marginBottom: 10 }} />
                 <div style={{ ...s.cardStyle, maxHeight: 200, overflowY: 'auto' }}>
                   {filteredPatients.slice(0, 20).map(p => (
@@ -170,7 +170,7 @@ export default function TextMessages() {
             </div>
 
             <button onClick={handleSend} disabled={sending || !message.trim() || getAudienceCount() === 0} style={{ ...s.pillAccent, opacity: (sending || !message.trim() || getAudienceCount() === 0) ? 0.5 : 1 }}>
-              {sending ? 'Sending...' : `Send to ${getAudienceCount()} members`}
+              {sending ? 'Sending...' : `Send to ${getAudienceCount()} clients`}
             </button>
           </div>
 
@@ -178,7 +178,7 @@ export default function TextMessages() {
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <div style={{ width: 280, background: '#F8F8F8', borderRadius: 32, padding: '48px 16px 32px', border: '1px solid #E5E5E5' }}>
               <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                <div style={{ font: `600 12px ${s.FONT}`, color: s.text }}>{settings.businessName || 'Remedy Pilates & Barre'}</div>
+                <div style={{ font: `600 12px ${s.FONT}`, color: s.text }}>{settings.businessName || 'FORGE Performance Training'}</div>
                 <div style={{ font: `400 10px ${s.FONT}`, color: s.text3 }}>SMS</div>
               </div>
               <div style={{ background: '#fff', borderRadius: 16, padding: 14, minHeight: 120, boxShadow: s.shadow }}>
