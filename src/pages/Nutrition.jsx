@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useStyles, getAvatarGradient } from '../theme';
 import { getPatients, subscribe } from '../data/store';
 
-/* ─── Inject keyframes once ─── */
+/* ─── Keyframes ─── */
 const NUTR_ANIM_ID = 'nutrition-premium-anims';
 if (!document.getElementById(NUTR_ANIM_ID)) {
   const sheet = document.createElement('style');
@@ -15,1325 +15,869 @@ if (!document.getElementById(NUTR_ANIM_ID)) {
     @keyframes nutrRingDraw {
       from { stroke-dasharray: 0 283; }
     }
-    @keyframes nutrPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.04); }
-    }
     @keyframes nutrSpin {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
-    }
-    @keyframes nutrShimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
     }
     @keyframes nutrBarGrow {
       from { transform: scaleY(0); }
       to { transform: scaleY(1); }
     }
     @keyframes nutrScanLine {
-      0% { top: 0; }
-      50% { top: calc(100% - 3px); }
-      100% { top: 0; }
-    }
-    @keyframes nutrScanPulse {
-      0%, 100% { opacity: 0.6; }
-      50% { opacity: 1; }
+      0% { top: 10%; }
+      50% { top: 80%; }
+      100% { top: 10%; }
     }
     .nutr-card-hover:hover {
       transform: translateY(-3px) !important;
       box-shadow: 0 12px 40px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.03) !important;
     }
-    .nutr-ring-hover:hover {
-      filter: brightness(1.05);
-    }
     .nutr-meal-row:hover {
       background: rgba(0,0,0,0.015) !important;
     }
-    @media (max-width: 860px) {
-      /* Global */
-      .nutr-page h1 { font-size: 22px !important; margin-bottom: 4px !important; }
-      .nutr-page > div:first-child p { font-size: 13px !important; }
-      .nutr-page > div { margin-bottom: 20px !important; }
-
-      /* Macro rings: 2x2 grid */
-      .nutr-macros-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 16px !important; }
-
-      /* Meal plan cards: single column */
-      .nutr-templates-grid { grid-template-columns: 1fr !important; }
-
-      /* Weekly chart: reduce height */
-      .nutr-weekly-chart { min-height: 200px !important; }
-      .nutr-weekly-chart svg { max-height: 200px; }
-
-      /* Meal sections: reduce padding */
-      .nutr-meal-row { padding: 10px 14px !important; }
-
-      /* Food search modal: full screen */
-      .nutr-search-modal {
-        align-items: flex-end !important;
-      }
-      .nutr-search-modal > div {
-        width: 100% !important;
-        max-width: 100% !important;
-        border-radius: 20px 20px 0 0 !important;
-        max-height: 95vh !important;
-      }
-
-      /* Cards */
-      .nutr-card-hover {
-        padding: 14px 16px !important;
-        border-radius: 14px !important;
-      }
-
-      /* KPI stats */
-      .nutr-kpi-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 10px !important;
-      }
-
-      /* Touch targets & inputs */
-      .nutr-page button { min-height: 44px; }
-      .nutr-page input, .nutr-page select { font-size: 16px !important; }
+    .nutr-modal-overlay {
+      animation: nutrOverlayIn 0.25s ease;
+    }
+    @keyframes nutrOverlayIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .nutr-modal-content {
+      animation: nutrModalSlideUp 0.35s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes nutrModalSlideUp {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
     }
   `;
   document.head.appendChild(sheet);
 }
 
-/* ─── Macro color config ─── */
+/* ── Icons ── */
+const ICO = {
+  search: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>,
+  chev: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="m6 9 6 6 6-6"/></svg>,
+  plus: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>,
+  x: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>,
+  scan: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>,
+  trash: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
+};
+
+/* ── Helpers ── */
+const today = new Date();
+const d = (offset) => {
+  const dt = new Date(today);
+  dt.setDate(dt.getDate() + offset);
+  return dt.toISOString().slice(0, 10);
+};
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+/* ── Macro colors ── */
 const MACRO_COLORS = {
-  calories: null, // uses accent
-  protein: '#3B82F6',
-  carbs: '#F59E0B',
-  fat: '#FBBF24',
+  calories: '#0E7A82',
+  protein: '#22C55E',
+  carbs: '#EAB308',
+  fat: '#EF4444',
 };
 
-/* ─── Seed data generator ─── */
-function getTodayStr() {
-  return new Date().toISOString().slice(0, 10);
-}
+/* ── Seed meal data ── */
+function seedNutritionData() {
+  const clients = getPatients();
+  const c1 = clients[0]; // James Thompson
+  const c2 = clients[1]; // Sarah Chen
 
-function daysAgo(n) {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return d.toISOString().slice(0, 10);
-}
+  if (!c1 || !c2) return;
 
-const JAMES_MEALS = {
-  [getTodayStr()]: {
-    breakfast: { items: [
-      { name: 'Egg Whites (6)', serving: '6 large', cal: 102, p: 22, c: 1, f: 0 },
-      { name: 'Oatmeal', serving: '1 cup', cal: 307, p: 11, c: 55, f: 5 },
-      { name: 'Banana', serving: '1 medium', cal: 105, p: 1, c: 27, f: 0 },
-      { name: 'Black Coffee', serving: '12 oz', cal: 5, p: 0, c: 1, f: 0 },
-    ]},
-    lunch: { items: [
-      { name: 'Grilled Chicken Breast', serving: '8 oz', cal: 370, p: 56, c: 0, f: 8 },
-      { name: 'Brown Rice', serving: '1 cup', cal: 216, p: 5, c: 45, f: 2 },
-      { name: 'Steamed Broccoli', serving: '2 cups', cal: 62, p: 5, c: 12, f: 1 },
-    ]},
-    dinner: { items: [
-      { name: 'Salmon Fillet', serving: '6 oz', cal: 354, p: 38, c: 0, f: 22 },
-      { name: 'Sweet Potato', serving: '1 large', cal: 162, p: 4, c: 37, f: 0 },
-      { name: 'Mixed Greens Salad', serving: '2 cups', cal: 30, p: 2, c: 5, f: 0 },
-    ]},
-    snacks: { items: [
-      { name: 'Protein Shake', serving: '1 scoop + water', cal: 120, p: 24, c: 3, f: 1 },
-      { name: 'Almonds', serving: '1 oz', cal: 164, p: 6, c: 6, f: 14 },
-    ]},
-  },
-  [daysAgo(1)]: {
-    breakfast: { items: [
-      { name: 'Greek Yogurt', serving: '1 cup', cal: 130, p: 22, c: 8, f: 0 },
-      { name: 'Granola', serving: '0.5 cup', cal: 210, p: 5, c: 36, f: 6 },
-      { name: 'Blueberries', serving: '0.5 cup', cal: 42, p: 1, c: 11, f: 0 },
-    ]},
-    lunch: { items: [
-      { name: 'Turkey Breast', serving: '6 oz', cal: 186, p: 40, c: 0, f: 2 },
-      { name: 'Quinoa', serving: '1 cup', cal: 222, p: 8, c: 39, f: 4 },
-      { name: 'Avocado', serving: '0.5 medium', cal: 120, p: 2, c: 6, f: 11 },
-    ]},
-    dinner: { items: [
-      { name: 'Lean Ground Beef (93%)', serving: '6 oz', cal: 290, p: 38, c: 0, f: 14 },
-      { name: 'Whole Wheat Pasta', serving: '1.5 cups', cal: 262, p: 9, c: 52, f: 2 },
-      { name: 'Marinara Sauce', serving: '0.5 cup', cal: 66, p: 2, c: 10, f: 2 },
-    ]},
-    snacks: { items: [
-      { name: 'Protein Bar', serving: '1 bar', cal: 210, p: 20, c: 24, f: 7 },
-      { name: 'Apple', serving: '1 medium', cal: 95, p: 0, c: 25, f: 0 },
-    ]},
-  },
-  [daysAgo(2)]: {
-    breakfast: { items: [
-      { name: 'Whole Eggs', serving: '3 large', cal: 234, p: 18, c: 2, f: 15 },
-      { name: 'Whole Wheat Toast', serving: '2 slices', cal: 160, p: 8, c: 26, f: 2 },
-    ]},
-    lunch: { items: [
-      { name: 'Chicken Thigh', serving: '6 oz', cal: 318, p: 36, c: 0, f: 18 },
-      { name: 'White Rice', serving: '1 cup', cal: 206, p: 4, c: 45, f: 0 },
-      { name: 'Stir-fry Vegetables', serving: '1.5 cups', cal: 85, p: 3, c: 14, f: 2 },
-    ]},
-    dinner: { items: [
-      { name: 'Tilapia', serving: '8 oz', cal: 218, p: 44, c: 0, f: 4 },
-      { name: 'Jasmine Rice', serving: '1 cup', cal: 206, p: 4, c: 45, f: 0 },
-      { name: 'Asparagus', serving: '1 cup', cal: 27, p: 3, c: 5, f: 0 },
-    ]},
-    snacks: { items: [
-      { name: 'Cottage Cheese', serving: '1 cup', cal: 206, p: 28, c: 6, f: 9 },
-    ]},
-  },
-};
+  // Macro targets
+  const targets1 = { calories: 2800, protein: 200, carbs: 300, fat: 90 };
+  const targets2 = { calories: 1800, protein: 140, carbs: 180, fat: 60 };
 
-const SARAH_MEALS = {
-  [getTodayStr()]: {
-    breakfast: { items: [
-      { name: 'Greek Yogurt (non-fat)', serving: '1 cup', cal: 100, p: 18, c: 6, f: 0 },
-      { name: 'Chia Seeds', serving: '1 tbsp', cal: 58, p: 2, c: 5, f: 3 },
-      { name: 'Strawberries', serving: '1 cup', cal: 49, p: 1, c: 12, f: 0 },
-    ]},
-    lunch: { items: [
-      { name: 'Grilled Chicken Salad', serving: '1 bowl', cal: 320, p: 38, c: 18, f: 12 },
-      { name: 'Balsamic Vinaigrette', serving: '2 tbsp', cal: 45, p: 0, c: 5, f: 3 },
-    ]},
-    dinner: { items: [
-      { name: 'Shrimp', serving: '6 oz', cal: 168, p: 36, c: 2, f: 2 },
-      { name: 'Zucchini Noodles', serving: '2 cups', cal: 40, p: 3, c: 7, f: 0 },
-      { name: 'Pesto Sauce', serving: '1 tbsp', cal: 80, p: 2, c: 1, f: 8 },
-    ]},
-    snacks: { items: [
-      { name: 'Protein Shake', serving: '1 scoop + almond milk', cal: 150, p: 26, c: 4, f: 3 },
-      { name: 'Rice Cakes', serving: '2 cakes', cal: 70, p: 1, c: 15, f: 0 },
-    ]},
-  },
-  [daysAgo(1)]: {
-    breakfast: { items: [
-      { name: 'Egg White Omelette', serving: '4 whites + veggies', cal: 130, p: 18, c: 6, f: 2 },
-      { name: 'Whole Wheat Toast', serving: '1 slice', cal: 80, p: 4, c: 13, f: 1 },
-    ]},
-    lunch: { items: [
-      { name: 'Turkey Wrap', serving: '1 wrap', cal: 310, p: 28, c: 30, f: 8 },
-      { name: 'Side Salad', serving: '1 cup', cal: 45, p: 2, c: 6, f: 2 },
-    ]},
-    dinner: { items: [
-      { name: 'Cod Fillet', serving: '6 oz', cal: 140, p: 30, c: 0, f: 1 },
-      { name: 'Roasted Vegetables', serving: '1.5 cups', cal: 120, p: 3, c: 18, f: 5 },
-      { name: 'Couscous', serving: '0.5 cup', cal: 88, p: 3, c: 18, f: 0 },
-    ]},
-    snacks: { items: [
-      { name: 'Celery + PB', serving: '2 stalks + 1 tbsp', cal: 108, p: 4, c: 5, f: 8 },
-    ]},
-  },
-  [daysAgo(2)]: {
-    breakfast: { items: [
-      { name: 'Smoothie Bowl', serving: '1 bowl', cal: 220, p: 15, c: 35, f: 4 },
-    ]},
-    lunch: { items: [
-      { name: 'Tuna Salad', serving: '1 can + veggies', cal: 280, p: 40, c: 8, f: 10 },
-      { name: 'Crackers', serving: '6 crackers', cal: 78, p: 2, c: 13, f: 2 },
-    ]},
-    dinner: { items: [
-      { name: 'Chicken Stir-fry', serving: '1 bowl', cal: 350, p: 32, c: 28, f: 12 },
-    ]},
-    snacks: { items: [
-      { name: 'Protein Bar', serving: '1 bar', cal: 170, p: 15, c: 20, f: 6 },
-    ]},
-  },
-};
-
-const TARGETS = {
-  'CLT-1000': { calories: 2200, protein: 180, carbs: 220, fat: 65 },
-  'CLT-1001': { calories: 1600, protein: 130, carbs: 160, fat: 45 },
-};
-
-const MEAL_PLAN_TEMPLATES = [
-  { id: 'hpc', name: 'High Protein Cut', cal: 2200, p: 220, c: 180, f: 65, gradient: 'linear-gradient(135deg, #3B82F6, #1D4ED8)', desc: 'Aggressive protein for maximum muscle retention during a cut' },
-  { id: 'lb', name: 'Lean Bulk', cal: 2800, p: 190, c: 320, f: 85, gradient: 'linear-gradient(135deg, #F59E0B, #D97706)', desc: 'Caloric surplus with controlled fat gain' },
-  { id: 'bm', name: 'Balanced Maintenance', cal: 2400, p: 160, c: 260, f: 75, gradient: 'linear-gradient(135deg, #10B981, #059669)', desc: 'Sustainable macros for long-term consistency' },
-  { id: 'keto', name: 'Keto', cal: 1800, p: 130, c: 30, f: 130, gradient: 'linear-gradient(135deg, #8B5CF6, #6D28D9)', desc: 'Very low carb, high fat for ketosis' },
-];
-
-/* ─── localStorage helpers ─── */
-function getMealLog(clientId) {
-  try { return JSON.parse(localStorage.getItem(`ms_nutrition_${clientId}`)) || null; } catch { return null; }
-}
-function setMealLog(clientId, data) {
-  localStorage.setItem(`ms_nutrition_${clientId}`, JSON.stringify(data));
-}
-function getMacroTargets(clientId) {
-  try { return JSON.parse(localStorage.getItem(`ms_macro_targets_${clientId}`)) || null; } catch { return null; }
-}
-function setMacroTargets(clientId, data) {
-  localStorage.setItem(`ms_macro_targets_${clientId}`, JSON.stringify(data));
-}
-
-/* ─── Init seed data ─── */
-function ensureSeedData() {
-  if (!getMealLog('CLT-1000')) setMealLog('CLT-1000', JAMES_MEALS);
-  if (!getMealLog('CLT-1001')) setMealLog('CLT-1001', SARAH_MEALS);
-  if (!getMacroTargets('CLT-1000')) setMacroTargets('CLT-1000', TARGETS['CLT-1000']);
-  if (!getMacroTargets('CLT-1001')) setMacroTargets('CLT-1001', TARGETS['CLT-1001']);
-}
-
-/* ─── Donut Ring Component ─── */
-function MacroRing({ value, max, label, color, unit, size = 120, strokeW = 8, delay = 0 }) {
-  const s = useStyles();
-  const pct = Math.min(Math.round((value / max) * 100), 100);
-  const r = (size - strokeW) / 2;
-  const circ = 2 * Math.PI * r;
-  const remaining = max - value;
-
-  return (
-    <div className="nutr-ring-hover" style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-      animation: `nutrFadeInUp 0.6s cubic-bezier(0.16,1,0.3,1) ${delay}s both`,
-    }}>
-      <div style={{ position: 'relative', width: size, height: size }}>
-        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(0,0,0,0.04)" strokeWidth={strokeW} />
-          <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={strokeW}
-            strokeDasharray={`${(pct / 100) * circ} ${circ}`}
-            strokeLinecap="round"
-            style={{ animation: `nutrRingDraw 1.2s cubic-bezier(0.16,1,0.3,1) ${delay}s both`, filter: `drop-shadow(0 0 6px ${color}44)` }}
-          />
-        </svg>
-        <div style={{
-          position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-        }}>
-          <span style={{ font: `700 ${size > 100 ? 22 : 18}px ${s.FONT}`, color: s.text, lineHeight: 1 }}>
-            {value.toLocaleString()}
-          </span>
-          {unit && <span style={{ font: `400 11px ${s.MONO}`, color: s.text3, marginTop: 2 }}>{unit}</span>}
-        </div>
-      </div>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ font: `600 13px ${s.FONT}`, color: s.text, textTransform: 'capitalize' }}>{label}</div>
-        <div style={{ font: `400 11px ${s.MONO}`, color: s.text3 }}>
-          {remaining > 0 ? `${remaining.toLocaleString()}${unit ? unit.replace(/[^a-zA-Z]/g, '') : ''} remaining` : 'Target reached'}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Meal Section Component ─── */
-function MealSection({ title, mealData, onAddFood, onScanBarcode, delay = 0, icon }) {
-  const s = useStyles();
-  const [expanded, setExpanded] = useState(title === 'Breakfast');
-  const items = mealData?.items || [];
-  const totalCal = items.reduce((sum, i) => sum + i.cal, 0);
-  const totalP = items.reduce((sum, i) => sum + i.p, 0);
-  const totalC = items.reduce((sum, i) => sum + i.c, 0);
-  const totalF = items.reduce((sum, i) => sum + i.f, 0);
-
-  return (
-    <div style={{
-      ...s.cardStyle, padding: 0, overflow: 'hidden', marginBottom: 12,
-      animation: `nutrFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) ${delay}s both`,
-    }} className="nutr-card-hover">
-      <button onClick={() => setExpanded(!expanded)} style={{
-        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '16px 20px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 20 }}>{icon}</span>
-          <div>
-            <div style={{ font: `600 15px ${s.FONT}`, color: s.text }}>{title}</div>
-            <div style={{ font: `400 12px ${s.MONO}`, color: s.text3, marginTop: 2 }}>
-              {items.length} item{items.length !== 1 ? 's' : ''} — {totalP}P / {totalC}C / {totalF}F
-            </div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ font: `600 15px ${s.MONO}`, color: s.text }}>{totalCal} cal</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={s.text3} strokeWidth="1.5" strokeLinecap="round"
-            style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s cubic-bezier(0.16,1,0.3,1)' }}>
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </div>
-      </button>
-      {expanded && (
-        <div style={{ borderTop: `1px solid ${s.borderLight}` }}>
-          {items.map((item, i) => (
-            <div key={i} className="nutr-meal-row" style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '12px 20px 12px 56px', borderBottom: i < items.length - 1 ? `1px solid ${s.borderLight}` : 'none',
-              transition: 'background 0.15s',
-            }}>
-              <div>
-                <div style={{ font: `500 14px ${s.FONT}`, color: s.text }}>{item.name}</div>
-                <div style={{ font: `400 11px ${s.MONO}`, color: s.text3 }}>{item.serving}</div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
-                <span style={{ font: `500 12px ${s.MONO}`, color: MACRO_COLORS.protein, minWidth: 36, textAlign: 'right' }}>{item.p}P</span>
-                <span style={{ font: `500 12px ${s.MONO}`, color: MACRO_COLORS.carbs, minWidth: 36, textAlign: 'right' }}>{item.c}C</span>
-                <span style={{ font: `500 12px ${s.MONO}`, color: '#D97706', minWidth: 36, textAlign: 'right' }}>{item.f}F</span>
-                <span style={{ font: `600 13px ${s.MONO}`, color: s.text, minWidth: 50, textAlign: 'right' }}>{item.cal}</span>
-              </div>
-            </div>
-          ))}
-          <div style={{ display: 'flex', gap: 8, margin: '12px 20px 16px 56px', flexWrap: 'wrap' }}>
-            <button onClick={onAddFood} style={{
-              ...s.pillOutline, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, margin: 0,
-            }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              Add Food
-            </button>
-            <button onClick={onScanBarcode} style={{
-              ...s.pillOutline, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, margin: 0,
-            }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <line x1="7" y1="7" x2="7" y2="17" /><line x1="10" y1="7" x2="10" y2="17" />
-                <line x1="13" y1="7" x2="13" y2="17" /><line x1="16" y1="7" x2="16" y2="13" />
-                <line x1="16" y1="15" x2="16" y2="17" />
-              </svg>
-              Scan Barcode
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ─── Food Search Modal ─── */
-function FoodSearchModal({ open, onClose, onAdd, mealName, onSwitchToBarcode }) {
-  const s = useStyles();
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [servingMult, setServingMult] = useState({});
-  const debounceRef = useRef(null);
-
-  const search = useCallback(async (q) => {
-    if (!q || q.length < 2) { setResults([]); return; }
-    setLoading(true);
-    try {
-      const res = await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&query=${encodeURIComponent(q)}&pageSize=15`);
-      const data = await res.json();
-      const foods = (data.foods || []).map(f => {
-        const nuts = f.foodNutrients || [];
-        const get = (id) => nuts.find(n => n.nutrientId === id)?.value || 0;
-        return {
-          fdcId: f.fdcId,
-          name: f.description || f.lowercaseDescription || 'Unknown',
-          brand: f.brandName || f.brandOwner || null,
-          cal: Math.round(get(1008)),
-          p: Math.round(get(1003)),
-          c: Math.round(get(1005)),
-          f: Math.round(get(1004)),
-          servingSize: f.servingSize ? `${f.servingSize}${f.servingSizeUnit || 'g'}` : '100g',
-        };
-      });
-      setResults(foods);
-    } catch {
-      setResults([]);
-    }
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => search(query), 400);
-    return () => clearTimeout(debounceRef.current);
-  }, [query, search]);
-
-  useEffect(() => {
-    if (!open) { setQuery(''); setResults([]); setServingMult({}); }
-  }, [open]);
-
-  if (!open) return null;
-
-  const handleAdd = (food) => {
-    const mult = servingMult[food.fdcId] || 1;
-    onAdd({
-      name: food.name + (food.brand ? ` (${food.brand})` : ''),
-      serving: `${mult}x ${food.servingSize}`,
-      cal: Math.round(food.cal * mult),
-      p: Math.round(food.p * mult),
-      c: Math.round(food.c * mult),
-      f: Math.round(food.f * mult),
-    });
-    onClose();
-  };
-
-  return (
-    <div onClick={onClose} style={{
-      position: 'fixed', inset: 0, zIndex: 1000,
-      background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      animation: 'nutrFadeInUp 0.2s ease',
-    }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        width: '90%', maxWidth: 580, maxHeight: '80vh',
-        background: s.cardSolid, borderRadius: 20, overflow: 'hidden',
-        boxShadow: '0 24px 80px rgba(0,0,0,0.2)',
-        display: 'flex', flexDirection: 'column',
-      }}>
-        {/* Header */}
-        <div style={{ padding: '20px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ font: `600 17px ${s.FONT}`, color: s.text }}>Add Food</div>
-            <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, marginTop: 2 }}>to {mealName}</div>
-          </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: s.text3, padding: 4 }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-        {/* Search */}
-        <div style={{ padding: '16px 24px' }}>
-          <div style={{ position: 'relative' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round"
-              style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }}>
-              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              value={query} onChange={e => setQuery(e.target.value)}
-              placeholder="Search foods (e.g. chicken breast, banana...)"
-              autoFocus
-              style={{ ...s.input, paddingLeft: 40, paddingRight: 44, background: '#F8F8F8', border: '1px solid #eee' }}
-            />
-            {onSwitchToBarcode && (
-              <button onClick={() => { onClose(); onSwitchToBarcode(); }} title="Scan barcode" style={{
-                position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-                background: 'none', border: 'none', cursor: 'pointer', padding: 6,
-                color: s.text3, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                borderRadius: 6, transition: 'color 0.15s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.color = '#333'}
-              onMouseLeave={e => e.currentTarget.style.color = '#999'}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <line x1="7" y1="7" x2="7" y2="17" /><line x1="10" y1="7" x2="10" y2="17" />
-                  <line x1="13" y1="7" x2="13" y2="17" /><line x1="16" y1="7" x2="16" y2="13" />
-                  <line x1="16" y1="15" x2="16" y2="17" />
-                </svg>
-              </button>
-            )}
-          </div>
-        </div>
-        {/* Results */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px 20px' }}>
-          {loading && (
-            <div style={{ textAlign: 'center', padding: 30 }}>
-              <div style={{ width: 24, height: 24, border: `2px solid ${s.accent}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'nutrSpin 0.6s linear infinite', margin: '0 auto' }} />
-              <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, marginTop: 10 }}>Searching USDA database...</div>
-            </div>
-          )}
-          {!loading && query.length >= 2 && results.length === 0 && (
-            <div style={{ textAlign: 'center', padding: 30, color: s.text3, font: `400 13px ${s.FONT}` }}>
-              No results found. Try a different search term.
-            </div>
-          )}
-          {!loading && results.map(food => {
-            const mult = servingMult[food.fdcId] || 1;
-            return (
-              <div key={food.fdcId} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '12px 0', borderBottom: `1px solid ${s.borderLight}`,
-              }}>
-                <div style={{ flex: 1, minWidth: 0, marginRight: 12 }}>
-                  <div style={{ font: `500 13px ${s.FONT}`, color: s.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {food.name}
-                  </div>
-                  {food.brand && <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>{food.brand}</div>}
-                  <div style={{ font: `400 11px ${s.MONO}`, color: s.text3, marginTop: 2 }}>
-                    per {food.servingSize}: {food.cal} cal — {food.p}P / {food.c}C / {food.f}F
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                  <select value={mult} onChange={e => setServingMult(prev => ({ ...prev, [food.fdcId]: parseFloat(e.target.value) }))}
-                    style={{ ...s.input, width: 64, padding: '6px 8px', fontSize: 12, textAlign: 'center' }}>
-                    <option value={0.5}>0.5x</option>
-                    <option value={1}>1x</option>
-                    <option value={1.5}>1.5x</option>
-                    <option value={2}>2x</option>
-                    <option value={3}>3x</option>
-                  </select>
-                  <button onClick={() => handleAdd(food)} style={{ ...s.pillAccent, padding: '6px 14px', fontSize: 12 }}>
-                    Add
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-          {!loading && query.length < 2 && (
-            <div style={{ textAlign: 'center', padding: 40, color: s.text3 }}>
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" style={{ opacity: 0.3, marginBottom: 12 }}>
-                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <div style={{ font: `400 13px ${s.FONT}` }}>Type to search the USDA FoodData Central database</div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Barcode Scanner Modal ─── */
-function BarcodeScannerModal({ open, onClose, onAdd, mealName }) {
-  const s = useStyles();
-  const [barcode, setBarcode] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [product, setProduct] = useState(null);
-  const [error, setError] = useState('');
-  const [cameraActive, setCameraActive] = useState(false);
-  const [cameraSupported, setCameraSupported] = useState(false);
-  const [servingMult, setServingMult] = useState(1);
-  const videoRef = useRef(null);
-  const streamRef = useRef(null);
-  const detectorRef = useRef(null);
-  const scanningRef = useRef(false);
-
-  // Check for BarcodeDetector support
-  useEffect(() => {
-    setCameraSupported(typeof window !== 'undefined' && 'BarcodeDetector' in window);
-  }, []);
-
-  // Clean up on close
-  useEffect(() => {
-    if (!open) {
-      setBarcode(''); setProduct(null); setError(''); setLoading(false); setServingMult(1);
-      stopCamera();
-    }
-  }, [open]);
-
-  const stopCamera = useCallback(() => {
-    scanningRef.current = false;
-    setCameraActive(false);
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop());
-      streamRef.current = null;
-    }
-  }, []);
-
-  const startCamera = useCallback(async () => {
-    if (!cameraSupported) return;
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-      }
-      setCameraActive(true);
-      detectorRef.current = new window.BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39'] });
-      scanningRef.current = true;
-      scanFrames();
-    } catch (err) {
-      setError('Could not access camera. Check permissions.');
-    }
-  }, [cameraSupported]);
-
-  const scanFrames = useCallback(async () => {
-    if (!scanningRef.current || !videoRef.current || !detectorRef.current) return;
-    try {
-      const barcodes = await detectorRef.current.detect(videoRef.current);
-      if (barcodes.length > 0) {
-        const detected = barcodes[0].rawValue;
-        setBarcode(detected);
-        stopCamera();
-        lookupBarcode(detected);
-        return;
-      }
-    } catch {}
-    if (scanningRef.current) requestAnimationFrame(scanFrames);
-  }, [stopCamera]);
-
-  const lookupBarcode = async (code) => {
-    if (!code) return;
-    setLoading(true); setProduct(null); setError(''); setServingMult(1);
-    try {
-      const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json`);
-      const data = await res.json();
-      if (data.status === 0 || !data.product) {
-        setError('Product not found. Try a different barcode.');
-        setLoading(false);
-        return;
-      }
-      const p = data.product;
-      const n = p.nutriments || {};
-      setProduct({
-        name: p.product_name || 'Unknown Product',
-        brand: p.brands || '',
-        image: p.image_url || p.image_front_url || '',
-        cal: Math.round(n.energy_kcal_100g || n['energy-kcal_100g'] || 0),
-        protein: Math.round(n.proteins_100g || 0),
-        carbs: Math.round(n.carbohydrates_100g || 0),
-        fat: Math.round(n.fat_100g || 0),
-        fiber: Math.round(n.fiber_100g || 0),
-        sugar: Math.round(n.sugars_100g || 0),
-        nutriScore: p.nutrition_grades || null,
-        servingSize: p.serving_size || '100g',
-      });
-    } catch {
-      setError('Failed to look up product. Check your connection.');
-    }
-    setLoading(false);
-  };
-
-  const handleAddToMeal = () => {
-    if (!product) return;
-    const mult = servingMult;
-    onAdd({
-      name: product.name + (product.brand ? ` (${product.brand})` : ''),
-      serving: `${mult}x ${product.servingSize}`,
-      cal: Math.round(product.cal * mult),
-      p: Math.round(product.protein * mult),
-      c: Math.round(product.carbs * mult),
-      f: Math.round(product.fat * mult),
-    });
-    onClose();
-  };
-
-  const NUTRI_COLORS = { a: '#1E8F4E', b: '#60AC0E', c: '#EEAE0E', d: '#E6771E', e: '#DF3318' };
-
-  if (!open) return null;
-
-  return (
-    <div onClick={() => { stopCamera(); onClose(); }} style={{
-      position: 'fixed', inset: 0, zIndex: 1000,
-      background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      animation: 'nutrFadeInUp 0.2s ease',
-    }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        width: '90%', maxWidth: 520, maxHeight: '85vh',
-        background: s.cardSolid, borderRadius: 20, overflow: 'hidden',
-        boxShadow: '0 24px 80px rgba(0,0,0,0.2)',
-        display: 'flex', flexDirection: 'column',
-      }}>
-        {/* Header */}
-        <div style={{ padding: '20px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ font: `600 17px ${s.FONT}`, color: s.text }}>Scan Barcode</div>
-            <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, marginTop: 2 }}>Add to {mealName}</div>
-          </div>
-          <button onClick={() => { stopCamera(); onClose(); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: s.text3, padding: 4 }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 24px' }}>
-          {/* Camera Scanner */}
-          {cameraSupported && !product && (
-            <div style={{ marginBottom: 16 }}>
-              {!cameraActive ? (
-                <button onClick={startCamera} style={{
-                  ...s.pillAccent, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  padding: '14px 20px', fontSize: 14,
-                }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <rect x="2" y="4" width="20" height="16" rx="2" /><circle cx="12" cy="12" r="3" />
-                  </svg>
-                  Open Camera Scanner
-                </button>
-              ) : (
-                <div style={{ position: 'relative', width: '100%', height: 250, borderRadius: 16, overflow: 'hidden', background: '#111' }}>
-                  <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  {/* Scan line animation */}
-                  <div style={{
-                    position: 'absolute', left: '10%', right: '10%', height: 3,
-                    background: 'linear-gradient(90deg, transparent, #FF3B30, transparent)',
-                    borderRadius: 2, boxShadow: '0 0 12px rgba(255,59,48,0.6)',
-                    animation: 'nutrScanLine 2s ease-in-out infinite',
-                  }} />
-                  {/* Corner markers */}
-                  {[{ top: 20, left: 20 }, { top: 20, right: 20 }, { bottom: 20, left: 20 }, { bottom: 20, right: 20 }].map((pos, i) => (
-                    <div key={i} style={{
-                      position: 'absolute', ...pos, width: 24, height: 24,
-                      borderColor: '#fff', borderStyle: 'solid', borderWidth: 0,
-                      ...(pos.top !== undefined && pos.left !== undefined ? { borderTopWidth: 3, borderLeftWidth: 3, borderTopLeftRadius: 6 } : {}),
-                      ...(pos.top !== undefined && pos.right !== undefined ? { borderTopWidth: 3, borderRightWidth: 3, borderTopRightRadius: 6 } : {}),
-                      ...(pos.bottom !== undefined && pos.left !== undefined ? { borderBottomWidth: 3, borderLeftWidth: 3, borderBottomLeftRadius: 6 } : {}),
-                      ...(pos.bottom !== undefined && pos.right !== undefined ? { borderBottomWidth: 3, borderRightWidth: 3, borderBottomRightRadius: 6 } : {}),
-                      opacity: 0.8, animation: 'nutrScanPulse 2s ease-in-out infinite',
-                    }} />
-                  ))}
-                  <button onClick={stopCamera} style={{
-                    position: 'absolute', bottom: 12, right: 12,
-                    background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: 20,
-                    color: '#fff', padding: '6px 14px', font: `500 12px ${s.FONT}`, cursor: 'pointer',
-                  }}>Stop</button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {!cameraSupported && !product && (
-            <div style={{
-              background: '#FFF8E1', borderRadius: 12, padding: '12px 16px', marginBottom: 16,
-              font: `400 12px ${s.FONT}`, color: '#795548', display: 'flex', alignItems: 'center', gap: 8,
-            }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-              Camera scanning requires Chrome or Edge. Use manual entry below.
-            </div>
-          )}
-
-          {/* Manual Entry */}
-          {!product && (
-            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-              <div style={{ position: 'relative', flex: 1 }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round"
-                  style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }}>
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <line x1="7" y1="7" x2="7" y2="17" /><line x1="10" y1="7" x2="10" y2="17" />
-                  <line x1="13" y1="7" x2="13" y2="17" /><line x1="16" y1="7" x2="16" y2="13" />
-                  <line x1="16" y1="15" x2="16" y2="17" />
-                </svg>
-                <input
-                  value={barcode} onChange={e => setBarcode(e.target.value)}
-                  placeholder="Enter barcode number"
-                  onKeyDown={e => e.key === 'Enter' && lookupBarcode(barcode)}
-                  style={{ ...s.input, paddingLeft: 40, background: '#F8F8F8', border: '1px solid #eee' }}
-                />
-              </div>
-              <button onClick={() => lookupBarcode(barcode)} disabled={!barcode || loading} style={{
-                ...s.pillAccent, padding: '10px 20px', opacity: (!barcode || loading) ? 0.6 : 1,
-              }}>
-                {loading ? (
-                  <div style={{ width: 16, height: 16, border: `2px solid ${s.accentText}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'nutrSpin 0.6s linear infinite' }} />
-                ) : 'Look Up'}
-              </button>
-            </div>
-          )}
-
-          {/* Loading */}
-          {loading && (
-            <div style={{ textAlign: 'center', padding: 30 }}>
-              <div style={{ width: 24, height: 24, border: `2px solid ${s.accent}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'nutrSpin 0.6s linear infinite', margin: '0 auto' }} />
-              <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, marginTop: 10 }}>Looking up product...</div>
-            </div>
-          )}
-
-          {/* Error */}
-          {error && (
-            <div style={{
-              background: '#FFF0F0', borderRadius: 12, padding: '14px 18px', marginBottom: 16,
-              font: `400 13px ${s.FONT}`, color: '#C62828', display: 'flex', alignItems: 'center', gap: 8,
-            }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
-              </svg>
-              {error}
-              <button onClick={() => { setError(''); setProduct(null); }} style={{
-                marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer',
-                font: `500 12px ${s.FONT}`, color: '#C62828', textDecoration: 'underline',
-              }}>Try Again</button>
-            </div>
-          )}
-
-          {/* Product Result */}
-          {product && !loading && (
-            <div style={{ animation: 'nutrFadeInUp 0.3s ease' }}>
-              <div style={{
-                display: 'flex', gap: 16, marginBottom: 20,
-                background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)', borderRadius: 16, padding: 16,
-              }}>
-                {product.image && (
-                  <img src={product.image} alt={product.name} style={{
-                    width: 90, height: 90, borderRadius: 12, objectFit: 'cover',
-                    background: '#f5f5f5', flexShrink: 0,
-                  }} />
-                )}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ font: `600 15px ${s.FONT}`, color: s.text, marginBottom: 2 }}>{product.name}</div>
-                  {product.brand && <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, marginBottom: 8 }}>{product.brand}</div>}
-                  {product.nutriScore && (
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                      <div style={{
-                        width: 28, height: 28, borderRadius: '50%',
-                        background: NUTRI_COLORS[product.nutriScore.toLowerCase()] || '#999',
-                        color: '#fff', font: `700 14px ${s.FONT}`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: `0 2px 8px ${NUTRI_COLORS[product.nutriScore.toLowerCase()] || '#999'}44`,
-                      }}>{product.nutriScore.toUpperCase()}</div>
-                      <span style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>Nutri-Score</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Nutrition per 100g */}
-              <div style={{ font: `600 13px ${s.FONT}`, color: s.text, marginBottom: 10 }}>Nutrition per 100g</div>
-              <div style={{
-                display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 16,
-              }}>
-                {[
-                  { label: 'Calories', value: product.cal, unit: 'kcal', color: s.accent },
-                  { label: 'Protein', value: product.protein, unit: 'g', color: MACRO_COLORS.protein },
-                  { label: 'Carbs', value: product.carbs, unit: 'g', color: MACRO_COLORS.carbs },
-                  { label: 'Fat', value: product.fat, unit: 'g', color: '#D97706' },
-                  { label: 'Fiber', value: product.fiber, unit: 'g', color: '#10B981' },
-                  { label: 'Sugar', value: product.sugar, unit: 'g', color: '#EF4444' },
-                ].map((item, i) => (
-                  <div key={i} style={{
-                    background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)', borderRadius: 10, padding: '10px 12px', textAlign: 'center',
-                  }}>
-                    <div style={{ font: `700 16px ${s.MONO}`, color: item.color }}>{item.value}{item.unit === 'kcal' ? '' : item.unit}</div>
-                    <div style={{ font: `400 10px ${s.FONT}`, color: s.text3, marginTop: 2 }}>{item.label}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Serving size & add */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ font: `500 12px ${s.FONT}`, color: s.text3, marginBottom: 4, display: 'block' }}>Servings</label>
-                  <select value={servingMult} onChange={e => setServingMult(parseFloat(e.target.value))}
-                    style={{ ...s.input, width: '100%', cursor: 'pointer' }}>
-                    <option value={0.5}>0.5x ({product.servingSize})</option>
-                    <option value={1}>1x ({product.servingSize})</option>
-                    <option value={1.5}>1.5x ({product.servingSize})</option>
-                    <option value={2}>2x ({product.servingSize})</option>
-                    <option value={3}>3x ({product.servingSize})</option>
-                  </select>
-                </div>
-                <div style={{ flex: 1, paddingTop: 18 }}>
-                  <button onClick={handleAddToMeal} style={{
-                    ...s.pillAccent, width: '100%', padding: '12px 20px', fontSize: 14,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                      <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-                    </svg>
-                    Add to {mealName}
-                  </button>
-                </div>
-              </div>
-
-              {/* Scan another */}
-              <button onClick={() => { setProduct(null); setBarcode(''); setError(''); }} style={{
-                background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'center',
-                font: `400 13px ${s.FONT}`, color: s.accent, marginTop: 14, padding: 8, textDecoration: 'underline',
-              }}>Scan another barcode</button>
-            </div>
-          )}
-
-          {/* Empty state */}
-          {!product && !loading && !error && (
-            <div style={{ textAlign: 'center', padding: '20px 0', color: s.text3 }}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" style={{ opacity: 0.25, marginBottom: 10 }}>
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <line x1="7" y1="7" x2="7" y2="17" /><line x1="9.5" y1="7" x2="9.5" y2="17" />
-                <line x1="12" y1="7" x2="12" y2="17" /><line x1="14.5" y1="7" x2="14.5" y2="17" />
-                <line x1="17" y1="7" x2="17" y2="13" /><line x1="17" y1="15" x2="17" y2="17" />
-              </svg>
-              <div style={{ font: `400 13px ${s.FONT}` }}>
-                {cameraSupported ? 'Use camera or enter a barcode to look up nutrition info' : 'Enter a barcode number to look up nutrition info'}
-              </div>
-              <div style={{ font: `400 11px ${s.FONT}`, marginTop: 4, opacity: 0.6 }}>Powered by Open Food Facts</div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Macro Distribution Bar ─── */
-function MacroBar({ p, c, f }) {
-  const total = p + c + f;
-  if (!total) return null;
-  const pPct = (p / total) * 100;
-  const cPct = (c / total) * 100;
-  const fPct = (f / total) * 100;
-  return (
-    <div style={{ display: 'flex', height: 6, borderRadius: 3, overflow: 'hidden', width: '100%' }}>
-      <div style={{ width: `${pPct}%`, background: MACRO_COLORS.protein, transition: 'width 0.5s ease' }} />
-      <div style={{ width: `${cPct}%`, background: MACRO_COLORS.carbs, transition: 'width 0.5s ease' }} />
-      <div style={{ width: `${fPct}%`, background: MACRO_COLORS.fat, transition: 'width 0.5s ease' }} />
-    </div>
-  );
-}
-
-/* ─── Weekly Overview Chart ─── */
-function WeeklyChart({ mealLogs, targets }) {
-  const s = useStyles();
-  const days = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().slice(0, 10);
-    const dayMeals = mealLogs?.[dateStr];
-    let p = 0, c = 0, f = 0;
-    if (dayMeals) {
-      ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(m => {
-        (dayMeals[m]?.items || []).forEach(item => { p += item.p * 4; c += item.c * 4; f += item.f * 9; });
-      });
-    }
-    const total = p + c + f;
-    days.push({
-      label: d.toLocaleDateString('en-US', { weekday: 'short' }),
-      date: d.getDate(),
-      pCal: p, cCal: c, fCal: f,
-      total,
-    });
+  if (!localStorage.getItem(`ms_macro_targets_${c1.id}`)) {
+    localStorage.setItem(`ms_macro_targets_${c1.id}`, JSON.stringify(targets1));
+  }
+  if (!localStorage.getItem(`ms_macro_targets_${c2.id}`)) {
+    localStorage.setItem(`ms_macro_targets_${c2.id}`, JSON.stringify(targets2));
   }
 
-  const maxCal = Math.max(targets.calories * 1.2, ...days.map(d => d.total));
-  const chartH = 180;
-  const barW = 32;
+  // Meal logs — today + 6 days back
+  if (!localStorage.getItem(`ms_nutrition_${c1.id}`)) {
+    const meals = {};
+    for (let i = 0; i < 7; i++) {
+      const date = d(-i);
+      const factor = 0.85 + Math.random() * 0.3;
+      meals[date] = {
+        breakfast: [
+          { name: 'Scrambled Eggs (4)', calories: Math.round(320 * factor), protein: 24, carbs: 2, fat: 22 },
+          { name: 'Oatmeal w/ Banana', calories: Math.round(350 * factor), protein: 10, carbs: 60, fat: 6 },
+          { name: 'Black Coffee', calories: 5, protein: 0, carbs: 1, fat: 0 },
+        ],
+        lunch: [
+          { name: 'Grilled Chicken Breast (8oz)', calories: Math.round(380 * factor), protein: 56, carbs: 0, fat: 8 },
+          { name: 'Brown Rice (1 cup)', calories: Math.round(220 * factor), protein: 5, carbs: 46, fat: 2 },
+          { name: 'Steamed Broccoli', calories: 55, protein: 4, carbs: 10, fat: 0 },
+        ],
+        dinner: [
+          { name: 'Salmon Fillet (6oz)', calories: Math.round(350 * factor), protein: 40, carbs: 0, fat: 18 },
+          { name: 'Sweet Potato', calories: Math.round(180 * factor), protein: 4, carbs: 42, fat: 0 },
+          { name: 'Mixed Green Salad', calories: 80, protein: 2, carbs: 12, fat: 3 },
+        ],
+        snacks: [
+          { name: 'Protein Shake', calories: 280, protein: 40, carbs: 12, fat: 4 },
+          { name: 'Almonds (1oz)', calories: 164, protein: 6, carbs: 6, fat: 14 },
+          { name: 'Greek Yogurt', calories: 130, protein: 15, carbs: 8, fat: 4 },
+        ],
+      };
+    }
+    localStorage.setItem(`ms_nutrition_${c1.id}`, JSON.stringify(meals));
+  }
+
+  if (!localStorage.getItem(`ms_nutrition_${c2.id}`)) {
+    const meals = {};
+    for (let i = 0; i < 7; i++) {
+      const date = d(-i);
+      const factor = 0.85 + Math.random() * 0.3;
+      meals[date] = {
+        breakfast: [
+          { name: 'Avocado Toast (Whole Grain)', calories: Math.round(280 * factor), protein: 8, carbs: 30, fat: 16 },
+          { name: 'Green Smoothie', calories: Math.round(180 * factor), protein: 6, carbs: 32, fat: 2 },
+        ],
+        lunch: [
+          { name: 'Turkey Wrap', calories: Math.round(320 * factor), protein: 28, carbs: 35, fat: 8 },
+          { name: 'Side Salad w/ Vinaigrette', calories: 95, protein: 2, carbs: 10, fat: 5 },
+        ],
+        dinner: [
+          { name: 'Grilled Shrimp (6oz)', calories: Math.round(240 * factor), protein: 36, carbs: 2, fat: 4 },
+          { name: 'Quinoa (3/4 cup)', calories: Math.round(170 * factor), protein: 6, carbs: 30, fat: 3 },
+          { name: 'Roasted Vegetables', calories: 120, protein: 3, carbs: 18, fat: 4 },
+        ],
+        snacks: [
+          { name: 'Apple w/ Almond Butter', calories: 200, protein: 4, carbs: 28, fat: 10 },
+          { name: 'Protein Bar', calories: 210, protein: 20, carbs: 22, fat: 8 },
+        ],
+      };
+    }
+    localStorage.setItem(`ms_nutrition_${c2.id}`, JSON.stringify(meals));
+  }
+}
+
+/* ── Meal Plan Templates ── */
+const MEAL_PLANS = [
+  {
+    name: 'High Protein Cut',
+    icon: '🥩',
+    macros: { calories: 2000, protein: 200, carbs: 150, fat: 70 },
+    description: 'High protein, moderate carb, low fat for fat loss while preserving muscle.',
+    meals: ['Egg whites + oatmeal', '8oz chicken + rice + veggies', '6oz salmon + sweet potato + greens', 'Protein shake + almonds'],
+  },
+  {
+    name: 'Lean Bulk',
+    icon: '💪',
+    macros: { calories: 3200, protein: 220, carbs: 380, fat: 100 },
+    description: 'Caloric surplus with high protein for maximum muscle growth.',
+    meals: ['4 eggs + bagel + fruit', '10oz steak + large rice + broccoli', 'Pasta + ground turkey + sauce', 'PB sandwich + mass gainer'],
+  },
+  {
+    name: 'Balanced',
+    icon: '⚖️',
+    macros: { calories: 2200, protein: 150, carbs: 250, fat: 75 },
+    description: 'Even macro split for general fitness and sustainable eating.',
+    meals: ['Greek yogurt parfait', 'Turkey sandwich + fruit', 'Grilled fish + brown rice + salad', 'Trail mix + protein bar'],
+  },
+  {
+    name: 'Keto',
+    icon: '🥑',
+    macros: { calories: 2000, protein: 150, carbs: 30, fat: 155 },
+    description: 'Very low carb, high fat for ketogenic fat burning.',
+    meals: ['Bacon + eggs + avocado', '8oz salmon + caesar salad (no croutons)', 'Ribeye + asparagus + butter', 'Cheese + macadamia nuts'],
+  },
+];
+
+/* ── DonutRing SVG ── */
+function DonutRing({ value, max, color, label, unit, size = 100 }) {
+  const s = useStyles();
+  const pct = Math.min(value / max, 1);
+  const circumference = 283; // 2 * PI * 45
+  const offset = circumference * (1 - pct);
 
   return (
-    <div style={{
-      ...s.cardStyle, padding: 24,
-      animation: 'nutrFadeInUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.5s both',
-    }} className="nutr-card-hover nutr-weekly-chart">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <div>
-          <div style={{ font: `600 17px ${s.FONT}`, color: s.text }}>Weekly Overview</div>
-          <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, marginTop: 2 }}>Daily calorie intake vs target</div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <div style={{ width: 8, height: 8, borderRadius: 2, background: MACRO_COLORS.protein }} />
-            <span style={{ font: `400 11px ${s.MONO}`, color: s.text3 }}>Protein</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <div style={{ width: 8, height: 8, borderRadius: 2, background: MACRO_COLORS.carbs }} />
-            <span style={{ font: `400 11px ${s.MONO}`, color: s.text3 }}>Carbs</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <div style={{ width: 8, height: 8, borderRadius: 2, background: MACRO_COLORS.fat }} />
-            <span style={{ font: `400 11px ${s.MONO}`, color: s.text3 }}>Fat</span>
-          </div>
-        </div>
+    <div style={{ textAlign: 'center' }}>
+      <svg width={size} height={size} viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx="50" cy="50" r="45" fill="none" stroke={s.border} strokeWidth="8" />
+        <circle
+          cx="50" cy="50" r="45" fill="none"
+          stroke={color}
+          strokeWidth="8"
+          strokeLinecap="round"
+          strokeDasharray={`${circumference * pct} ${circumference}`}
+          style={{ animation: 'nutrRingDraw 1.2s ease forwards', transition: 'stroke-dasharray 0.6s ease' }}
+        />
+      </svg>
+      <div style={{ marginTop: -size / 2 - 10, position: 'relative', height: 0 }}>
+        <span style={{ fontFamily: s.MONO, fontSize: size > 90 ? 18 : 14, fontWeight: 700, color: s.text }}>{value}</span>
       </div>
-      <div style={{ position: 'relative', height: chartH + 40 }}>
-        {/* Target line */}
-        <div style={{
-          position: 'absolute', left: 0, right: 0,
-          top: chartH - (targets.calories / maxCal) * chartH,
-          borderTop: `2px dashed ${s.accent}55`,
-          zIndex: 1,
-        }}>
-          <span style={{
-            position: 'absolute', right: 0, top: -18,
-            font: `500 10px ${s.MONO}`, color: s.accent,
-            background: s.bg, padding: '1px 6px', borderRadius: 4,
-          }}>{targets.calories.toLocaleString()} cal target</span>
-        </div>
-        {/* Bars */}
-        <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'flex-end', height: chartH, paddingTop: 20 }}>
-          {days.map((day, i) => {
-            const pH = day.total > 0 ? (day.pCal / maxCal) * chartH : 0;
-            const cH = day.total > 0 ? (day.cCal / maxCal) * chartH : 0;
-            const fH = day.total > 0 ? (day.fCal / maxCal) * chartH : 0;
-            return (
-              <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                <div style={{ font: `500 10px ${s.MONO}`, color: s.text3 }}>
-                  {day.total > 0 ? day.total.toLocaleString() : '—'}
-                </div>
-                <div style={{
-                  width: barW, display: 'flex', flexDirection: 'column', borderRadius: '4px 4px 0 0', overflow: 'hidden',
-                  transformOrigin: 'bottom', animation: `nutrBarGrow 0.8s cubic-bezier(0.16,1,0.3,1) ${0.3 + i * 0.08}s both`,
-                }}>
-                  {day.total > 0 ? (
-                    <>
-                      <div style={{ height: fH, background: MACRO_COLORS.fat, minHeight: fH > 0 ? 2 : 0 }} />
-                      <div style={{ height: cH, background: MACRO_COLORS.carbs, minHeight: cH > 0 ? 2 : 0 }} />
-                      <div style={{ height: pH, background: MACRO_COLORS.protein, minHeight: pH > 0 ? 2 : 0 }} />
-                    </>
-                  ) : (
-                    <div style={{ height: 4, background: 'rgba(0,0,0,0.05)', borderRadius: 2, width: barW }} />
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        {/* Day labels */}
-        <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: 8 }}>
-          {days.map((day, i) => (
-            <div key={i} style={{ textAlign: 'center', width: barW }}>
-              <div style={{ font: `500 11px ${s.FONT}`, color: i === 6 ? s.text : s.text3 }}>{day.label}</div>
-              <div style={{ font: `400 10px ${s.MONO}`, color: s.text3 }}>{day.date}</div>
-            </div>
-          ))}
-        </div>
+      <div style={{ marginTop: size > 90 ? 24 : 18 }}>
+        <div style={{ fontFamily: s.FONT, fontSize: 12, fontWeight: 600, color: s.text }}>{label}</div>
+        <div style={{ fontFamily: s.MONO, fontSize: 11, color: s.text3 }}>{value} / {max}{unit}</div>
       </div>
     </div>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════════
-   MAIN NUTRITION PAGE
-   ═════════════════════════════════════════════════════════════════ */
+/* ═══════════════════ MAIN ═══════════════════ */
 export default function Nutrition() {
   const s = useStyles();
-  ensureSeedData();
-
-  const [patients, setPatients] = useState(getPatients());
+  const [clients, setClients] = useState(getPatients);
   const [selectedClient, setSelectedClient] = useState('');
-  const [mealLogs, setMealLogs] = useState(null);
-  const [targets, setTargets] = useState(null);
-  // Removed MFP integration state
-  const [foodModalOpen, setFoodModalOpen] = useState(false);
-  const [foodModalMeal, setFoodModalMeal] = useState('');
-  const [barcodeModalOpen, setBarcodeModalOpen] = useState(false);
-  const [barcodeModalMeal, setBarcodeModalMeal] = useState('');
-  const [assignToast, setAssignToast] = useState('');
+  const [nutritionData, setNutritionData] = useState({});
+  const [targets, setTargets] = useState({ calories: 2200, protein: 150, carbs: 250, fat: 75 });
+  const [expandedMeal, setExpandedMeal] = useState('breakfast');
+  const [foodSearch, setFoodSearch] = useState('');
+  const [foodResults, setFoodResults] = useState([]);
+  const [foodLoading, setFoodLoading] = useState(false);
+  const [barcodeInput, setBarcodeInput] = useState('');
+  const [barcodeResult, setBarcodeResult] = useState(null);
+  const [barcodeScanning, setBarcodeScanning] = useState(false);
+  const [addToMealType, setAddToMealType] = useState('snacks');
+  const [planModal, setPlanModal] = useState(null);
+  const debounceRef = useRef(null);
 
-  useEffect(() => {
-    const unsub = subscribe(() => setPatients(getPatients()));
-    return unsub;
-  }, []);
+  // Seed data on mount
+  useEffect(() => { seedNutritionData(); }, []);
 
-  // Load data when client is selected
+  // Subscribe to store changes
+  useEffect(() => subscribe(() => setClients(getPatients())), []);
+
+  // Auto-select first client
   useEffect(() => {
-    if (!selectedClient) { setMealLogs(null); setTargets(null); return; }
-    const ml = getMealLog(selectedClient);
-    const mt = getMacroTargets(selectedClient);
-    setMealLogs(ml || {});
-    setTargets(mt || { calories: 2000, protein: 150, carbs: 200, fat: 65 });
-    setMfpSynced(false);
+    if (!selectedClient && clients.length > 0) setSelectedClient(clients[0].id);
+  }, [clients, selectedClient]);
+
+  // Load data when client changes
+  useEffect(() => {
+    if (!selectedClient) return;
+    try {
+      const data = JSON.parse(localStorage.getItem(`ms_nutrition_${selectedClient}`) || '{}');
+      setNutritionData(data);
+      const t = JSON.parse(localStorage.getItem(`ms_macro_targets_${selectedClient}`) || 'null');
+      if (t) setTargets(t);
+      else setTargets({ calories: 2200, protein: 150, carbs: 250, fat: 75 });
+    } catch {
+      setNutritionData({});
+    }
   }, [selectedClient]);
 
+  // Save nutrition data
+  const saveData = useCallback((newData) => {
+    setNutritionData(newData);
+    if (selectedClient) localStorage.setItem(`ms_nutrition_${selectedClient}`, JSON.stringify(newData));
+  }, [selectedClient]);
+
+  const todayStr = d(0);
+  const todayMeals = nutritionData[todayStr] || { breakfast: [], lunch: [], dinner: [], snacks: [] };
+
   // Calculate today's totals
-  const todayStr = getTodayStr();
-  const todayMeals = mealLogs?.[todayStr] || {};
-  let todayTotals = { cal: 0, p: 0, c: 0, f: 0 };
-  ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(m => {
-    (todayMeals[m]?.items || []).forEach(item => {
-      todayTotals.cal += item.cal;
-      todayTotals.p += item.p;
-      todayTotals.c += item.c;
-      todayTotals.f += item.f;
+  const todayTotals = useMemo(() => {
+    const totals = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+    Object.values(todayMeals).forEach(meal => {
+      (meal || []).forEach(item => {
+        totals.calories += item.calories || 0;
+        totals.protein += item.protein || 0;
+        totals.carbs += item.carbs || 0;
+        totals.fat += item.fat || 0;
+      });
     });
-  });
+    return totals;
+  }, [todayMeals]);
 
-  // MFP sync removed
+  // Weekly data for chart
+  const weekData = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const date = d(-6 + i);
+      const day = new Date(date + 'T12:00:00');
+      const meals = nutritionData[date] || {};
+      const totals = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+      Object.values(meals).forEach(meal => {
+        (meal || []).forEach(item => {
+          totals.calories += item.calories || 0;
+          totals.protein += item.protein || 0;
+          totals.carbs += item.carbs || 0;
+          totals.fat += item.fat || 0;
+        });
+      });
+      return { date, dayName: DAY_NAMES[day.getDay()], ...totals };
+    });
+  }, [nutritionData]);
 
-  const handleAddFood = (mealType) => {
-    setFoodModalMeal(mealType);
-    setFoodModalOpen(true);
+  /* ── USDA Food Search ── */
+  useEffect(() => {
+    if (!foodSearch.trim()) { setFoodResults([]); return; }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      setFoodLoading(true);
+      try {
+        const res = await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&query=${encodeURIComponent(foodSearch)}&pageSize=12`);
+        const json = await res.json();
+        const foods = (json.foods || []).map(f => {
+          const get = (name) => {
+            const n = (f.foodNutrients || []).find(n => n.nutrientName?.toLowerCase().includes(name.toLowerCase()));
+            return Math.round(n?.value || 0);
+          };
+          return {
+            name: f.description || f.lowercaseDescription || 'Unknown',
+            brand: f.brandName || f.brandOwner || '',
+            calories: get('energy'),
+            protein: get('protein'),
+            carbs: get('carbohydrate'),
+            fat: get('total lipid'),
+            serving: f.servingSize ? `${f.servingSize}${f.servingSizeUnit || 'g'}` : '100g',
+          };
+        });
+        setFoodResults(foods);
+      } catch {
+        setFoodResults([]);
+      }
+      setFoodLoading(false);
+    }, 400);
+    return () => clearTimeout(debounceRef.current);
+  }, [foodSearch]);
+
+  /* ── Barcode Lookup ── */
+  const lookupBarcode = async (code) => {
+    if (!code) return;
+    setBarcodeScanning(true);
+    setBarcodeResult(null);
+    try {
+      const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
+      const json = await res.json();
+      if (json.status === 1 && json.product) {
+        const p = json.product;
+        const n = p.nutriments || {};
+        setBarcodeResult({
+          name: p.product_name || 'Unknown Product',
+          brand: p.brands || '',
+          calories: Math.round(n['energy-kcal_100g'] || n['energy-kcal'] || 0),
+          protein: Math.round(n.proteins_100g || n.proteins || 0),
+          carbs: Math.round(n.carbohydrates_100g || n.carbohydrates || 0),
+          fat: Math.round(n.fat_100g || n.fat || 0),
+          serving: p.serving_size || '100g',
+          image: p.image_front_small_url || '',
+        });
+      } else {
+        setBarcodeResult({ error: true, name: 'Product not found' });
+      }
+    } catch {
+      setBarcodeResult({ error: true, name: 'Lookup failed' });
+    }
+    setBarcodeScanning(false);
   };
 
-  const handleScanBarcode = (mealType) => {
-    setBarcodeModalMeal(mealType);
-    setBarcodeModalOpen(true);
+  // Try BarcodeDetector API
+  const startCameraScan = async () => {
+    if (!('BarcodeDetector' in window)) {
+      alert('Camera barcode scanning is not supported in this browser. Please enter the barcode manually.');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      await video.play();
+      const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'] });
+      const detect = async () => {
+        try {
+          const barcodes = await detector.detect(video);
+          if (barcodes.length > 0) {
+            setBarcodeInput(barcodes[0].rawValue);
+            lookupBarcode(barcodes[0].rawValue);
+            stream.getTracks().forEach(t => t.stop());
+            return;
+          }
+        } catch {}
+        requestAnimationFrame(detect);
+      };
+      detect();
+      // Auto-stop after 10 seconds
+      setTimeout(() => stream.getTracks().forEach(t => t.stop()), 10000);
+    } catch {
+      alert('Could not access camera.');
+    }
   };
 
-  const handleFoodAdded = (food) => {
-    const updated = { ...mealLogs };
-    if (!updated[todayStr]) updated[todayStr] = {};
-    if (!updated[todayStr][foodModalMeal]) updated[todayStr][foodModalMeal] = { items: [] };
-    updated[todayStr][foodModalMeal].items.push(food);
-    setMealLogs(updated);
-    setMealLog(selectedClient, updated);
+  /* ── Add food to meal log ── */
+  const addFoodToMeal = (food, mealType) => {
+    const newData = { ...nutritionData };
+    if (!newData[todayStr]) newData[todayStr] = { breakfast: [], lunch: [], dinner: [], snacks: [] };
+    if (!newData[todayStr][mealType]) newData[todayStr][mealType] = [];
+    newData[todayStr][mealType].push({
+      name: food.name + (food.brand ? ` (${food.brand})` : ''),
+      calories: food.calories,
+      protein: food.protein,
+      carbs: food.carbs,
+      fat: food.fat,
+    });
+    saveData(newData);
   };
 
-  const handleBarcodeFoodAdded = (food) => {
-    const updated = { ...mealLogs };
-    if (!updated[todayStr]) updated[todayStr] = {};
-    if (!updated[todayStr][barcodeModalMeal]) updated[todayStr][barcodeModalMeal] = { items: [] };
-    updated[todayStr][barcodeModalMeal].items.push(food);
-    setMealLogs(updated);
-    setMealLog(selectedClient, updated);
+  /* ── Remove food from meal ── */
+  const removeFoodFromMeal = (mealType, idx) => {
+    const newData = { ...nutritionData };
+    if (newData[todayStr]?.[mealType]) {
+      newData[todayStr][mealType] = newData[todayStr][mealType].filter((_, i) => i !== idx);
+      saveData(newData);
+    }
   };
 
-  const handleAssignTemplate = (template) => {
-    const newTargets = { calories: template.cal, protein: template.p, carbs: template.c, fat: template.f };
-    setTargets(newTargets);
-    setMacroTargets(selectedClient, newTargets);
-    setAssignToast(`${template.name} assigned!`);
-    setTimeout(() => setAssignToast(''), 2500);
+  /* ── Apply meal plan template ── */
+  const applyPlan = (plan) => {
+    if (selectedClient) {
+      localStorage.setItem(`ms_macro_targets_${selectedClient}`, JSON.stringify(plan.macros));
+      setTargets(plan.macros);
+    }
+    setPlanModal(null);
   };
 
-  const clientObj = patients.find(p => p.id === selectedClient);
+  const mealTypes = [
+    { key: 'breakfast', label: 'Breakfast', icon: '🌅' },
+    { key: 'lunch', label: 'Lunch', icon: '☀️' },
+    { key: 'dinner', label: 'Dinner', icon: '🌙' },
+    { key: 'snacks', label: 'Snacks', icon: '🍎' },
+  ];
+
+  const client = clients.find(c => c.id === selectedClient);
 
   return (
-    <div className="nutr-page">
+    <div style={{ padding: '32px 24px', maxWidth: 1200, margin: '0 auto' }}>
       {/* Header */}
-      <div style={{ marginBottom: 28, animation: 'nutrFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) both' }}>
-        <h1 style={{ font: `700 30px ${s.FONT}`, color: s.text, margin: 0, letterSpacing: '-0.5px' }}>
-          Nutrition & Meal Plans
-        </h1>
-        <p style={{ font: `400 14px ${s.FONT}`, color: s.text3, margin: '6px 0 0', lineHeight: 1.5 }}>
-          Track macros, plan meals, and coach your clients' nutrition
-        </p>
-      </div>
-
-      {/* Client Selector */}
-      <div style={{
-        ...s.cardStyle, padding: 20, marginBottom: 24,
-        animation: 'nutrFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s both',
-      }}>
-        <label style={s.label}>Select Client</label>
-        <select value={selectedClient} onChange={e => setSelectedClient(e.target.value)}
-          style={{ ...s.input, maxWidth: 400, cursor: 'pointer' }}>
-          <option value="">Choose a client...</option>
-          {patients.map(p => (
-            <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
+        <div>
+          <h1 style={{ fontFamily: s.HEADING, fontSize: 28, fontWeight: 700, color: s.text, margin: 0 }}>Nutrition</h1>
+          <p style={{ fontFamily: s.FONT, fontSize: 14, color: s.text2, margin: '4px 0 0' }}>
+            Track meals, macros, and meal plans
+          </p>
+        </div>
+        {/* Client selector */}
+        <select
+          style={{ ...s.input, width: 'auto', minWidth: 220, cursor: 'pointer' }}
+          value={selectedClient}
+          onChange={e => setSelectedClient(e.target.value)}
+        >
+          <option value="">Select client...</option>
+          {clients.map(c => (
+            <option key={c.id} value={c.id}>{c.firstName} {c.lastName}</option>
           ))}
         </select>
       </div>
 
-      {/* All content below requires a client selection */}
-      {selectedClient && targets && (
+      {!selectedClient ? (
+        <div style={{ ...s.cardStyle, padding: '60px 24px', textAlign: 'center' }}>
+          <p style={{ fontFamily: s.FONT, fontSize: 16, color: s.text3 }}>Select a client to view nutrition data</p>
+        </div>
+      ) : (
         <>
-          {/* ═══ Today's Macros ═══ */}
-          <div style={{
-            ...s.cardStyle, padding: 28, marginBottom: 24,
-            animation: 'nutrFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.15s both',
-          }}>
-            <div style={{ font: `600 17px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Today's Macros</div>
-            <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, marginBottom: 24 }}>
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          {/* ═══ TODAY'S MACROS ═══ */}
+          <div style={{ ...s.cardStyle, padding: 24, marginBottom: 24, animation: 'nutrFadeInUp 0.4s ease' }}>
+            <h2 style={{ fontFamily: s.HEADING, fontSize: 18, fontWeight: 600, color: s.text, margin: '0 0 20px' }}>
+              Today's Macros
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 24, justifyItems: 'center' }}>
+              <DonutRing value={todayTotals.calories} max={targets.calories} color={MACRO_COLORS.calories} label="Calories" unit=" cal" size={110} />
+              <DonutRing value={todayTotals.protein} max={targets.protein} color={MACRO_COLORS.protein} label="Protein" unit="g" />
+              <DonutRing value={todayTotals.carbs} max={targets.carbs} color={MACRO_COLORS.carbs} label="Carbs" unit="g" />
+              <DonutRing value={todayTotals.fat} max={targets.fat} color={MACRO_COLORS.fat} label="Fat" unit="g" />
             </div>
-            <div className="nutr-macros-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24, justifyItems: 'center' }}>
-              <MacroRing value={todayTotals.cal} max={targets.calories} label="Calories" color={s.accent} unit=" cal" delay={0.2} />
-              <MacroRing value={todayTotals.p} max={targets.protein} label="Protein" color={MACRO_COLORS.protein} unit="g" delay={0.3} />
-              <MacroRing value={todayTotals.c} max={targets.carbs} label="Carbs" color={MACRO_COLORS.carbs} unit="g" delay={0.4} />
-              <MacroRing value={todayTotals.f} max={targets.fat} label="Fat" color={MACRO_COLORS.fat} unit="g" delay={0.5} />
+            {/* Remaining */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 24, marginTop: 16, flexWrap: 'wrap' }}>
+              {[
+                { label: 'Cal remaining', val: targets.calories - todayTotals.calories },
+                { label: 'Protein left', val: targets.protein - todayTotals.protein, unit: 'g' },
+              ].map((r, i) => (
+                <span key={i} style={{
+                  fontFamily: s.MONO, fontSize: 12,
+                  color: r.val > 0 ? s.text2 : s.danger,
+                  background: r.val > 0 ? s.surfaceAlt : s.dangerBg,
+                  padding: '4px 12px', borderRadius: 100,
+                }}>
+                  {r.val > 0 ? r.val : 'Over by ' + Math.abs(r.val)} {r.unit || 'cal'} {r.val > 0 ? 'left' : ''}
+                </span>
+              ))}
             </div>
           </div>
 
-          {/* ═══ Section 3: Meal Log ═══ */}
-          <div style={{ marginBottom: 24 }}>
-            <div style={{
-              font: `600 17px ${s.FONT}`, color: s.text, marginBottom: 4,
-              animation: 'nutrFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.2s both',
-            }}>Meal Log</div>
-            <div style={{
-              font: `400 12px ${s.FONT}`, color: s.text3, marginBottom: 16,
-              animation: 'nutrFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.2s both',
-            }}>
-              {todayTotals.cal.toLocaleString()} of {targets.calories.toLocaleString()} calories consumed
+          {/* ═══ MEAL LOG ═══ */}
+          <div style={{ ...s.cardStyle, padding: 0, marginBottom: 24, overflow: 'hidden', animation: 'nutrFadeInUp 0.4s ease 0.05s both' }}>
+            <div style={{ padding: '20px 24px 0' }}>
+              <h2 style={{ fontFamily: s.HEADING, fontSize: 18, fontWeight: 600, color: s.text, margin: '0 0 16px' }}>
+                Meal Log — {new Date(todayStr + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+              </h2>
             </div>
-            <MealSection title="Breakfast" icon={"\u2600\uFE0F"} mealData={todayMeals.breakfast} onAddFood={() => handleAddFood('breakfast')} onScanBarcode={() => handleScanBarcode('breakfast')} delay={0.25} />
-            <MealSection title="Lunch" icon={"\uD83C\uDF1E"} mealData={todayMeals.lunch} onAddFood={() => handleAddFood('lunch')} onScanBarcode={() => handleScanBarcode('lunch')} delay={0.3} />
-            <MealSection title="Dinner" icon={"\uD83C\uDF19"} mealData={todayMeals.dinner} onAddFood={() => handleAddFood('dinner')} onScanBarcode={() => handleScanBarcode('dinner')} delay={0.35} />
-            <MealSection title="Snacks" icon={"\uD83C\uDF4E"} mealData={todayMeals.snacks} onAddFood={() => handleAddFood('snacks')} onScanBarcode={() => handleScanBarcode('snacks')} delay={0.4} />
-          </div>
-
-          {/* ═══ Section 5: Meal Plan Templates ═══ */}
-          <div style={{ marginBottom: 24 }}>
-            <div style={{
-              font: `600 17px ${s.FONT}`, color: s.text, marginBottom: 4,
-              animation: 'nutrFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.35s both',
-            }}>Meal Plan Templates</div>
-            <div style={{
-              font: `400 12px ${s.FONT}`, color: s.text3, marginBottom: 16,
-              animation: 'nutrFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.35s both',
-            }}>Assign a pre-built macro plan to {clientObj?.name || 'this client'}</div>
-            <div className="nutr-templates-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
-              {MEAL_PLAN_TEMPLATES.map((tpl, i) => {
-                const isActive = targets.calories === tpl.cal && targets.protein === tpl.p;
-                return (
-                  <div key={tpl.id} style={{
-                    ...s.cardStyle, overflow: 'hidden',
-                    animation: `nutrFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) ${0.4 + i * 0.06}s both`,
-                    border: isActive ? `2px solid ${s.accent}` : s.cardStyle.border,
-                  }} className="nutr-card-hover">
-                    {/* Gradient header */}
-                    <div style={{
-                      background: tpl.gradient, padding: '16px 20px',
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    }}>
-                      <div style={{ font: `700 16px ${s.FONT}`, color: '#fff' }}>{tpl.name}</div>
-                      <div style={{ font: `600 14px ${s.MONO}`, color: 'rgba(255,255,255,0.9)' }}>{tpl.cal.toLocaleString()} cal</div>
+            {mealTypes.map(mt => {
+              const items = todayMeals[mt.key] || [];
+              const mealCal = items.reduce((s, i) => s + (i.calories || 0), 0);
+              const mealProt = items.reduce((s, i) => s + (i.protein || 0), 0);
+              const isExpanded = expandedMeal === mt.key;
+              return (
+                <div key={mt.key} style={{ borderBottom: `1px solid ${s.border}` }}>
+                  {/* Meal header */}
+                  <div
+                    onClick={() => setExpandedMeal(isExpanded ? null : mt.key)}
+                    style={{
+                      padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      cursor: 'pointer', transition: 'background 0.15s',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 18 }}>{mt.icon}</span>
+                      <span style={{ fontFamily: s.FONT, fontSize: 15, fontWeight: 600, color: s.text }}>{mt.label}</span>
+                      <span style={{ fontFamily: s.MONO, fontSize: 12, color: s.text3, marginLeft: 4 }}>
+                        {items.length} item{items.length !== 1 ? 's' : ''}
+                      </span>
                     </div>
-                    <div style={{ padding: '16px 20px' }}>
-                      <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, marginBottom: 12, lineHeight: 1.5 }}>{tpl.desc}</div>
-                      {/* Macro breakdown */}
-                      <div style={{ display: 'flex', gap: 16, marginBottom: 12 }}>
-                        <div>
-                          <div style={{ font: `600 14px ${s.MONO}`, color: MACRO_COLORS.protein }}>{tpl.p}g</div>
-                          <div style={{ font: `400 10px ${s.MONO}`, color: s.text3 }}>Protein</div>
-                        </div>
-                        <div>
-                          <div style={{ font: `600 14px ${s.MONO}`, color: MACRO_COLORS.carbs }}>{tpl.c}g</div>
-                          <div style={{ font: `400 10px ${s.MONO}`, color: s.text3 }}>Carbs</div>
-                        </div>
-                        <div>
-                          <div style={{ font: `600 14px ${s.MONO}`, color: '#D97706' }}>{tpl.f}g</div>
-                          <div style={{ font: `400 10px ${s.MONO}`, color: s.text3 }}>Fat</div>
-                        </div>
-                      </div>
-                      <MacroBar p={tpl.p} c={tpl.c} f={tpl.f} />
-                      <button onClick={() => handleAssignTemplate(tpl)} style={{
-                        ...(isActive ? s.pillGhost : s.pillAccent), marginTop: 14, width: '100%',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      }}>
-                        {isActive ? (
-                          <>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg>
-                            Active Plan
-                          </>
-                        ) : 'Assign to Client'}
-                      </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      <span style={{ fontFamily: s.MONO, fontSize: 13, color: s.accent, fontWeight: 600 }}>{mealCal} cal</span>
+                      <span style={{ fontFamily: s.MONO, fontSize: 12, color: s.text3 }}>{mealProt}g protein</span>
+                      <span style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s', color: s.text3 }}>
+                        {ICO.chev}
+                      </span>
                     </div>
                   </div>
-                );
-              })}
+                  {/* Expanded items */}
+                  {isExpanded && (
+                    <div style={{ padding: '0 24px 16px', animation: 'nutrFadeInUp 0.25s ease' }}>
+                      {items.length === 0 ? (
+                        <p style={{ fontFamily: s.FONT, fontSize: 13, color: s.text3, padding: '8px 0' }}>No items logged</p>
+                      ) : (
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                          <thead>
+                            <tr>
+                              {['Food', 'Cal', 'Protein', 'Carbs', 'Fat', ''].map(h => (
+                                <th key={h} style={{ fontFamily: s.FONT, fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', color: s.text3, padding: '6px 4px', textAlign: 'left' }}>{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {items.map((item, j) => (
+                              <tr key={j} className="nutr-meal-row" style={{ borderBottom: j < items.length - 1 ? `1px solid ${s.borderLight}` : 'none' }}>
+                                <td style={{ fontFamily: s.FONT, fontSize: 13, color: s.text, padding: '8px 4px', fontWeight: 500 }}>{item.name}</td>
+                                <td style={{ fontFamily: s.MONO, fontSize: 13, color: s.accent, padding: '8px 4px' }}>{item.calories}</td>
+                                <td style={{ fontFamily: s.MONO, fontSize: 13, color: s.text2, padding: '8px 4px' }}>{item.protein}g</td>
+                                <td style={{ fontFamily: s.MONO, fontSize: 13, color: s.text2, padding: '8px 4px' }}>{item.carbs}g</td>
+                                <td style={{ fontFamily: s.MONO, fontSize: 13, color: s.text2, padding: '8px 4px' }}>{item.fat}g</td>
+                                <td style={{ padding: '8px 4px' }}>
+                                  <button onClick={() => removeFoodFromMeal(mt.key, j)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: s.text3, padding: 2 }}>
+                                    {ICO.trash}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ═══ FOOD SEARCH + BARCODE ═══ */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20, marginBottom: 24 }}>
+            {/* Food Search */}
+            <div style={{ ...s.cardStyle, padding: 24, animation: 'nutrFadeInUp 0.4s ease 0.1s both' }}>
+              <h3 style={{ fontFamily: s.HEADING, fontSize: 16, fontWeight: 600, color: s.text, margin: '0 0 14px' }}>
+                Food Search (USDA)
+              </h3>
+              <div style={{ position: 'relative', marginBottom: 12 }}>
+                <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: s.text3 }}>{ICO.search}</span>
+                <input
+                  style={{ ...s.input, paddingLeft: 40 }}
+                  placeholder="Search foods..."
+                  value={foodSearch}
+                  onChange={e => setFoodSearch(e.target.value)}
+                />
+              </div>
+              {/* Add to selector */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <span style={{ fontFamily: s.FONT, fontSize: 12, color: s.text3 }}>Add to:</span>
+                <select style={{ ...s.input, width: 'auto', padding: '6px 12px', fontSize: 12, cursor: 'pointer' }} value={addToMealType} onChange={e => setAddToMealType(e.target.value)}>
+                  {mealTypes.map(mt => <option key={mt.key} value={mt.key}>{mt.label}</option>)}
+                </select>
+              </div>
+              {/* Results */}
+              <div style={{ maxHeight: 320, overflow: 'auto' }}>
+                {foodLoading && (
+                  <div style={{ textAlign: 'center', padding: 20 }}>
+                    <div style={{ width: 24, height: 24, border: `3px solid ${s.border}`, borderTopColor: s.accent, borderRadius: '50%', animation: 'nutrSpin 0.8s linear infinite', margin: '0 auto' }} />
+                  </div>
+                )}
+                {foodResults.map((food, i) => (
+                  <div
+                    key={i}
+                    className="nutr-meal-row"
+                    style={{
+                      padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      borderBottom: i < foodResults.length - 1 ? `1px solid ${s.borderLight}` : 'none',
+                      transition: 'background 0.15s',
+                    }}
+                    onClick={() => addFoodToMeal(food, addToMealType)}
+                  >
+                    <div>
+                      <div style={{ fontFamily: s.FONT, fontSize: 13, fontWeight: 500, color: s.text }}>{food.name}</div>
+                      {food.brand && <div style={{ fontFamily: s.FONT, fontSize: 11, color: s.text3 }}>{food.brand}</div>}
+                      <div style={{ fontFamily: s.MONO, fontSize: 11, color: s.text3, marginTop: 2 }}>
+                        {food.serving} — P:{food.protein}g C:{food.carbs}g F:{food.fat}g
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontFamily: s.MONO, fontSize: 14, fontWeight: 600, color: s.accent }}>{food.calories}</span>
+                      <span style={{ color: s.accent }}>{ICO.plus}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Barcode Scanner */}
+            <div style={{ ...s.cardStyle, padding: 24, animation: 'nutrFadeInUp 0.4s ease 0.15s both' }}>
+              <h3 style={{ fontFamily: s.HEADING, fontSize: 16, fontWeight: 600, color: s.text, margin: '0 0 14px' }}>
+                Barcode Scanner
+              </h3>
+              <p style={{ fontFamily: s.FONT, fontSize: 13, color: s.text3, margin: '0 0 14px' }}>
+                Scan or enter a barcode to look up nutrition info via Open Food Facts.
+              </p>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+                <input
+                  style={{ ...s.input, flex: 1 }}
+                  placeholder="Enter barcode (e.g. 0049000006346)"
+                  value={barcodeInput}
+                  onChange={e => setBarcodeInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && lookupBarcode(barcodeInput)}
+                />
+                <button style={{ ...s.pillAccent, whiteSpace: 'nowrap' }} onClick={() => lookupBarcode(barcodeInput)}>
+                  Look Up
+                </button>
+              </div>
+              <button
+                style={{ ...s.pillOutline, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16 }}
+                onClick={startCameraScan}
+              >
+                {ICO.scan} Scan with Camera
+              </button>
+
+              {barcodeScanning && (
+                <div style={{ textAlign: 'center', padding: 20 }}>
+                  <div style={{ width: 24, height: 24, border: `3px solid ${s.border}`, borderTopColor: s.accent, borderRadius: '50%', animation: 'nutrSpin 0.8s linear infinite', margin: '0 auto 8px' }} />
+                  <p style={{ fontFamily: s.FONT, fontSize: 13, color: s.text3 }}>Looking up product...</p>
+                </div>
+              )}
+
+              {barcodeResult && !barcodeResult.error && (
+                <div style={{ padding: 16, borderRadius: 12, background: s.surfaceAlt, border: `1px solid ${s.border}` }}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
+                    {barcodeResult.image && (
+                      <img src={barcodeResult.image} alt="" style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 8 }} />
+                    )}
+                    <div>
+                      <div style={{ fontFamily: s.FONT, fontSize: 14, fontWeight: 600, color: s.text }}>{barcodeResult.name}</div>
+                      {barcodeResult.brand && <div style={{ fontFamily: s.FONT, fontSize: 12, color: s.text3 }}>{barcodeResult.brand}</div>}
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 12 }}>
+                    {[
+                      { label: 'Cal', val: barcodeResult.calories, color: MACRO_COLORS.calories },
+                      { label: 'Protein', val: barcodeResult.protein + 'g', color: MACRO_COLORS.protein },
+                      { label: 'Carbs', val: barcodeResult.carbs + 'g', color: MACRO_COLORS.carbs },
+                      { label: 'Fat', val: barcodeResult.fat + 'g', color: MACRO_COLORS.fat },
+                    ].map((m, i) => (
+                      <div key={i} style={{ textAlign: 'center' }}>
+                        <div style={{ fontFamily: s.MONO, fontSize: 15, fontWeight: 700, color: m.color }}>{m.val}</div>
+                        <div style={{ fontFamily: s.FONT, fontSize: 10, color: s.text3, textTransform: 'uppercase' }}>{m.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <select style={{ ...s.input, width: 'auto', padding: '6px 12px', fontSize: 12, cursor: 'pointer', flex: 1 }} value={addToMealType} onChange={e => setAddToMealType(e.target.value)}>
+                      {mealTypes.map(mt => <option key={mt.key} value={mt.key}>{mt.label}</option>)}
+                    </select>
+                    <button style={s.pillCta} onClick={() => { addFoodToMeal(barcodeResult, addToMealType); setBarcodeResult(null); setBarcodeInput(''); }}>
+                      Add to Meal
+                    </button>
+                  </div>
+                </div>
+              )}
+              {barcodeResult?.error && (
+                <div style={{ padding: 16, borderRadius: 12, background: s.dangerBg, textAlign: 'center' }}>
+                  <p style={{ fontFamily: s.FONT, fontSize: 13, color: s.danger }}>{barcodeResult.name}</p>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* ═══ Section 6: Weekly Overview ═══ */}
-          <WeeklyChart mealLogs={mealLogs} targets={targets} />
+          {/* ═══ MEAL PLAN TEMPLATES ═══ */}
+          <div style={{ marginBottom: 24, animation: 'nutrFadeInUp 0.4s ease 0.2s both' }}>
+            <h2 style={{ fontFamily: s.HEADING, fontSize: 18, fontWeight: 600, color: s.text, margin: '0 0 16px' }}>
+              Meal Plan Templates
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+              {MEAL_PLANS.map((plan, i) => (
+                <div
+                  key={i}
+                  className="nutr-card-hover"
+                  style={{ ...s.cardStyle, padding: 20, cursor: 'pointer', transition: 'all 0.25s ease' }}
+                  onClick={() => setPlanModal(plan)}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                    <span style={{ fontSize: 28 }}>{plan.icon}</span>
+                    <h3 style={{ fontFamily: s.HEADING, fontSize: 16, fontWeight: 600, color: s.text, margin: 0 }}>{plan.name}</h3>
+                  </div>
+                  <p style={{ fontFamily: s.FONT, fontSize: 13, color: s.text2, margin: '0 0 12px', lineHeight: 1.5 }}>
+                    {plan.description}
+                  </p>
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <span style={{ fontFamily: s.MONO, fontSize: 11, color: MACRO_COLORS.calories, background: s.surfaceAlt, padding: '2px 8px', borderRadius: 100 }}>{plan.macros.calories} cal</span>
+                    <span style={{ fontFamily: s.MONO, fontSize: 11, color: MACRO_COLORS.protein, background: s.surfaceAlt, padding: '2px 8px', borderRadius: 100 }}>{plan.macros.protein}g P</span>
+                    <span style={{ fontFamily: s.MONO, fontSize: 11, color: MACRO_COLORS.carbs, background: s.surfaceAlt, padding: '2px 8px', borderRadius: 100 }}>{plan.macros.carbs}g C</span>
+                    <span style={{ fontFamily: s.MONO, fontSize: 11, color: MACRO_COLORS.fat, background: s.surfaceAlt, padding: '2px 8px', borderRadius: 100 }}>{plan.macros.fat}g F</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-          {/* ═══ Food Search Modal ═══ */}
-          <FoodSearchModal
-            open={foodModalOpen}
-            onClose={() => setFoodModalOpen(false)}
-            onAdd={handleFoodAdded}
-            mealName={foodModalMeal.charAt(0).toUpperCase() + foodModalMeal.slice(1)}
-            onSwitchToBarcode={() => { setBarcodeModalMeal(foodModalMeal); setBarcodeModalOpen(true); }}
-          />
+          {/* ═══ WEEKLY OVERVIEW (Stacked Bar Chart) ═══ */}
+          <div style={{ ...s.cardStyle, padding: 24, animation: 'nutrFadeInUp 0.4s ease 0.25s both' }}>
+            <h2 style={{ fontFamily: s.HEADING, fontSize: 18, fontWeight: 600, color: s.text, margin: '0 0 20px' }}>
+              Weekly Overview
+            </h2>
+            <WeeklyBarChart data={weekData} targets={targets} s={s} />
+          </div>
 
-          <BarcodeScannerModal
-            open={barcodeModalOpen}
-            onClose={() => setBarcodeModalOpen(false)}
-            onAdd={handleBarcodeFoodAdded}
-            mealName={barcodeModalMeal.charAt(0).toUpperCase() + barcodeModalMeal.slice(1)}
-          />
-
-          {/* Assignment Toast */}
-          {assignToast && (
-            <div style={{
-              position: 'fixed', bottom: 32, right: 32, zIndex: 1100,
-              background: s.accent, color: s.accentText,
-              padding: '12px 24px', borderRadius: 100,
-              font: `500 14px ${s.FONT}`,
-              boxShadow: `0 8px 32px ${s.accent}44`,
-              animation: 'nutrFadeInUp 0.3s cubic-bezier(0.16,1,0.3,1)',
-              display: 'flex', alignItems: 'center', gap: 8,
-            }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg>
-              {assignToast}
+          {/* ═══ PLAN DETAIL MODAL ═══ */}
+          {planModal && (
+            <div
+              className="nutr-modal-overlay"
+              onClick={() => setPlanModal(null)}
+              style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                background: 'rgba(0,0,0,0.5)', zIndex: 9999,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+              }}
+            >
+              <div
+                className="nutr-modal-content"
+                onClick={e => e.stopPropagation()}
+                style={{
+                  background: s.surface, borderRadius: 20, border: `1px solid ${s.border}`,
+                  boxShadow: s.shadowLg, maxWidth: 480, width: '90vw', padding: 28, position: 'relative',
+                }}
+              >
+                <button onClick={() => setPlanModal(null)} style={{
+                  position: 'absolute', top: 16, right: 16, background: s.surfaceAlt,
+                  border: `1px solid ${s.border}`, borderRadius: 10, width: 36, height: 36,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: s.text2,
+                }}>
+                  {ICO.x}
+                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                  <span style={{ fontSize: 40 }}>{planModal.icon}</span>
+                  <h2 style={{ fontFamily: s.HEADING, fontSize: 22, fontWeight: 700, color: s.text, margin: 0 }}>{planModal.name}</h2>
+                </div>
+                <p style={{ fontFamily: s.FONT, fontSize: 14, color: s.text2, lineHeight: 1.6, margin: '0 0 20px' }}>
+                  {planModal.description}
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
+                  {[
+                    { label: 'Calories', val: planModal.macros.calories, unit: '', color: MACRO_COLORS.calories },
+                    { label: 'Protein', val: planModal.macros.protein, unit: 'g', color: MACRO_COLORS.protein },
+                    { label: 'Carbs', val: planModal.macros.carbs, unit: 'g', color: MACRO_COLORS.carbs },
+                    { label: 'Fat', val: planModal.macros.fat, unit: 'g', color: MACRO_COLORS.fat },
+                  ].map((m, i) => (
+                    <div key={i} style={{ textAlign: 'center', padding: 12, borderRadius: 12, background: s.surfaceAlt }}>
+                      <div style={{ fontFamily: s.MONO, fontSize: 20, fontWeight: 700, color: m.color }}>{m.val}{m.unit}</div>
+                      <div style={{ fontFamily: s.FONT, fontSize: 11, color: s.text3, textTransform: 'uppercase', marginTop: 4 }}>{m.label}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginBottom: 20 }}>
+                  <span style={{ fontFamily: s.FONT, fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: s.text3, marginBottom: 8, display: 'block' }}>Sample Meals</span>
+                  <ol style={{ fontFamily: s.FONT, fontSize: 13, color: s.text2, margin: 0, paddingLeft: 18, lineHeight: 2 }}>
+                    {planModal.meals.map((m, i) => <li key={i}>{m}</li>)}
+                  </ol>
+                </div>
+                <button style={{ ...s.pillCta, width: '100%' }} onClick={() => applyPlan(planModal)}>
+                  Apply Macro Targets for {client?.firstName || 'Client'}
+                </button>
+              </div>
             </div>
           )}
         </>
       )}
+    </div>
+  );
+}
 
-      {/* Empty state */}
-      {!selectedClient && (
-        <div style={{
-          ...s.cardStyle, padding: '60px 40px', textAlign: 'center',
-          animation: 'nutrFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.1s both',
-        }}>
-          <div style={{ fontSize: 48, marginBottom: 16, opacity: 0.3 }}>{"\uD83E\uDD57"}</div>
-          <div style={{ font: `600 18px ${s.FONT}`, color: s.text, marginBottom: 8 }}>Select a Client</div>
-          <div style={{ font: `400 14px ${s.FONT}`, color: s.text3, maxWidth: 400, margin: '0 auto', lineHeight: 1.6 }}>
-            Choose a client from the dropdown above to view their nutrition data, track macros, and manage meal plans.
+/* ═══ Weekly Stacked Bar Chart ═══ */
+function WeeklyBarChart({ data, targets, s }) {
+  const maxCal = Math.max(targets.calories * 1.2, ...data.map(d => d.calories));
+  const barH = 200;
+
+  return (
+    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', justifyContent: 'space-between', height: barH + 40 }}>
+      {data.map((day, i) => {
+        const pPct = (day.protein * 4 / maxCal) * barH;
+        const cPct = (day.carbs * 4 / maxCal) * barH;
+        const fPct = (day.fat * 9 / maxCal) * barH;
+        const isToday = day.date === new Date().toISOString().slice(0, 10);
+        return (
+          <div key={i} style={{ flex: 1, textAlign: 'center', position: 'relative' }}>
+            {/* Stacked bar */}
+            <div style={{ display: 'flex', flexDirection: 'column-reverse', alignItems: 'center', height: barH, justifyContent: 'flex-start' }}>
+              <div style={{
+                width: '70%', maxWidth: 48, borderRadius: '6px 6px 0 0',
+                background: MACRO_COLORS.fat, height: Math.max(fPct, 2),
+                animation: `nutrBarGrow 0.6s ease ${i * 0.07}s both`,
+                transformOrigin: 'bottom',
+                opacity: 0.85,
+              }} />
+              <div style={{
+                width: '70%', maxWidth: 48,
+                background: MACRO_COLORS.carbs, height: Math.max(cPct, 2),
+                animation: `nutrBarGrow 0.6s ease ${i * 0.07 + 0.1}s both`,
+                transformOrigin: 'bottom',
+                opacity: 0.85,
+              }} />
+              <div style={{
+                width: '70%', maxWidth: 48, borderRadius: '6px 6px 0 0',
+                background: MACRO_COLORS.protein, height: Math.max(pPct, 2),
+                animation: `nutrBarGrow 0.6s ease ${i * 0.07 + 0.2}s both`,
+                transformOrigin: 'bottom',
+                opacity: 0.85,
+              }} />
+            </div>
+            {/* Calorie label */}
+            <div style={{ fontFamily: s.MONO, fontSize: 10, color: s.text3, marginTop: 4 }}>
+              {day.calories > 0 ? day.calories : '-'}
+            </div>
+            {/* Day label */}
+            <div style={{
+              fontFamily: s.FONT, fontSize: 12, fontWeight: isToday ? 700 : 400,
+              color: isToday ? s.accent : s.text3, marginTop: 2,
+            }}>
+              {day.dayName}
+            </div>
+            {/* Target line */}
+            {targets.calories > 0 && (
+              <div style={{
+                position: 'absolute',
+                bottom: 40 + (targets.calories / maxCal) * barH,
+                left: 0, right: 0,
+                borderTop: `1.5px dashed ${s.border}`,
+                pointerEvents: 'none',
+              }} />
+            )}
           </div>
-        </div>
-      )}
+        );
+      })}
     </div>
   );
 }

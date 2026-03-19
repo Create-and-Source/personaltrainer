@@ -12,7 +12,7 @@ export default function ClassPackages() {
   const [expandedId, setExpandedId] = useState(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [view, setView] = useState('plans'); // 'plans' | 'timeline'
+  const [view, setView] = useState('plans');
   const [form, setForm] = useState({ patientId: '', name: '', providerId: 'PRV-1', sessions: [] });
   const [sessionForm, setSessionForm] = useState({ serviceId: '', name: '', date: '', notes: '' });
 
@@ -34,21 +34,16 @@ export default function ClassPackages() {
     return 'upcoming';
   };
 
-  // Upcoming classes across all packages (timeline view)
   const allSessions = useMemo(() => {
     const sessions = [];
     plans.forEach(plan => {
       const prov = providers.find(p => p.id === plan.providerId);
       plan.sessions.forEach((ses, idx) => {
         sessions.push({
-          ...ses,
-          planId: plan.id,
-          planName: plan.name,
-          patientName: plan.patientName,
-          patientId: plan.patientId,
+          ...ses, planId: plan.id, planName: plan.name,
+          patientName: plan.patientName, patientId: plan.patientId,
           providerName: prov?.name?.split(',')[0] || 'Trainer',
-          providerId: plan.providerId,
-          sessionIdx: idx,
+          providerId: plan.providerId, sessionIdx: idx,
         });
       });
     });
@@ -58,7 +53,6 @@ export default function ClassPackages() {
   const upcomingSessions = allSessions.filter(se => se.status !== 'completed' && se.date >= today).slice(0, 20);
   const todaySessions = allSessions.filter(se => se.date === today);
 
-  // Filter plans
   const filtered = plans.filter(plan => {
     if (search) {
       const q = search.toLowerCase();
@@ -71,23 +65,13 @@ export default function ClassPackages() {
     return true;
   });
 
-  // Stats
   const activePlans = plans.filter(p => getPlanStatus(p) === 'active').length;
   const completedPlans = plans.filter(p => getPlanStatus(p) === 'completed').length;
   const totalSessions = plans.reduce((sum, p) => sum + p.sessions.length, 0);
   const completedSessions = plans.reduce((sum, p) => sum + p.sessions.filter(se => se.status === 'completed').length, 0);
 
-  const openNew = () => {
-    setEditPlan(null);
-    setForm({ patientId: '', name: '', providerId: 'PRV-1', sessions: [] });
-    setShowForm(true);
-  };
-
-  const openEdit = (plan) => {
-    setEditPlan(plan);
-    setForm({ patientId: plan.patientId, name: plan.name, providerId: 'PRV-1', sessions: [...plan.sessions] });
-    setShowForm(true);
-  };
+  const openNew = () => { setEditPlan(null); setForm({ patientId: '', name: '', providerId: 'PRV-1', sessions: [] }); setShowForm(true); };
+  const openEdit = (plan) => { setEditPlan(plan); setForm({ patientId: plan.patientId, name: plan.name, providerId: 'PRV-1', sessions: [...plan.sessions] }); setShowForm(true); };
 
   const addSession = () => {
     if (!sessionForm.serviceId) return;
@@ -119,17 +103,18 @@ export default function ClassPackages() {
   const statusColor = (status) => status === 'completed' ? s.success : status === 'active' || status === 'in-progress' ? s.accent : s.text3;
 
   return (
-    <div className="cp-page">
+    <div>
+      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ font: `600 28px ${s.FONT}`, color: s.text, marginBottom: 6, letterSpacing: '-0.3px' }}>Training Programs</h1>
-          <p style={{ font: `400 14px ${s.FONT}`, color: s.text3 }}>Multi-session client programs — track every step of the journey</p>
+          <h1 style={{ fontFamily: s.HEADING, fontSize: 28, fontWeight: 600, color: s.text, marginBottom: 6, letterSpacing: '-0.3px' }}>Training Programs</h1>
+          <p style={{ fontFamily: s.FONT, fontSize: 14, color: s.text3 }}>Multi-session client programs -- track every step of the journey</p>
         </div>
         <button onClick={openNew} style={s.pillAccent}>+ New Program</button>
       </div>
 
       {/* KPIs */}
-      <div className="stagger-in cp-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 28 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 28 }}>
         {[
           { label: 'Active Programs', value: activePlans, color: s.accent },
           { label: 'Completed', value: completedPlans, color: s.success },
@@ -137,14 +122,14 @@ export default function ClassPackages() {
           { label: 'Today', value: todaySessions.length, color: todaySessions.length > 0 ? s.accent : s.text3 },
         ].map(k => (
           <div key={k.label} style={{ ...s.cardStyle, padding: '18px 20px' }}>
-            <div style={{ font: `500 10px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.5, color: s.text3, marginBottom: 6 }}>{k.label}</div>
-            <div style={{ font: `600 26px ${s.FONT}`, color: k.color }}>{k.value}</div>
+            <div style={{ fontFamily: s.MONO, fontSize: 10, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 1.5, color: s.text3, marginBottom: 6 }}>{k.label}</div>
+            <div style={{ fontFamily: s.FONT, fontSize: 26, fontWeight: 600, color: k.color }}>{k.value}</div>
           </div>
         ))}
       </div>
 
       {/* Controls */}
-      <div className="cp-controls" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search member or package..." style={{ ...s.input, maxWidth: 240 }} />
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ ...s.input, width: 'auto', cursor: 'pointer' }}>
@@ -154,22 +139,21 @@ export default function ClassPackages() {
             <option value="completed">Completed</option>
           </select>
         </div>
-        <div style={{ display: 'flex', gap: 0, background: s.dark ? '#252529' : 'rgba(0,0,0,0.04)', borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', gap: 0, background: s.surfaceAlt, borderRadius: 10, overflow: 'hidden' }}>
           {[['plans', 'Programs'], ['timeline', 'Timeline']].map(([v, l]) => (
             <button key={v} onClick={() => setView(v)} style={{
-              padding: '8px 18px', background: view === v ? s.cardSolid : 'transparent', border: 'none',
-              font: `500 12px ${s.FONT}`, color: view === v ? s.text : s.text3, cursor: 'pointer',
+              padding: '8px 18px', background: view === v ? s.surface : 'transparent', border: 'none',
+              fontFamily: s.FONT, fontSize: 12, fontWeight: 500, color: view === v ? s.text : s.text3, cursor: 'pointer',
               borderRadius: view === v ? 10 : 0, boxShadow: view === v ? s.shadow : 'none',
-              backdropFilter: view === v ? 'blur(8px)' : 'none',
             }}>{l}</button>
           ))}
         </div>
       </div>
 
-      {/* === PACKAGES VIEW === */}
+      {/* PACKAGES VIEW */}
       {view === 'plans' && (
-        <div className="cp-plans" style={{ display: 'grid', gap: 12 }}>
-          {filtered.map((plan, planIdx) => {
+        <div style={{ display: 'grid', gap: 12 }}>
+          {filtered.map((plan) => {
             const prog = getProgress(plan);
             const prov = providers.find(p => p.id === plan.providerId);
             const expanded = expandedId === plan.id;
@@ -177,30 +161,27 @@ export default function ClassPackages() {
             const nextSession = plan.sessions.find(se => se.status !== 'completed');
 
             return (
-              <div key={plan.id} style={{
-                ...s.cardStyle, overflow: 'hidden',
-                animation: `fadeInUp 0.4s cubic-bezier(0.16,1,0.3,1) ${planIdx * 50}ms backwards`,
-              }}>
+              <div key={plan.id} style={{ ...s.cardStyle, overflow: 'hidden' }}>
                 {/* Header */}
                 <div onClick={() => setExpandedId(expanded ? null : plan.id)} style={{
                   padding: '20px 24px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                    <div style={{ width: 46, height: 46, borderRadius: 14, background: s.accentLight, display: 'flex', alignItems: 'center', justifyContent: 'center', font: `600 14px ${s.FONT}`, color: s.accent, flexShrink: 0 }}>
+                    <div style={{ width: 46, height: 46, borderRadius: 14, background: s.accentLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: s.FONT, fontSize: 14, fontWeight: 600, color: s.accent, flexShrink: 0 }}>
                       {plan.patientName?.split(' ').map(n => n[0]).join('') || '?'}
                     </div>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                        <span style={{ font: `600 15px ${s.FONT}`, color: s.text }}>{plan.name}</span>
+                        <span style={{ fontFamily: s.HEADING, fontSize: 15, fontWeight: 600, color: s.text }}>{plan.name}</span>
                         <span style={{
-                          padding: '2px 8px', borderRadius: 100, font: `500 9px ${s.FONT}`, textTransform: 'uppercase',
-                          background: planStatus === 'completed' ? (s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4') : planStatus === 'active' ? s.accentLight : s.borderLight,
+                          padding: '2px 8px', borderRadius: 100, fontFamily: s.FONT, fontSize: 9, fontWeight: 500, textTransform: 'uppercase',
+                          background: planStatus === 'completed' ? s.successBg : planStatus === 'active' ? s.accentLight : s.borderLight,
                           color: statusColor(planStatus),
                         }}>{planStatus}</span>
                       </div>
-                      <div style={{ font: `400 13px ${s.FONT}`, color: s.text2 }}>
-                        {plan.patientName} — {prov?.name?.split(',')[0] || 'Trainer'}
-                        {nextSession?.date && <span style={{ color: s.text3 }}> — Next: {new Date(nextSession.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
+                      <div style={{ fontFamily: s.FONT, fontSize: 13, color: s.text2 }}>
+                        {plan.patientName} -- {prov?.name?.split(',')[0] || 'Trainer'}
+                        {nextSession?.date && <span style={{ color: s.text3 }}> -- Next: {new Date(nextSession.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
                       </div>
                     </div>
                   </div>
@@ -208,35 +189,33 @@ export default function ClassPackages() {
                     {/* Progress ring */}
                     <div style={{ position: 'relative', width: 44, height: 44 }}>
                       <svg width="44" height="44" style={{ transform: 'rotate(-90deg)' }}>
-                        <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(0,0,0,0.05)" strokeWidth="3" />
+                        <circle cx="22" cy="22" r="18" fill="none" stroke={s.borderLight} strokeWidth="3" />
                         <circle cx="22" cy="22" r="18" fill="none" stroke={statusColor(planStatus)} strokeWidth="3"
                           strokeDasharray={`${prog.pct * 1.13} 113`} strokeLinecap="round"
                           style={{ transition: 'stroke-dasharray 0.5s ease' }} />
                       </svg>
-                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', font: `600 11px ${s.MONO}`, color: s.text }}>
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: s.MONO, fontSize: 11, fontWeight: 600, color: s.text }}>
                         {prog.pct}%
                       </div>
                     </div>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={s.text3} strokeWidth="1.5" strokeLinecap="round"
-                      style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s cubic-bezier(0.16,1,0.3,1)' }}>
+                      style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s ease' }}>
                       <polyline points="6 9 12 15 18 9" />
                     </svg>
                   </div>
                 </div>
 
-                {/* Expanded classes */}
+                {/* Expanded sessions */}
                 {expanded && (
                   <div style={{ borderTop: `1px solid ${s.borderLight}` }}>
                     {plan.sessions.map((ses, idx) => {
                       const isToday = ses.date === today;
-                      const isPast = ses.date && ses.date < today;
                       return (
                         <div key={idx} style={{
                           padding: '14px 24px', borderBottom: `1px solid ${s.borderLight}`,
                           display: 'flex', alignItems: 'center', gap: 14,
                           background: isToday ? s.accentLight : 'transparent',
                         }}>
-                          {/* Step indicator */}
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0, width: 32 }}>
                             <button onClick={() => toggleSessionStatus(plan.id, idx)} style={{
                               width: 28, height: 28, borderRadius: '50%',
@@ -245,7 +224,7 @@ export default function ClassPackages() {
                               display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, flexShrink: 0,
                               transition: 'all 0.2s',
                             }}>
-                              {ses.status === 'completed' && '✓'}
+                              {ses.status === 'completed' && '\u2713'}
                               {ses.status === 'in-progress' && <div style={{ width: 10, height: 10, borderRadius: '50%', background: s.accent }} />}
                             </button>
                             {idx < plan.sessions.length - 1 && (
@@ -254,15 +233,15 @@ export default function ClassPackages() {
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{
-                              font: `500 13px ${s.FONT}`,
+                              fontFamily: s.FONT, fontSize: 13, fontWeight: 500,
                               color: ses.status === 'completed' ? s.text2 : s.text,
                               textDecoration: ses.status === 'completed' ? 'line-through' : 'none',
                             }}>{ses.name}</div>
-                            {ses.notes && <div style={{ font: `400 12px ${s.FONT}`, color: s.text3, marginTop: 1 }}>{ses.notes}</div>}
+                            {ses.notes && <div style={{ fontFamily: s.FONT, fontSize: 12, color: s.text3, marginTop: 1 }}>{ses.notes}</div>}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-                            {isToday && <span style={{ padding: '2px 8px', borderRadius: 100, background: s.accent, color: s.accentText, font: `600 9px ${s.FONT}`, textTransform: 'uppercase' }}>Today</span>}
-                            <span style={{ font: `400 12px ${s.MONO}`, color: isToday ? s.accent : s.text3, minWidth: 50, textAlign: 'right' }}>
+                            {isToday && <span style={{ padding: '2px 8px', borderRadius: 100, background: s.accent, color: s.accentText, fontFamily: s.FONT, fontSize: 9, fontWeight: 600, textTransform: 'uppercase' }}>Today</span>}
+                            <span style={{ fontFamily: s.MONO, fontSize: 12, color: isToday ? s.accent : s.text3, minWidth: 50, textAlign: 'right' }}>
                               {ses.date ? new Date(ses.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'TBD'}
                             </span>
                           </div>
@@ -280,75 +259,59 @@ export default function ClassPackages() {
           })}
           {filtered.length === 0 && (
             <div style={{ ...s.cardStyle, padding: 48, textAlign: 'center' }}>
-              <div style={{ font: `400 14px ${s.FONT}`, color: s.text3, marginBottom: 12 }}>No programs match your filters</div>
+              <div style={{ fontFamily: s.FONT, fontSize: 14, color: s.text3, marginBottom: 12 }}>No programs match your filters</div>
               <button onClick={openNew} style={s.pillAccent}>Create Program</button>
             </div>
           )}
         </div>
       )}
 
-      {/* === TIMELINE VIEW === */}
+      {/* TIMELINE VIEW */}
       {view === 'timeline' && (
         <div>
-          <div style={{ font: `600 15px ${s.FONT}`, color: s.text, marginBottom: 16 }}>Upcoming Sessions</div>
+          <div style={{ fontFamily: s.HEADING, fontSize: 15, fontWeight: 600, color: s.text, marginBottom: 16 }}>Upcoming Sessions</div>
           <div style={{ position: 'relative', paddingLeft: 24 }}>
-            {/* Vertical line */}
             <div style={{ position: 'absolute', left: 10, top: 0, bottom: 0, width: 2, background: s.borderLight, borderRadius: 1 }} />
-
             {upcomingSessions.map((ses, idx) => {
               const isToday = ses.date === today;
               const isTomorrow = ses.date === new Date(Date.now() + 86400000).toISOString().slice(0, 10);
               return (
-                <div key={`${ses.planId}-${ses.sessionIdx}`} style={{
-                  display: 'flex', gap: 16, marginBottom: 12, position: 'relative',
-                  animation: `fadeInUp 0.4s cubic-bezier(0.16,1,0.3,1) ${idx * 40}ms backwards`,
-                }}>
-                  {/* Dot */}
+                <div key={`${ses.planId}-${ses.sessionIdx}`} style={{ display: 'flex', gap: 16, marginBottom: 12, position: 'relative' }}>
                   <div style={{
-                    position: 'absolute', left: -20, top: 16,
-                    width: 10, height: 10, borderRadius: '50%',
-                    background: isToday ? s.accent : ses.status === 'in-progress' ? s.accent : 'rgba(0,0,0,0.1)',
+                    position: 'absolute', left: -20, top: 16, width: 10, height: 10, borderRadius: '50%',
+                    background: isToday ? s.accent : ses.status === 'in-progress' ? s.accent : s.borderLight,
                     border: isToday ? `2px solid ${s.accent}40` : 'none',
                     boxShadow: isToday ? `0 0 8px ${s.accent}40` : 'none',
                   }} />
-
-                  {/* Date badge */}
-                  <div style={{
-                    width: 56, flexShrink: 0, textAlign: 'center', paddingTop: 8,
-                  }}>
-                    <div style={{ font: `600 14px ${s.FONT}`, color: isToday ? s.accent : s.text }}>
+                  <div style={{ width: 56, flexShrink: 0, textAlign: 'center', paddingTop: 8 }}>
+                    <div style={{ fontFamily: s.FONT, fontSize: 14, fontWeight: 600, color: isToday ? s.accent : s.text }}>
                       {new Date(ses.date + 'T12:00:00').getDate()}
                     </div>
-                    <div style={{ font: `500 9px ${s.MONO}`, color: s.text3, textTransform: 'uppercase' }}>
+                    <div style={{ fontFamily: s.MONO, fontSize: 9, fontWeight: 500, color: s.text3, textTransform: 'uppercase' }}>
                       {new Date(ses.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short' })}
                     </div>
                   </div>
-
-                  {/* Card */}
                   <div style={{
                     ...s.cardStyle, flex: 1, padding: '14px 18px',
                     borderLeft: `3px solid ${isToday ? s.accent : ses.status === 'in-progress' ? s.accent : s.borderLight}`,
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                      <span style={{ font: `500 14px ${s.FONT}`, color: s.text }}>{ses.name}</span>
+                      <span style={{ fontFamily: s.FONT, fontSize: 14, fontWeight: 500, color: s.text }}>{ses.name}</span>
                       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                        {isToday && <span style={{ padding: '2px 8px', borderRadius: 100, background: s.accent, color: s.accentText, font: `600 9px ${s.FONT}`, textTransform: 'uppercase' }}>Today</span>}
-                        {isTomorrow && <span style={{ padding: '2px 8px', borderRadius: 100, background: '#FFF7ED', color: s.warning, font: `600 9px ${s.FONT}`, textTransform: 'uppercase' }}>Tomorrow</span>}
+                        {isToday && <span style={{ padding: '2px 8px', borderRadius: 100, background: s.accent, color: s.accentText, fontFamily: s.FONT, fontSize: 9, fontWeight: 600, textTransform: 'uppercase' }}>Today</span>}
+                        {isTomorrow && <span style={{ padding: '2px 8px', borderRadius: 100, background: s.warningBg, color: s.warning, fontFamily: s.FONT, fontSize: 9, fontWeight: 600, textTransform: 'uppercase' }}>Tomorrow</span>}
                       </div>
                     </div>
-                    <div style={{ font: `400 12px ${s.FONT}`, color: s.text2 }}>
-                      {ses.patientName} — {ses.planName}
-                    </div>
-                    <div style={{ font: `400 11px ${s.FONT}`, color: s.text3, marginTop: 2 }}>
-                      {ses.providerName}
-                      {ses.notes && <span> — {ses.notes}</span>}
+                    <div style={{ fontFamily: s.FONT, fontSize: 12, color: s.text2 }}>{ses.patientName} -- {ses.planName}</div>
+                    <div style={{ fontFamily: s.FONT, fontSize: 11, color: s.text3, marginTop: 2 }}>
+                      {ses.providerName}{ses.notes && <span> -- {ses.notes}</span>}
                     </div>
                   </div>
                 </div>
               );
             })}
             {upcomingSessions.length === 0 && (
-              <div style={{ padding: 32, textAlign: 'center', font: `400 13px ${s.FONT}`, color: s.text3 }}>No upcoming sessions</div>
+              <div style={{ padding: 32, textAlign: 'center', fontFamily: s.FONT, fontSize: 13, color: s.text3 }}>No upcoming sessions</div>
             )}
           </div>
         </div>
@@ -356,9 +319,9 @@ export default function ClassPackages() {
 
       {/* Form Modal */}
       {showForm && (
-        <div className="cp-modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }} onClick={() => setShowForm(false)}>
-          <div className="cp-modal" style={{ background: s.cardSolid, borderRadius: 20, padding: 32, maxWidth: 600, width: '90%', boxShadow: s.shadowLg, maxHeight: '95vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }} onClick={e => e.stopPropagation()}>
-            <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 24 }}>{editPlan ? 'Edit Training Program' : 'New Training Program'}</h2>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }} onClick={() => setShowForm(false)}>
+          <div style={{ background: s.surface, borderRadius: 20, padding: 32, maxWidth: 600, width: '90%', boxShadow: s.shadowLg, maxHeight: '95vh', overflowY: 'auto', border: `1px solid ${s.border}` }} onClick={e => e.stopPropagation()}>
+            <h2 style={{ fontFamily: s.HEADING, fontSize: 20, fontWeight: 600, color: s.text, marginBottom: 24 }}>{editPlan ? 'Edit Training Program' : 'New Training Program'}</h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
               <div style={{ gridColumn: '1 / -1' }}>
@@ -374,19 +337,18 @@ export default function ClassPackages() {
               </div>
             </div>
 
-            {/* Classes */}
-            <div style={{ font: `600 14px ${s.FONT}`, color: s.text, marginBottom: 12 }}>Sessions ({form.sessions.length})</div>
+            <div style={{ fontFamily: s.HEADING, fontSize: 14, fontWeight: 600, color: s.text, marginBottom: 12 }}>Sessions ({form.sessions.length})</div>
             {form.sessions.map((ses, idx) => (
-              <div key={idx} style={{ padding: '10px 14px', background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)', borderRadius: 10, marginBottom: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={idx} style={{ padding: '10px 14px', background: s.surfaceAlt, borderRadius: 10, marginBottom: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ font: `500 13px ${s.FONT}`, color: s.text }}>{ses.name}</div>
-                  <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>{ses.date || 'TBD'}{ses.notes ? ` — ${ses.notes}` : ''}</div>
+                  <div style={{ fontFamily: s.FONT, fontSize: 13, fontWeight: 500, color: s.text }}>{ses.name}</div>
+                  <div style={{ fontFamily: s.FONT, fontSize: 11, color: s.text3 }}>{ses.date || 'TBD'}{ses.notes ? ` -- ${ses.notes}` : ''}</div>
                 </div>
                 <button onClick={() => removeSession(idx)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: s.danger, fontSize: 16 }}>x</button>
               </div>
             ))}
 
-            <div style={{ padding: 14, background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)', borderRadius: 12, border: `1px dashed ${s.borderLight}`, marginTop: 8 }}>
+            <div style={{ padding: 14, background: s.surfaceAlt, borderRadius: 12, border: `1px dashed ${s.borderLight}`, marginTop: 8 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <div>
                   <label style={{ ...s.label, fontSize: 10 }}>Service</label>
@@ -418,77 +380,6 @@ export default function ClassPackages() {
           </div>
         </div>
       )}
-      <style>{`
-        @media (max-width: 860px) {
-          /* Global */
-          .cp-page h1 { font-size: 22px !important; margin-bottom: 4px !important; }
-          .cp-page > div:first-child p { font-size: 13px !important; }
-
-          /* KPIs: 2 columns */
-          .cp-kpi-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 10px !important;
-            margin-bottom: 20px !important;
-          }
-          .cp-kpi-grid > div {
-            padding: 14px 16px !important;
-            border-radius: 14px !important;
-          }
-          .cp-kpi-grid > div > div:last-child {
-            font-size: 22px !important;
-          }
-
-          /* Controls */
-          .cp-controls { margin-bottom: 16px !important; }
-          .cp-controls input { max-width: 100% !important; width: 100% !important; font-size: 16px !important; }
-
-          /* Plan cards */
-          .cp-plans > div {
-            border-radius: 14px !important;
-          }
-          .cp-plan-header {
-            padding: 14px 16px !important;
-          }
-          .cp-plan-header .cp-avatar {
-            width: 38px !important; height: 38px !important; border-radius: 10px !important; font-size: 12px !important;
-          }
-          .cp-plan-sessions > div {
-            padding: 12px 16px !important;
-          }
-          .cp-plan-actions {
-            padding: 12px 16px !important;
-          }
-
-          /* Timeline dots smaller */
-          .cp-timeline-dot {
-            width: 8px !important; height: 8px !important;
-          }
-
-          /* Modal: full screen */
-          .cp-modal-overlay {
-            align-items: flex-end !important;
-          }
-          .cp-modal {
-            width: 100% !important;
-            max-width: 100% !important;
-            border-radius: 20px 20px 0 0 !important;
-            max-height: 95vh !important;
-            padding: 24px 20px !important;
-          }
-          .cp-modal input, .cp-modal select {
-            font-size: 16px !important;
-          }
-          .cp-modal h2 { font-size: 18px !important; }
-
-          /* Sections breathing room */
-          .cp-page > div { margin-bottom: 20px !important; }
-
-          /* Touch targets */
-          .cp-page button {
-            min-height: 44px;
-          }
-        }
-      `}</style>
     </div>
   );
 }

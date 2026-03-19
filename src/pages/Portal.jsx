@@ -1,17 +1,28 @@
+// Client Portal — standalone client-facing app
 import { useState, useEffect, useRef } from 'react';
 import {
-  getPatients, getAppointments, getServices, getProviders,
-  getClassPackages, getPhotos, subscribe,
+  getPatients, getAppointments, getServices,
+  getClassPackages, subscribe,
 } from '../data/store';
 
-/* ── Helpers ── */
-const FONT = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
-const ACCENT = '#FF6B35'; // vibrant orange for fitness CTA
-const ACCENT_DARK = '#E55A28';
-const DARK_BG = '#1A1A2E';
+/* ── Standalone Design Tokens ── */
+const FONT = "'Figtree', -apple-system, BlinkMacSystemFont, sans-serif";
+const HEADING = "'Poppins', 'Figtree', sans-serif";
+const MONO = "'Source Code Pro', 'SF Mono', monospace";
+const ACCENT = '#0E7A82';
+const ACCENT_LIGHT = 'rgba(14,122,130,0.1)';
 const DARK_GRAD = 'linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%)';
-const CARD_SHADOW = '0 2px 16px rgba(0,0,0,0.06)';
+const DARK_BG = '#1A1A2E';
+const CARD_BG = '#FFFFFF';
+const CARD_BORDER = '#F0F0F5';
+const CARD_SHADOW = '0 2px 12px rgba(0,0,0,0.06)';
+const TEXT = '#1A1A2E';
+const TEXT2 = '#6B7280';
+const TEXT3 = '#9CA3AF';
+const SUCCESS = '#22C55E';
+const WARNING = '#EAB308';
 
+/* ── Helpers ── */
 const fmt = (cents) => `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 0 })}`;
 const fmtDate = (d) => {
   if (!d) return '';
@@ -29,42 +40,33 @@ const fmtTime = (t) => {
   const ampm = h >= 12 ? 'PM' : 'AM';
   return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
 };
-
-function lsGet(key, fallback = []) {
-  try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; }
-}
-
 const today = () => new Date().toISOString().slice(0, 10);
 const weeksAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n * 7); return d.toISOString().slice(0, 10); };
 
 /* ── Keyframe Injection ── */
-const ANIM_ID = 'portal-client-anims';
+const ANIM_ID = 'portal-client-anims-v2';
 if (typeof document !== 'undefined' && !document.getElementById(ANIM_ID)) {
   const sheet = document.createElement('style');
   sheet.id = ANIM_ID;
   sheet.textContent = `
     @keyframes ptFadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes ptSlideIn { from { opacity:0; transform:translateX(-12px); } to { opacity:1; transform:translateX(0); } }
-    @keyframes ptPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.05); } }
-    @keyframes ptStreakGlow { 0%,100% { filter:brightness(1); } 50% { filter:brightness(1.2); } }
-    @keyframes ptRingFill { from { stroke-dashoffset: var(--ring-circumference); } }
+    @keyframes ptPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.04); } }
     .pt-fadeUp { animation: ptFadeUp 0.45s cubic-bezier(0.16,1,0.3,1) both; }
     .pt-fadeUp-1 { animation-delay: 0.05s; }
     .pt-fadeUp-2 { animation-delay: 0.1s; }
     .pt-fadeUp-3 { animation-delay: 0.15s; }
     .pt-fadeUp-4 { animation-delay: 0.2s; }
     .pt-fadeUp-5 { animation-delay: 0.25s; }
-    .pt-streak { animation: ptStreakGlow 2s ease-in-out infinite; }
-    .portal-client-scroll::-webkit-scrollbar { display:none; }
+    .portal-scroll::-webkit-scrollbar { display:none; }
     @media (max-width:640px) {
-      .portal-client-page { padding-bottom: 80px !important; }
+      .portal-page { padding-bottom: 80px !important; }
       .portal-grid-2 { grid-template-columns: 1fr !important; }
     }
   `;
   document.head.appendChild(sheet);
 }
 
-/* ── Seed helpers for progress data ── */
+/* ── Seed Progress Data ── */
 function getSeedProgress(clientId) {
   const key = `ms_progress_${clientId}`;
   const existing = localStorage.getItem(key);
@@ -74,13 +76,13 @@ function getSeedProgress(clientId) {
     'CLT-1001': { start: 145, end: 138, bfStart: 28, bfEnd: 23 },
     'CLT-1004': { start: 170, end: 175, bfStart: 18, bfEnd: 15 },
   };
-  const s = seeds[clientId];
-  if (!s) return null;
+  const se = seeds[clientId];
+  if (!se) return null;
   const data = [];
   for (let i = 0; i <= 12; i++) {
     const p = i / 12;
-    const w = s.start + (s.end - s.start) * p + (Math.sin(i * 1.5) * 0.8);
-    const bf = s.bfStart + (s.bfEnd - s.bfStart) * p + (Math.sin(i * 1.3) * 0.3);
+    const w = se.start + (se.end - se.start) * p + (Math.sin(i * 1.5) * 0.8);
+    const bf = se.bfStart + (se.bfEnd - se.bfStart) * p + (Math.sin(i * 1.3) * 0.3);
     data.push({ date: weeksAgo(12 - i), weight: Math.round(w * 10) / 10, bodyFat: Math.round(bf * 10) / 10 });
   }
   localStorage.setItem(key, JSON.stringify(data));
@@ -98,14 +100,10 @@ function getSeedPRs(clientId) {
     { id: 'PR-1', clientId: 'CLT-1000', exercise: 'Bench Press', value: 225, unit: 'lbs', date: d(-8), previousValue: 215 },
     { id: 'PR-2', clientId: 'CLT-1000', exercise: 'Squat', value: 315, unit: 'lbs', date: d(-22), previousValue: 295 },
     { id: 'PR-3', clientId: 'CLT-1000', exercise: 'Deadlift', value: 385, unit: 'lbs', date: d(-5), previousValue: 365 },
-    { id: 'PR-4', clientId: 'CLT-1000', exercise: 'Overhead Press', value: 155, unit: 'lbs', date: d(-45), previousValue: 145 },
-    { id: 'PR-5', clientId: 'CLT-1000', exercise: 'Pull-ups', value: 18, unit: 'reps', date: d(-12), previousValue: 15 },
-    { id: 'PR-7', clientId: 'CLT-1001', exercise: 'Bench Press', value: 95, unit: 'lbs', date: d(-10), previousValue: 85 },
-    { id: 'PR-8', clientId: 'CLT-1001', exercise: 'Squat', value: 155, unit: 'lbs', date: d(-15), previousValue: 135 },
-    { id: 'PR-9', clientId: 'CLT-1001', exercise: 'Deadlift', value: 185, unit: 'lbs', date: d(-3), previousValue: 165 },
-    { id: 'PR-13', clientId: 'CLT-1004', exercise: 'Bench Press', value: 185, unit: 'lbs', date: d(-18), previousValue: 165 },
-    { id: 'PR-14', clientId: 'CLT-1004', exercise: 'Squat', value: 225, unit: 'lbs', date: d(-6), previousValue: 205 },
-    { id: 'PR-15', clientId: 'CLT-1004', exercise: 'Deadlift', value: 275, unit: 'lbs', date: d(-28), previousValue: 255 },
+    { id: 'PR-4', clientId: 'CLT-1001', exercise: 'Hip Thrust', value: 185, unit: 'lbs', date: d(-3), previousValue: 155 },
+    { id: 'PR-5', clientId: 'CLT-1001', exercise: 'Goblet Squat', value: 60, unit: 'lbs', date: d(-12), previousValue: 45 },
+    { id: 'PR-6', clientId: 'CLT-1004', exercise: 'Leg Press', value: 360, unit: 'lbs', date: d(-6), previousValue: 320 },
+    { id: 'PR-7', clientId: 'CLT-1004', exercise: 'Lat Pulldown', value: 150, unit: 'lbs', date: d(-15), previousValue: 130 },
   ];
   localStorage.setItem(key, JSON.stringify(allPRs));
   return allPRs.filter(pr => pr.clientId === clientId);
@@ -116,672 +114,590 @@ function getSeedMeasurements(clientId) {
   const existing = localStorage.getItem(key);
   if (existing) try { return JSON.parse(existing); } catch {}
   const seeds = {
-    'CLT-1000': [
-      { date: weeksAgo(12), chest: 42, waist: 36, hips: 40, armL: 15, armR: 15.5 },
-      { date: weeksAgo(8), chest: 42.5, waist: 34.5, hips: 39.5, armL: 15.5, armR: 16 },
-      { date: weeksAgo(4), chest: 43, waist: 33, hips: 39, armL: 16, armR: 16 },
-      { date: weeksAgo(0), chest: 43.5, waist: 32, hips: 38.5, armL: 16, armR: 16.5 },
-    ],
-    'CLT-1001': [
-      { date: weeksAgo(12), chest: 36, waist: 30, hips: 38, armL: 11, armR: 11 },
-      { date: weeksAgo(8), chest: 35.5, waist: 29, hips: 37.5, armL: 11.5, armR: 11.5 },
-      { date: weeksAgo(4), chest: 35, waist: 28, hips: 37, armL: 11.5, armR: 12 },
-      { date: weeksAgo(0), chest: 34.5, waist: 27, hips: 36.5, armL: 12, armR: 12 },
-    ],
+    'CLT-1000': { chest: [42, 43, 43.5], waist: [36, 34.5, 33], hips: [40, 39.5, 39], arms: [15, 15.5, 16] },
+    'CLT-1001': { chest: [36, 35.5, 35], waist: [30, 28.5, 27], hips: [38, 37, 36], arms: [12, 12, 12.5] },
   };
-  const data = seeds[clientId] || null;
-  if (data) localStorage.setItem(key, JSON.stringify(data));
-  return data;
+  return seeds[clientId] || null;
 }
 
-/* ── SVG Mini Weight Chart ── */
-function MiniWeightChart({ data }) {
-  if (!data || data.length < 2) return <div style={{ color: '#999', fontSize: 13, padding: 20, textAlign: 'center' }}>No weight data yet</div>;
-  const W = 320, H = 140, pad = { l: 40, r: 12, t: 12, b: 28 };
-  const cW = W - pad.l - pad.r, cH = H - pad.t - pad.b;
-  const weights = data.map(d => d.weight);
-  const minW = Math.floor(Math.min(...weights) - 2), maxW = Math.ceil(Math.max(...weights) + 2);
-  const range = maxW - minW || 1;
-  const pts = data.map((d, i) => ({
-    x: pad.l + (i / (data.length - 1)) * cW,
-    y: pad.t + cH - ((d.weight - minW) / range) * cH,
-  }));
-  const line = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
-  const area = `${line} L${pts[pts.length - 1].x},${H - pad.b} L${pts[0].x},${H - pad.b} Z`;
+/* ── Seed Nutrition Data ── */
+function getSeedNutrition(clientId) {
+  const seeds = {
+    'CLT-1000': { calories: { target: 2800, current: 2650 }, protein: { target: 200, current: 185 }, carbs: { target: 300, current: 280 }, fat: { target: 90, current: 85 },
+      meals: [
+        { time: '7:00 AM', name: 'Oats + Protein Shake', cal: 520, protein: 45, carbs: 65, fat: 10 },
+        { time: '10:30 AM', name: 'Greek Yogurt + Berries', cal: 280, protein: 25, carbs: 30, fat: 8 },
+        { time: '1:00 PM', name: 'Chicken Rice Bowl', cal: 680, protein: 50, carbs: 75, fat: 18 },
+        { time: '4:00 PM', name: 'Pre-Workout Banana + PB', cal: 320, protein: 10, carbs: 40, fat: 16 },
+        { time: '7:30 PM', name: 'Salmon + Sweet Potato', cal: 620, protein: 42, carbs: 55, fat: 22 },
+        { time: '9:00 PM', name: 'Casein Shake', cal: 230, protein: 30, carbs: 15, fat: 5 },
+      ],
+    },
+    'CLT-1001': { calories: { target: 1800, current: 1720 }, protein: { target: 130, current: 118 }, carbs: { target: 180, current: 170 }, fat: { target: 60, current: 55 },
+      meals: [
+        { time: '8:00 AM', name: 'Egg White Omelet + Toast', cal: 380, protein: 32, carbs: 30, fat: 10 },
+        { time: '12:00 PM', name: 'Turkey Meatball Salad', cal: 450, protein: 38, carbs: 25, fat: 18 },
+        { time: '3:30 PM', name: 'Protein Bar', cal: 220, protein: 20, carbs: 25, fat: 8 },
+        { time: '6:30 PM', name: 'Grilled Chicken + Veggies', cal: 520, protein: 42, carbs: 35, fat: 16 },
+        { time: '8:30 PM', name: 'Cottage Cheese + Almonds', cal: 150, protein: 18, carbs: 8, fat: 6 },
+      ],
+    },
+  };
+  return seeds[clientId] || {
+    calories: { target: 2200, current: 2050 }, protein: { target: 160, current: 140 }, carbs: { target: 240, current: 210 }, fat: { target: 75, current: 68 },
+    meals: [
+      { time: '7:30 AM', name: 'Breakfast', cal: 450, protein: 30, carbs: 50, fat: 12 },
+      { time: '12:00 PM', name: 'Lunch', cal: 600, protein: 45, carbs: 60, fat: 20 },
+      { time: '6:00 PM', name: 'Dinner', cal: 550, protein: 40, carbs: 50, fat: 18 },
+    ],
+  };
+}
+
+/* ── Chat Data ── */
+function getSeedChat(clientName) {
+  return [
+    { id: 'cm1', from: 'trainer', text: `Hey ${clientName.split(' ')[0]}! Great session yesterday. How are you feeling today?`, ts: '2026-03-17T09:00:00' },
+    { id: 'cm2', from: 'client', text: 'A little sore but in a good way! Those RDLs were intense', ts: '2026-03-17T09:15:00' },
+    { id: 'cm3', from: 'trainer', text: 'That means you pushed the right muscles. Make sure to foam roll tonight and get 7+ hours of sleep.', ts: '2026-03-17T09:20:00' },
+    { id: 'cm4', from: 'client', text: 'Will do! Also wanted to ask about adding cardio on off days?', ts: '2026-03-18T08:30:00' },
+    { id: 'cm5', from: 'trainer', text: '20-30 min of low-intensity steady state would be perfect. Walking, cycling, or swimming. Nothing that hammers your legs before our Thursday session.', ts: '2026-03-18T08:45:00' },
+  ];
+}
+
+/* ── SVG Icons ── */
+const HomeIcon = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : TEXT3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    <polyline points="9 22 9 12 15 12 15 22" />
+  </svg>
+);
+const DumbbellIcon = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : TEXT3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6.5 6.5h11M6 12h12M2 9v6M22 9v6M4 8v8M20 8v8" />
+  </svg>
+);
+const ChartIcon = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : TEXT3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+  </svg>
+);
+const AppleIcon = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : TEXT3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2C8.5 2 6 5 6 9c0 6 6 13 6 13s6-7 6-13c0-4-2.5-7-6-7z" />
+    <path d="M12 2c1 1 2 2 2 4" />
+  </svg>
+);
+const ChatBubbleIcon = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : TEXT3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </svg>
+);
+const FireIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="#EAB308" stroke="none">
+    <path d="M12 23c-4.97 0-9-3.58-9-8 0-4 3.5-7.5 4-8 .5 2.5 2 4.5 3 5.5 1-5 4-8 5-9.5.5 2 2 4.5 3 6 1-1.5 2-3 2-5 2 2.5 1 5 1 7 0 4.42-4.03 8-9 8z" />
+  </svg>
+);
+const TrophyIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EAB308" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 9H3V5h3M18 9h3V5h-3M12 15v4M8 19h8" />
+    <path d="M6 5a6 6 0 0 0 12 0" />
+  </svg>
+);
+const SendIcon = ({ color }) => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill={color} stroke="none">
+    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+  </svg>
+);
+const ChevronDown = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={TEXT3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="6 9 12 15 18 9" />
+  </svg>
+);
+
+/* ── Card Component ── */
+const Card = ({ children, style, className }) => (
+  <div className={className} style={{
+    background: CARD_BG,
+    border: `1px solid ${CARD_BORDER}`,
+    borderRadius: 16,
+    boxShadow: CARD_SHADOW,
+    padding: 20,
+    ...style,
+  }}>
+    {children}
+  </div>
+);
+
+/* ── Macro Ring (SVG donut) ── */
+const MacroRing = ({ label, current, target, color, size = 80 }) => {
+  const pct = Math.min(current / target, 1);
+  const r = (size - 10) / 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ * (1 - pct);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#F0F0F5" strokeWidth={6} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={6}
+          strokeDasharray={circ} strokeDashoffset={offset}
+          strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.8s ease' }} />
+      </svg>
+      <div style={{ marginTop: -size + 8, width: size, textAlign: 'center', paddingTop: size / 2 - 14 }}>
+        <div style={{ font: `700 16px ${MONO}`, color: TEXT }}>{current}</div>
+        <div style={{ font: `400 10px ${FONT}`, color: TEXT3 }}>/ {target}g</div>
+      </div>
+      <div style={{ font: `500 11px ${FONT}`, color: TEXT2, marginTop: size / 2 - 16 }}>{label}</div>
+    </div>
+  );
+};
+
+/* ── Mini line chart (SVG) ── */
+const MiniChart = ({ data, width = 280, height = 120 }) => {
+  if (!data || data.length < 2) return null;
+  const vals = data.map(d => d.weight);
+  const min = Math.min(...vals) - 2;
+  const max = Math.max(...vals) + 2;
+  const range = max - min || 1;
+  const px = (i) => (i / (vals.length - 1)) * (width - 20) + 10;
+  const py = (v) => height - 16 - ((v - min) / range) * (height - 32);
+  const points = vals.map((v, i) => `${px(i)},${py(v)}`).join(' ');
+  const areaPoints = `${px(0)},${height - 16} ${points} ${px(vals.length - 1)},${height - 16}`;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto' }}>
+    <svg width={width} height={height} style={{ display: 'block' }}>
       <defs>
-        <linearGradient id="wgFill" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={ACCENT} stopOpacity="0.2" />
           <stop offset="100%" stopColor={ACCENT} stopOpacity="0" />
         </linearGradient>
       </defs>
-      {[0, 0.25, 0.5, 0.75, 1].map((f, i) => {
-        const y = pad.t + cH * (1 - f);
-        const val = Math.round(minW + range * f);
-        return <g key={i}>
-          <line x1={pad.l} y1={y} x2={W - pad.r} y2={y} stroke="#EEE" strokeWidth="1" />
-          <text x={pad.l - 6} y={y + 4} textAnchor="end" fill="#999" fontSize="10" fontFamily={FONT}>{val}</text>
-        </g>;
-      })}
-      <path d={area} fill="url(#wgFill)" />
-      <path d={line} fill="none" stroke={ACCENT} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      {pts.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="#fff" stroke={ACCENT} strokeWidth="2" />)}
-      {data.filter((_, i) => i === 0 || i === data.length - 1 || i === Math.floor(data.length / 2)).map((d, i) => {
-        const idx = i === 0 ? 0 : i === 1 ? Math.floor(data.length / 2) : data.length - 1;
-        return <text key={i} x={pts[idx].x} y={H - 8} textAnchor="middle" fill="#999" fontSize="9" fontFamily={FONT}>{fmtDate(data[idx].date)}</text>;
-      })}
+      <polygon points={areaPoints} fill="url(#chartGrad)" />
+      <polyline points={points} fill="none" stroke={ACCENT} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      {vals.map((v, i) => (
+        <circle key={i} cx={px(i)} cy={py(v)} r={i === vals.length - 1 ? 5 : 3}
+          fill={i === vals.length - 1 ? ACCENT : '#fff'} stroke={ACCENT} strokeWidth="2" />
+      ))}
+      {/* Start and end labels */}
+      <text x={px(0)} y={height - 2} textAnchor="start" style={{ font: `400 9px ${MONO}`, fill: TEXT3 }}>
+        {fmtDate(data[0].date)}
+      </text>
+      <text x={px(vals.length - 1)} y={height - 2} textAnchor="end" style={{ font: `400 9px ${MONO}`, fill: TEXT3 }}>
+        {fmtDate(data[data.length - 1].date)}
+      </text>
     </svg>
   );
-}
+};
 
-/* ── Donut Ring (for macros) ── */
-function DonutRing({ value, max, color, size = 64, strokeWidth = 6 }) {
-  const r = (size - strokeWidth) / 2;
-  const circ = 2 * Math.PI * r;
-  const pct = Math.min(value / max, 1);
-  return (
-    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#F0F0F0" strokeWidth={strokeWidth} />
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={strokeWidth}
-        strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)} strokeLinecap="round"
-        style={{ transition: 'stroke-dashoffset 0.8s ease' }} />
-    </svg>
-  );
-}
+/* ═══════════════════════════════════
+   MAIN PORTAL COMPONENT
+   ═══════════════════════════════════ */
 
-/* ── Bottom Tab Bar ── */
-const TABS = [
-  { id: 'home', label: 'Home', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-  { id: 'workouts', label: 'Workouts', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
-  { id: 'progress', label: 'Progress', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
-  { id: 'nutrition', label: 'Nutrition', icon: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z' },
-  { id: 'chat', label: 'Chat', icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
-];
-
-function BottomNav({ active, onNav }) {
-  return (
-    <div style={{
-      position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
-      background: '#fff', borderTop: '1px solid #EBEBEB',
-      display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-      padding: '6px 0 env(safe-area-inset-bottom, 8px)',
-      boxShadow: '0 -2px 12px rgba(0,0,0,0.04)',
-    }}>
-      {TABS.map(t => {
-        const isActive = active === t.id;
-        return (
-          <button key={t.id} onClick={() => onNav(t.id)} style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-            padding: '6px 12px', minWidth: 56, color: isActive ? ACCENT : '#999',
-            transition: 'color 0.2s',
-          }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth={isActive ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-              <path d={t.icon} />
-            </svg>
-            <span style={{ fontSize: 10, fontWeight: isActive ? 600 : 400, fontFamily: FONT }}>{t.label}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════
-   PORTAL — Main Component
-   ══════════════════════════════════════════════ */
 export default function Portal() {
   const [, setTick] = useState(0);
-  const [tab, setTab] = useState('home');
-  const [selectedClientId, setSelectedClientId] = useState('CLT-1000');
-  const [chatMessages, setChatMessages] = useState([]);
-  const [chatInput, setChatInput] = useState('');
+  useEffect(() => subscribe(() => setTick(t => t + 1)), []);
+
+  const patients = getPatients();
+  const appointments = getAppointments();
+  const services = getServices();
+  const programs = getClassPackages();
+
+  // Client selector
+  const topClients = patients.slice(0, 8);
+  const [selectedClientId, setSelectedClientId] = useState(topClients[0]?.id || null);
+  const [showClientDropdown, setShowClientDropdown] = useState(false);
+  const client = patients.find(p => p.id === selectedClientId) || topClients[0];
+  const clientName = client ? `${client.firstName} ${client.lastName}` : 'Client';
+
+  // Bottom tab
+  const [activeTab, setActiveTab] = useState('home');
+
+  // Chat state
+  const [chatMessages, setChatMessages] = useState(() => client ? getSeedChat(clientName) : []);
+  const [chatDraft, setChatDraft] = useState('');
   const chatEndRef = useRef(null);
 
-  // Subscribe to store updates
   useEffect(() => {
-    const unsub = subscribe(() => setTick(t => t + 1));
-    return unsub;
-  }, []);
-
-  // Seed chat messages for selected client
-  useEffect(() => {
-    const client = getPatients().find(p => p.id === selectedClientId);
-    const name = client ? client.firstName : 'there';
-    setChatMessages([
-      { id: 1, from: 'trainer', text: `Hey ${name}! Welcome to FORGE. I've put together your first program based on our assessment. How are you feeling about everything?`, time: '9:00 AM', date: 'Mon' },
-      { id: 2, from: 'client', text: 'Feeling great Marcus! A little sore from yesterday but in a good way 💪', time: '9:15 AM', date: 'Mon' },
-      { id: 3, from: 'trainer', text: 'That\'s exactly what we want — good soreness means progress. Make sure you\'re hitting your protein goals today and getting plenty of sleep tonight.', time: '9:18 AM', date: 'Mon' },
-      { id: 4, from: 'client', text: 'Will do! Quick question — should I be doing any cardio on my off days?', time: '10:30 AM', date: 'Mon' },
-      { id: 5, from: 'trainer', text: 'Light cardio is great on rest days — 20-30 min walk, light bike, or swimming. Nothing too intense. Save your energy for our sessions. See you tomorrow at 7am! 🔥', time: '10:35 AM', date: 'Mon' },
-      { id: 6, from: 'client', text: 'Perfect, see you then!', time: '10:36 AM', date: 'Mon' },
-    ]);
+    if (client) setChatMessages(getSeedChat(`${client.firstName} ${client.lastName}`));
   }, [selectedClientId]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatMessages, tab]);
+    if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages]);
 
-  // Data
-  const clients = getPatients();
-  const client = clients.find(p => p.id === selectedClientId) || clients[0];
-  const appointments = getAppointments();
-  const services = getServices();
-  const providers = getProviders();
-  const programs = getClassPackages();
-  const trainer = providers[0] || { name: 'Marcus Cole', title: 'Head Trainer' };
+  if (!client) return <div style={{ padding: 40, fontFamily: FONT, color: TEXT3 }}>No clients found. Add clients first.</div>;
 
-  const todayStr = today();
-  const myAppts = appointments.filter(a => a.patientId === client?.id);
-  const todayAppt = myAppts.find(a => a.date === todayStr && a.status !== 'completed');
-  const upcomingAppts = myAppts.filter(a => a.date >= todayStr && a.status !== 'completed').sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
-  const pastAppts = myAppts.filter(a => a.date < todayStr || a.status === 'completed').sort((a, b) => b.date.localeCompare(a.date));
-  const myProgram = programs.find(p => p.patientId === client?.id);
-  const sessionsThisMonth = myAppts.filter(a => a.status === 'completed' && a.date?.startsWith(todayStr.slice(0, 7))).length;
+  // Derived data
+  const clientAppts = appointments.filter(a => a.patientId === client.id);
+  const todayAppts = clientAppts.filter(a => a.date === today());
+  const upcomingAppts = clientAppts.filter(a => a.date >= today() && a.status !== 'completed').sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time)).slice(0, 3);
+  const clientPrograms = programs.filter(p => p.patientId === client.id);
+  const progressData = getSeedProgress(client.id);
+  const prs = getSeedPRs(client.id);
+  const measurements = getSeedMeasurements(client.id);
+  const nutrition = getSeedNutrition(client.id);
 
-  // Streak calculation (consecutive days with completed sessions counting backwards from today)
-  const completedDates = new Set(myAppts.filter(a => a.status === 'completed').map(a => a.date));
+  // Streak calc
+  const completedDates = [...new Set(clientAppts.filter(a => a.status === 'completed').map(a => a.date))].sort().reverse();
   let streak = 0;
-  const checkDate = new Date();
-  for (let i = 0; i < 365; i++) {
-    const ds = checkDate.toISOString().slice(0, 10);
-    if (completedDates.has(ds)) { streak++; checkDate.setDate(checkDate.getDate() - 1); }
-    else if (i === 0) { checkDate.setDate(checkDate.getDate() - 1); } // skip today if no session yet
-    else break;
+  if (completedDates.length > 0) {
+    const d = new Date();
+    for (let i = 0; i < 60; i++) {
+      const check = new Date(d);
+      check.setDate(check.getDate() - i);
+      const ds = check.toISOString().slice(0, 10);
+      if (completedDates.includes(ds)) streak++;
+      else if (i > 0) break;
+    }
   }
-  // Default to a demo streak if none
-  const displayStreak = streak || 12;
-
-  // Progress data
-  const progressData = getSeedProgress(client?.id);
-  const currentWeight = progressData ? progressData[progressData.length - 1]?.weight : null;
-  const prs = getSeedPRs(client?.id);
-  const measurements = getSeedMeasurements(client?.id);
-
-  const getServiceName = (id) => services.find(s => s.id === id)?.name || 'Training Session';
-
-  // Next session date
-  const nextSession = upcomingAppts[0];
-
-  // Nutrition mock data
-  const macros = { protein: { current: 142, goal: 180 }, carbs: { current: 210, goal: 250 }, fat: { current: 58, goal: 70 }, calories: { current: 1910, goal: 2200 } };
-  const meals = [
-    { time: '7:00 AM', name: 'Breakfast', items: 'Eggs (3), oatmeal, banana', cals: 520 },
-    { time: '10:30 AM', name: 'Snack', items: 'Protein shake, almonds', cals: 320 },
-    { time: '1:00 PM', name: 'Lunch', items: 'Grilled chicken, rice, broccoli', cals: 580 },
-    { time: '4:00 PM', name: 'Pre-Workout', items: 'Apple, peanut butter', cals: 210 },
-    { time: '7:30 PM', name: 'Dinner', items: 'Salmon, sweet potato, asparagus', cals: 620 },
-  ];
+  const streakCount = Math.max(streak, 3); // min display 3
 
   const sendChat = () => {
-    if (!chatInput.trim()) return;
-    setChatMessages(prev => [...prev, {
-      id: Date.now(), from: 'client', text: chatInput.trim(),
-      time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-      date: 'Now',
-    }]);
-    setChatInput('');
-    // Simulate trainer response
-    setTimeout(() => {
-      setChatMessages(prev => [...prev, {
-        id: Date.now() + 1, from: 'trainer', text: 'Got it! I\'ll get back to you shortly. Keep up the great work! 💪',
-        time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-        date: 'Now',
-      }]);
-    }, 1500);
+    if (!chatDraft.trim()) return;
+    setChatMessages(prev => [...prev, { id: `cm${Date.now()}`, from: 'client', text: chatDraft.trim(), ts: new Date().toISOString() }]);
+    setChatDraft('');
   };
 
-  /* ── Card wrapper ── */
-  const Card = ({ children, style = {}, className = '' }) => (
-    <div className={`pt-fadeUp ${className}`} style={{
-      background: '#fff', borderRadius: 16, padding: '20px',
-      boxShadow: CARD_SHADOW, ...style,
-    }}>{children}</div>
-  );
+  const getServiceName = (svcId) => {
+    const svc = services.find(s => s.id === svcId);
+    return svc ? svc.name : 'Session';
+  };
 
-  const SectionLabel = ({ children }) => (
-    <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1.2, color: '#999', marginBottom: 12, fontFamily: FONT }}>{children}</div>
-  );
+  // ── Tab Content ──
 
-  /* ════════════════════════
-     TAB: HOME
-     ════════════════════════ */
   const renderHome = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* Today's Workout */}
-      {todayAppt ? (
-        <Card className="pt-fadeUp-1">
-          <SectionLabel>Today's Workout</SectionLabel>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontSize: 17, fontWeight: 600, color: '#111', fontFamily: FONT }}>{getServiceName(todayAppt.serviceId)}</div>
-              <div style={{ fontSize: 13, color: '#777', marginTop: 4, fontFamily: FONT }}>{fmtTime(todayAppt.time)} &middot; {todayAppt.duration || 60} min</div>
-            </div>
-            <button style={{
-              background: ACCENT, color: '#fff', border: 'none', borderRadius: 12,
-              padding: '12px 24px', fontFamily: FONT, fontWeight: 600, fontSize: 14,
-              cursor: 'pointer', boxShadow: `0 4px 14px ${ACCENT}44`,
-              transition: 'all 0.2s',
-            }}>Start Workout</button>
-          </div>
+    <div className="portal-page pt-fadeUp" style={{ padding: '20px 16px 100px' }}>
+      {/* Greeting */}
+      <div className="pt-fadeUp pt-fadeUp-1" style={{ marginBottom: 24 }}>
+        <h2 style={{ font: `700 24px ${HEADING}`, color: TEXT, margin: '0 0 4px' }}>
+          Hey {client.firstName}
+        </h2>
+        <p style={{ font: `400 14px ${FONT}`, color: TEXT2, margin: 0 }}>
+          {todayAppts.length > 0 ? `You have ${todayAppts.length} session${todayAppts.length > 1 ? 's' : ''} today` : "No sessions today — rest up!"}
+        </p>
+      </div>
+
+      {/* Streak + Quick Stats */}
+      <div className="pt-fadeUp pt-fadeUp-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
+        <Card style={{ padding: 14, textAlign: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}><FireIcon /></div>
+          <div style={{ font: `700 20px ${MONO}`, color: TEXT }}>{streakCount}</div>
+          <div style={{ font: `400 10px ${FONT}`, color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Day Streak</div>
         </Card>
-      ) : (
-        <Card className="pt-fadeUp-1">
-          <SectionLabel>Today</SectionLabel>
-          <div style={{ fontSize: 14, color: '#777', fontFamily: FONT }}>No workout scheduled today. Rest day! 😴</div>
+        <Card style={{ padding: 14, textAlign: 'center' }}>
+          <div style={{ font: `700 20px ${MONO}`, color: TEXT }}>{client.visitCount || 0}</div>
+          <div style={{ font: `400 10px ${FONT}`, color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 6 }}>Sessions</div>
+        </Card>
+        <Card style={{ padding: 14, textAlign: 'center' }}>
+          <div style={{ font: `700 20px ${MONO}`, color: TEXT }}>{prs.length}</div>
+          <div style={{ font: `400 10px ${FONT}`, color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 6 }}>PRs</div>
+        </Card>
+      </div>
+
+      {/* Today's Workout */}
+      {todayAppts.length > 0 && (
+        <Card className="pt-fadeUp pt-fadeUp-3" style={{ marginBottom: 16 }}>
+          <div style={{ font: `600 12px ${FONT}`, color: ACCENT, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+            Today's Session
+          </div>
+          {todayAppts.map(appt => (
+            <div key={appt.id} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '10px 0', borderBottom: `1px solid ${CARD_BORDER}`,
+            }}>
+              <div>
+                <div style={{ font: `600 14px ${FONT}`, color: TEXT }}>{getServiceName(appt.serviceId)}</div>
+                <div style={{ font: `400 12px ${MONO}`, color: TEXT2 }}>{fmtTime(appt.time)} - {appt.duration}min</div>
+              </div>
+              <span style={{
+                padding: '4px 12px', borderRadius: 100,
+                background: appt.status === 'confirmed' ? `${SUCCESS}18` : `${WARNING}18`,
+                color: appt.status === 'confirmed' ? SUCCESS : WARNING,
+                font: `500 11px ${FONT}`, textTransform: 'capitalize',
+              }}>{appt.status}</span>
+            </div>
+          ))}
         </Card>
       )}
 
-      {/* Streak + Quick Stats */}
-      <div className="portal-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <Card className="pt-fadeUp-2" style={{ textAlign: 'center', padding: '16px' }}>
-          <div className="pt-streak" style={{ fontSize: 36, fontWeight: 700, fontFamily: FONT }}>🔥 {displayStreak}</div>
-          <div style={{ fontSize: 12, color: '#777', fontFamily: FONT, marginTop: 2 }}>Day Streak</div>
-        </Card>
-        <Card className="pt-fadeUp-2" style={{ textAlign: 'center', padding: '16px' }}>
-          <div style={{ fontSize: 36, fontWeight: 700, color: ACCENT, fontFamily: FONT }}>{sessionsThisMonth}</div>
-          <div style={{ fontSize: 12, color: '#777', fontFamily: FONT, marginTop: 2 }}>Sessions This Month</div>
-        </Card>
-      </div>
-
-      <div className="portal-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <Card className="pt-fadeUp-3" style={{ textAlign: 'center', padding: '16px' }}>
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#111', fontFamily: FONT }}>{currentWeight ? `${currentWeight} lbs` : '--'}</div>
-          <div style={{ fontSize: 12, color: '#777', fontFamily: FONT, marginTop: 2 }}>Current Weight</div>
-        </Card>
-        <Card className="pt-fadeUp-3" style={{ textAlign: 'center', padding: '16px' }}>
-          <div style={{ fontSize: 16, fontWeight: 600, color: '#111', fontFamily: FONT }}>{nextSession ? fmtWeekday(nextSession.date) : 'None scheduled'}</div>
-          <div style={{ fontSize: 12, color: '#777', fontFamily: FONT, marginTop: 2 }}>Next Session</div>
-        </Card>
-      </div>
-
       {/* Upcoming Sessions */}
       {upcomingAppts.length > 0 && (
-        <Card className="pt-fadeUp-4">
-          <SectionLabel>Upcoming Sessions</SectionLabel>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {upcomingAppts.slice(0, 4).map(a => (
-              <div key={a.id} style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '10px 14px', background: '#FAFAFA', borderRadius: 12,
-              }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 500, color: '#111', fontFamily: FONT }}>{getServiceName(a.serviceId)}</div>
-                  <div style={{ fontSize: 12, color: '#999', fontFamily: FONT }}>{fmtWeekday(a.date)} &middot; {fmtTime(a.time)}</div>
-                </div>
-                <div style={{
-                  fontSize: 11, fontWeight: 600, color: a.status === 'confirmed' ? '#16A34A' : '#D97706',
-                  background: a.status === 'confirmed' ? '#F0FDF4' : '#FFFBEB',
-                  padding: '4px 10px', borderRadius: 20, fontFamily: FONT,
-                }}>{a.status}</div>
-              </div>
-            ))}
+        <Card className="pt-fadeUp pt-fadeUp-4" style={{ marginBottom: 16 }}>
+          <div style={{ font: `600 12px ${FONT}`, color: TEXT2, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+            Upcoming
           </div>
+          {upcomingAppts.map(appt => (
+            <div key={appt.id} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '10px 0', borderBottom: `1px solid ${CARD_BORDER}`,
+            }}>
+              <div>
+                <div style={{ font: `500 13px ${FONT}`, color: TEXT }}>{getServiceName(appt.serviceId)}</div>
+                <div style={{ font: `400 12px ${MONO}`, color: TEXT3 }}>{fmtWeekday(appt.date)} at {fmtTime(appt.time)}</div>
+              </div>
+            </div>
+          ))}
         </Card>
       )}
 
       {/* Trainer Card */}
-      <Card className="pt-fadeUp-5">
-        <SectionLabel>Your Trainer</SectionLabel>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{
-            width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg, #1A1A2E, #0F3460)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
-            fontSize: 20, fontWeight: 700, fontFamily: FONT, flexShrink: 0,
-          }}>{trainer.name?.split(' ').map(n => n[0]).join('')}</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 15, fontWeight: 600, color: '#111', fontFamily: FONT }}>{trainer.name}</div>
-            <div style={{ fontSize: 12, color: '#777', fontFamily: FONT }}>{trainer.title}</div>
-          </div>
-          <button onClick={() => setTab('chat')} style={{
-            background: ACCENT + '15', color: ACCENT, border: 'none', borderRadius: 10,
-            padding: '10px 18px', fontFamily: FONT, fontWeight: 600, fontSize: 13, cursor: 'pointer',
-          }}>Message</button>
+      <Card className="pt-fadeUp pt-fadeUp-5" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{
+          width: 48, height: 48, borderRadius: '50%',
+          background: DARK_GRAD,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: '#fff', fontWeight: 700, fontSize: 16, fontFamily: FONT,
+        }}>MC</div>
+        <div>
+          <div style={{ font: `600 14px ${FONT}`, color: TEXT }}>Marcus Cole</div>
+          <div style={{ font: `400 12px ${FONT}`, color: TEXT2 }}>Head Trainer / Owner</div>
+          <div style={{ font: `400 11px ${FONT}`, color: ACCENT, marginTop: 2 }}>NASM-CPT, CSCS</div>
         </div>
       </Card>
     </div>
   );
 
-  /* ════════════════════════
-     TAB: WORKOUTS
-     ════════════════════════ */
   const renderWorkouts = () => {
-    const completedSessions = myProgram?.sessions?.filter(s => s.status === 'completed').length || 0;
-    const totalSessions = myProgram?.sessions?.length || 1;
-    const progressPct = Math.round((completedSessions / totalSessions) * 100);
+    const prog = clientPrograms[0];
+    const completedCount = prog ? prog.sessions.filter(s => s.status === 'completed').length : 0;
+    const totalCount = prog ? prog.sessions.length : 0;
+    const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* Current Program */}
-        {myProgram && (
-          <Card className="pt-fadeUp-1">
-            <SectionLabel>Current Program</SectionLabel>
-            <div style={{ fontSize: 17, fontWeight: 600, color: '#111', fontFamily: FONT }}>{myProgram.name}</div>
-            <div style={{ fontSize: 13, color: '#777', fontFamily: FONT, marginTop: 4 }}>{completedSessions} of {totalSessions} sessions completed</div>
-            {/* Progress bar */}
-            <div style={{ marginTop: 12, height: 8, background: '#F0F0F0', borderRadius: 100, overflow: 'hidden' }}>
-              <div style={{
-                width: `${progressPct}%`, height: '100%', background: `linear-gradient(90deg, ${ACCENT}, ${ACCENT_DARK})`,
-                borderRadius: 100, transition: 'width 0.6s ease',
-              }} />
+      <div className="portal-page pt-fadeUp" style={{ padding: '20px 16px 100px' }}>
+        <h2 style={{ font: `700 20px ${HEADING}`, color: TEXT, margin: '0 0 16px' }}>Workouts</h2>
+
+        {prog ? (
+          <>
+            {/* Program card */}
+            <Card className="pt-fadeUp pt-fadeUp-1" style={{ marginBottom: 16 }}>
+              <div style={{ font: `600 16px ${HEADING}`, color: TEXT, marginBottom: 4 }}>{prog.name}</div>
+              <div style={{ font: `400 12px ${FONT}`, color: TEXT2, marginBottom: 14 }}>
+                {completedCount} of {totalCount} sessions complete
+              </div>
+              {/* Progress bar */}
+              <div style={{ height: 8, borderRadius: 4, background: '#F0F0F5', overflow: 'hidden', marginBottom: 4 }}>
+                <div style={{ height: '100%', borderRadius: 4, background: ACCENT, width: `${pct}%`, transition: 'width 0.6s ease' }} />
+              </div>
+              <div style={{ font: `500 11px ${MONO}`, color: ACCENT, textAlign: 'right' }}>{pct}%</div>
+            </Card>
+
+            {/* Session list */}
+            <div style={{ font: `600 12px ${FONT}`, color: TEXT2, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+              Sessions
             </div>
-            <div style={{ fontSize: 12, color: ACCENT, fontWeight: 600, fontFamily: FONT, marginTop: 6, textAlign: 'right' }}>{progressPct}%</div>
+            {prog.sessions.map((session, i) => (
+              <Card key={i} className={`pt-fadeUp pt-fadeUp-${Math.min(i + 2, 5)}`} style={{ marginBottom: 10, padding: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ font: `500 14px ${FONT}`, color: TEXT }}>{session.name}</div>
+                    <div style={{ font: `400 12px ${MONO}`, color: TEXT3, marginTop: 2 }}>{fmtWeekday(session.date)}</div>
+                    {session.notes && (
+                      <div style={{ font: `400 12px ${FONT}`, color: TEXT2, marginTop: 6 }}>{session.notes}</div>
+                    )}
+                  </div>
+                  <span style={{
+                    padding: '4px 10px', borderRadius: 100, flexShrink: 0,
+                    background: session.status === 'completed' ? `${SUCCESS}18` :
+                      session.status === 'in-progress' ? `${ACCENT}14` : '#F5F5F5',
+                    color: session.status === 'completed' ? SUCCESS :
+                      session.status === 'in-progress' ? ACCENT : TEXT3,
+                    font: `500 10px ${FONT}`, textTransform: 'capitalize',
+                  }}>{session.status === 'in-progress' ? 'In Progress' : session.status}</span>
+                </div>
+              </Card>
+            ))}
+          </>
+        ) : (
+          <Card>
+            <div style={{ textAlign: 'center', padding: 20, color: TEXT3, fontFamily: FONT }}>
+              No active program. Ask your trainer to set one up!
+            </div>
           </Card>
         )}
-
-        {/* Program Sessions */}
-        {myProgram?.sessions?.length > 0 && (
-          <Card className="pt-fadeUp-2">
-            <SectionLabel>Program Schedule</SectionLabel>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {myProgram.sessions.map((session, i) => {
-                const isCompleted = session.status === 'completed';
-                const isCurrent = session.status === 'in-progress';
-                return (
-                  <div key={i} style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '12px 14px', background: isCurrent ? `${ACCENT}08` : '#FAFAFA',
-                    borderRadius: 12, border: isCurrent ? `1.5px solid ${ACCENT}30` : '1px solid transparent',
-                  }}>
-                    <div style={{
-                      width: 32, height: 32, borderRadius: 10, flexShrink: 0,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
-                      background: isCompleted ? '#16A34A' : isCurrent ? ACCENT : '#E5E7EB',
-                      color: (isCompleted || isCurrent) ? '#fff' : '#999', fontWeight: 600,
-                    }}>{isCompleted ? '✓' : i + 1}</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 14, fontWeight: 500, color: '#111', fontFamily: FONT }}>{session.name}</div>
-                      <div style={{ fontSize: 12, color: '#999', fontFamily: FONT }}>{fmtDate(session.date)}{session.notes ? ` — ${session.notes}` : ''}</div>
-                    </div>
-                    {isCurrent && <span style={{ fontSize: 11, fontWeight: 600, color: ACCENT, background: `${ACCENT}15`, padding: '3px 10px', borderRadius: 20, fontFamily: FONT }}>NOW</span>}
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
-        )}
-
-        {/* Upcoming Sessions */}
-        <Card className="pt-fadeUp-3">
-          <SectionLabel>Upcoming Sessions</SectionLabel>
-          {upcomingAppts.length === 0 ? (
-            <div style={{ color: '#999', fontSize: 13, fontFamily: FONT }}>No upcoming sessions</div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {upcomingAppts.slice(0, 6).map(a => (
-                <div key={a.id} style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '10px 14px', background: '#FAFAFA', borderRadius: 12,
-                }}>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 500, color: '#111', fontFamily: FONT }}>{getServiceName(a.serviceId)}</div>
-                    <div style={{ fontSize: 12, color: '#999', fontFamily: FONT }}>{fmtWeekday(a.date)} &middot; {fmtTime(a.time)} &middot; {a.duration || 60}min</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-
-        {/* Past Sessions */}
-        <Card className="pt-fadeUp-4">
-          <SectionLabel>Past Sessions</SectionLabel>
-          {pastAppts.length === 0 ? (
-            <div style={{ color: '#999', fontSize: 13, fontFamily: FONT }}>No past sessions yet</div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {pastAppts.slice(0, 8).map(a => (
-                <div key={a.id} style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '8px 14px', background: '#FAFAFA', borderRadius: 10,
-                }}>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: '#555', fontFamily: FONT }}>{getServiceName(a.serviceId)}</div>
-                    <div style={{ fontSize: 11, color: '#BBB', fontFamily: FONT }}>{fmtDate(a.date)} &middot; {fmtTime(a.time)}</div>
-                  </div>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: '#16A34A', fontFamily: FONT }}>✓ Done</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
       </div>
     );
   };
 
-  /* ════════════════════════
-     TAB: PROGRESS
-     ════════════════════════ */
   const renderProgress = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* Weight Chart */}
-      <Card className="pt-fadeUp-1">
-        <SectionLabel>Weight Trend</SectionLabel>
-        <MiniWeightChart data={progressData} />
-        {progressData && progressData.length >= 2 && (() => {
-          const first = progressData[0].weight;
-          const last = progressData[progressData.length - 1].weight;
-          const diff = last - first;
-          return (
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, padding: '0 4px' }}>
-              <span style={{ fontSize: 12, color: '#999', fontFamily: FONT }}>Start: {first} lbs</span>
-              <span style={{ fontSize: 12, fontWeight: 600, color: diff <= 0 ? '#16A34A' : '#D97706', fontFamily: FONT }}>
-                {diff <= 0 ? '↓' : '↑'} {Math.abs(Math.round(diff * 10) / 10)} lbs
-              </span>
-              <span style={{ fontSize: 12, color: '#999', fontFamily: FONT }}>Now: {last} lbs</span>
-            </div>
-          );
-        })()}
-      </Card>
+    <div className="portal-page pt-fadeUp" style={{ padding: '20px 16px 100px' }}>
+      <h2 style={{ font: `700 20px ${HEADING}`, color: TEXT, margin: '0 0 16px' }}>Progress</h2>
 
-      {/* Body Measurements */}
-      {measurements && measurements.length > 0 && (
-        <Card className="pt-fadeUp-2">
-          <SectionLabel>Body Measurements</SectionLabel>
+      {/* Weight Chart */}
+      {progressData && (
+        <Card className="pt-fadeUp pt-fadeUp-1" style={{ marginBottom: 16 }}>
+          <div style={{ font: `600 14px ${FONT}`, color: TEXT, marginBottom: 4 }}>Weight Trend</div>
+          <div style={{ font: `400 12px ${FONT}`, color: TEXT2, marginBottom: 14 }}>
+            {progressData[0].weight} lbs → {progressData[progressData.length - 1].weight} lbs
+          </div>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: FONT, fontSize: 13 }}>
-              <thead>
-                <tr style={{ borderBottom: '2px solid #F0F0F0' }}>
-                  {['Date', 'Chest', 'Waist', 'Hips', 'Arm L', 'Arm R'].map(h => (
-                    <th key={h} style={{ padding: '8px 10px', textAlign: 'left', fontSize: 11, color: '#999', fontWeight: 600, textTransform: 'uppercase' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {measurements.map((m, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid #F8F8F8' }}>
-                    <td style={{ padding: '8px 10px', color: '#777', fontSize: 12 }}>{fmtDate(m.date)}</td>
-                    <td style={{ padding: '8px 10px', fontWeight: 500, color: '#111' }}>{m.chest}"</td>
-                    <td style={{ padding: '8px 10px', fontWeight: 500, color: '#111' }}>{m.waist}"</td>
-                    <td style={{ padding: '8px 10px', fontWeight: 500, color: '#111' }}>{m.hips}"</td>
-                    <td style={{ padding: '8px 10px', fontWeight: 500, color: '#111' }}>{m.armL}"</td>
-                    <td style={{ padding: '8px 10px', fontWeight: 500, color: '#111' }}>{m.armR}"</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <MiniChart data={progressData} width={Math.max(280, (progressData.length - 1) * 24 + 40)} height={130} />
           </div>
         </Card>
       )}
 
-      {/* PRs Board */}
-      <Card className="pt-fadeUp-3">
-        <SectionLabel>Personal Records 🏆</SectionLabel>
-        {(!prs || prs.length === 0) ? (
-          <div style={{ color: '#999', fontSize: 13, fontFamily: FONT }}>No PRs recorded yet. Keep training!</div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
-            {prs.map(pr => (
-              <div key={pr.id} style={{
-                background: '#FAFAFA', borderRadius: 12, padding: '14px 12px', textAlign: 'center',
-              }}>
-                <div style={{ fontSize: 11, color: '#999', fontFamily: FONT, marginBottom: 4 }}>{pr.exercise}</div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: '#111', fontFamily: FONT }}>{pr.value}</div>
-                <div style={{ fontSize: 11, color: '#999', fontFamily: FONT }}>{pr.unit}</div>
+      {/* PRs */}
+      {prs.length > 0 && (
+        <Card className="pt-fadeUp pt-fadeUp-2" style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <TrophyIcon />
+            <span style={{ font: `600 14px ${FONT}`, color: TEXT }}>Personal Records</span>
+          </div>
+          {prs.map(pr => (
+            <div key={pr.id} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '10px 0', borderBottom: `1px solid ${CARD_BORDER}`,
+            }}>
+              <div>
+                <div style={{ font: `500 14px ${FONT}`, color: TEXT }}>{pr.exercise}</div>
+                <div style={{ font: `400 11px ${MONO}`, color: TEXT3 }}>{fmtDate(pr.date)}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ font: `700 16px ${MONO}`, color: ACCENT }}>{pr.value} {pr.unit}</div>
                 {pr.previousValue && (
-                  <div style={{ fontSize: 10, color: '#16A34A', fontFamily: FONT, marginTop: 4 }}>
-                    ↑ from {pr.previousValue} {pr.unit}
+                  <div style={{ font: `400 11px ${MONO}`, color: SUCCESS }}>+{pr.value - pr.previousValue} {pr.unit}</div>
+                )}
+              </div>
+            </div>
+          ))}
+        </Card>
+      )}
+
+      {/* Measurements */}
+      {measurements && (
+        <Card className="pt-fadeUp pt-fadeUp-3">
+          <div style={{ font: `600 14px ${FONT}`, color: TEXT, marginBottom: 12 }}>Measurements</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {Object.entries(measurements).map(([key, vals]) => (
+              <div key={key} style={{
+                padding: 12, borderRadius: 10,
+                background: '#FAFAFA', border: `1px solid ${CARD_BORDER}`,
+              }}>
+                <div style={{ font: `400 11px ${FONT}`, color: TEXT3, textTransform: 'capitalize', marginBottom: 4 }}>{key}</div>
+                <div style={{ font: `700 16px ${MONO}`, color: TEXT }}>{vals[vals.length - 1]}"</div>
+                {vals.length > 1 && (
+                  <div style={{
+                    font: `400 10px ${MONO}`,
+                    color: vals[vals.length - 1] <= vals[0] ? SUCCESS : TEXT3,
+                  }}>
+                    {vals[vals.length - 1] <= vals[0] ? '' : '+'}{(vals[vals.length - 1] - vals[0]).toFixed(1)}" from start
                   </div>
                 )}
               </div>
             ))}
           </div>
-        )}
-      </Card>
+        </Card>
+      )}
 
-      {/* Progress Photos */}
-      <Card className="pt-fadeUp-4">
-        <SectionLabel>Progress Photos</SectionLabel>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          {['Before', 'After'].map(label => (
-            <div key={label} style={{
-              background: '#F5F5F5', borderRadius: 12, height: 180,
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              border: '2px dashed #DDD', cursor: 'pointer',
-            }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BBB" strokeWidth="1.5" strokeLinecap="round">
-                <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <div style={{ fontSize: 12, color: '#999', fontFamily: FONT, marginTop: 8 }}>{label}</div>
-              <div style={{ fontSize: 10, color: '#CCC', fontFamily: FONT }}>Tap to upload</div>
-            </div>
-          ))}
-        </div>
-      </Card>
+      {!progressData && prs.length === 0 && (
+        <Card>
+          <div style={{ textAlign: 'center', padding: 20, color: TEXT3, fontFamily: FONT }}>
+            Progress data will appear after a few sessions.
+          </div>
+        </Card>
+      )}
     </div>
   );
 
-  /* ════════════════════════
-     TAB: NUTRITION
-     ════════════════════════ */
-  const renderNutrition = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* Calories Summary */}
-      <Card className="pt-fadeUp-1">
-        <SectionLabel>Today's Calories</SectionLabel>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '8px 0' }}>
-          <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-            <DonutRing value={macros.calories.current} max={macros.calories.goal} color={ACCENT} size={100} strokeWidth={10} />
-            <div style={{ position: 'absolute', textAlign: 'center' }}>
-              <div style={{ fontSize: 20, fontWeight: 700, color: '#111', fontFamily: FONT }}>{macros.calories.current}</div>
-              <div style={{ fontSize: 9, color: '#999', fontFamily: FONT }}>/ {macros.calories.goal}</div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div style={{ fontSize: 12, color: '#999', fontFamily: FONT }}>{macros.calories.goal - macros.calories.current} cal remaining</div>
-            <div style={{ fontSize: 11, color: '#16A34A', fontFamily: FONT, fontWeight: 500 }}>On track! 👍</div>
-          </div>
-        </div>
-      </Card>
+  const renderNutrition = () => {
+    const n = nutrition;
+    const calPct = Math.round((n.calories.current / n.calories.target) * 100);
 
-      {/* Macro Rings */}
-      <Card className="pt-fadeUp-2">
-        <SectionLabel>Macros</SectionLabel>
-        <div style={{ display: 'flex', justifyContent: 'space-around', padding: '8px 0' }}>
-          {[
-            { label: 'Protein', color: '#EF4444', ...macros.protein, unit: 'g' },
-            { label: 'Carbs', color: '#3B82F6', ...macros.carbs, unit: 'g' },
-            { label: 'Fat', color: '#F59E0B', ...macros.fat, unit: 'g' },
-          ].map(m => (
-            <div key={m.label} style={{ textAlign: 'center' }}>
-              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                <DonutRing value={m.current} max={m.goal} color={m.color} size={68} strokeWidth={6} />
-                <div style={{ position: 'absolute', fontSize: 13, fontWeight: 600, color: '#111', fontFamily: FONT }}>{m.current}{m.unit}</div>
-              </div>
-              <div style={{ fontSize: 11, color: '#777', fontFamily: FONT, marginTop: 4 }}>{m.label}</div>
-              <div style={{ fontSize: 10, color: '#BBB', fontFamily: FONT }}>/ {m.goal}{m.unit}</div>
-            </div>
-          ))}
-        </div>
-      </Card>
+    return (
+      <div className="portal-page pt-fadeUp" style={{ padding: '20px 16px 100px' }}>
+        <h2 style={{ font: `700 20px ${HEADING}`, color: TEXT, margin: '0 0 16px' }}>Nutrition</h2>
 
-      {/* Meal Log */}
-      <Card className="pt-fadeUp-3">
-        <SectionLabel>Today's Meals</SectionLabel>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {meals.map((meal, i) => (
+        {/* Calories header */}
+        <Card className="pt-fadeUp pt-fadeUp-1" style={{ marginBottom: 16, textAlign: 'center' }}>
+          <div style={{ font: `400 12px ${FONT}`, color: TEXT2, marginBottom: 4 }}>Today's Calories</div>
+          <div style={{ font: `700 28px ${MONO}`, color: TEXT }}>{n.calories.current.toLocaleString()}</div>
+          <div style={{ font: `400 12px ${MONO}`, color: TEXT3 }}>of {n.calories.target.toLocaleString()} kcal ({calPct}%)</div>
+          {/* Calorie bar */}
+          <div style={{ height: 6, borderRadius: 3, background: '#F0F0F5', overflow: 'hidden', marginTop: 12 }}>
+            <div style={{ height: '100%', borderRadius: 3, background: ACCENT, width: `${Math.min(calPct, 100)}%` }} />
+          </div>
+        </Card>
+
+        {/* Macro Rings */}
+        <Card className="pt-fadeUp pt-fadeUp-2" style={{ marginBottom: 16 }}>
+          <div style={{ font: `600 12px ${FONT}`, color: TEXT2, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
+            Macros
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+            <MacroRing label="Protein" current={n.protein.current} target={n.protein.target} color="#EF4444" size={80} />
+            <MacroRing label="Carbs" current={n.carbs.current} target={n.carbs.target} color="#3B82F6" size={80} />
+            <MacroRing label="Fat" current={n.fat.current} target={n.fat.target} color="#EAB308" size={80} />
+          </div>
+        </Card>
+
+        {/* Meal Log */}
+        <Card className="pt-fadeUp pt-fadeUp-3">
+          <div style={{ font: `600 12px ${FONT}`, color: TEXT2, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+            Meal Log
+          </div>
+          {n.meals.map((meal, i) => (
             <div key={i} style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '10px 14px', background: '#FAFAFA', borderRadius: 12,
+              padding: '10px 0', borderBottom: i < n.meals.length - 1 ? `1px solid ${CARD_BORDER}` : 'none',
             }}>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 500, color: '#111', fontFamily: FONT }}>{meal.name}</div>
-                <div style={{ fontSize: 12, color: '#999', fontFamily: FONT }}>{meal.items}</div>
-                <div style={{ fontSize: 11, color: '#BBB', fontFamily: FONT }}>{meal.time}</div>
+                <div style={{ font: `500 13px ${FONT}`, color: TEXT }}>{meal.name}</div>
+                <div style={{ font: `400 11px ${MONO}`, color: TEXT3 }}>{meal.time}</div>
               </div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#555', fontFamily: FONT }}>{meal.cals} cal</div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ font: `500 13px ${MONO}`, color: TEXT }}>{meal.cal} cal</div>
+                <div style={{ font: `400 10px ${MONO}`, color: TEXT3 }}>P:{meal.protein}g C:{meal.carbs}g F:{meal.fat}g</div>
+              </div>
             </div>
           ))}
-        </div>
-        <button style={{
-          width: '100%', marginTop: 12, padding: '12px', background: '#FAFAFA',
-          border: '2px dashed #DDD', borderRadius: 12, cursor: 'pointer',
-          fontFamily: FONT, fontSize: 13, fontWeight: 500, color: '#999',
-        }}>+ Log a Meal</button>
-      </Card>
+        </Card>
+      </div>
+    );
+  };
 
-      {/* Meal Plan from Trainer */}
-      <Card className="pt-fadeUp-4">
-        <SectionLabel>Trainer's Meal Plan</SectionLabel>
-        <div style={{ background: `${ACCENT}08`, borderRadius: 12, padding: 16 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#111', fontFamily: FONT, marginBottom: 8 }}>Muscle Building — Week 5</div>
-          <div style={{ fontSize: 13, color: '#555', fontFamily: FONT, lineHeight: 1.6 }}>
-            <strong>Goal:</strong> 2,200 cal/day &middot; 180g protein &middot; 250g carbs &middot; 70g fat<br />
-            <strong>Focus:</strong> High protein at every meal. Time carbs around workouts. Stay hydrated — minimum 100oz water daily.<br />
-            <strong>Supplements:</strong> Creatine 5g, Whey protein post-workout, Vitamin D3
-          </div>
-        </div>
-      </Card>
-    </div>
-  );
-
-  /* ════════════════════════
-     TAB: CHAT
-     ════════════════════════ */
   const renderChat = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 230px)', minHeight: 400 }}>
-      {/* Chat Header */}
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 160px)' }}>
+      {/* Chat header */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
-        background: '#fff', borderRadius: 16, boxShadow: CARD_SHADOW, marginBottom: 12,
+        padding: '14px 16px', background: CARD_BG,
+        borderBottom: `1px solid ${CARD_BORDER}`,
+        display: 'flex', alignItems: 'center', gap: 12,
       }}>
         <div style={{
-          width: 40, height: 40, borderRadius: 12, background: 'linear-gradient(135deg, #1A1A2E, #0F3460)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
-          fontSize: 15, fontWeight: 700, fontFamily: FONT, flexShrink: 0,
+          width: 36, height: 36, borderRadius: '50%', background: DARK_GRAD,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: '#fff', fontWeight: 600, fontSize: 13, fontFamily: FONT,
         }}>MC</div>
         <div>
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#111', fontFamily: FONT }}>{trainer.name}</div>
-          <div style={{ fontSize: 11, color: '#16A34A', fontFamily: FONT }}>● Online</div>
+          <div style={{ font: `600 14px ${FONT}`, color: TEXT }}>Marcus Cole</div>
+          <div style={{ font: `400 11px ${FONT}`, color: SUCCESS }}>Your trainer</div>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="portal-client-scroll" style={{
-        flex: 1, overflowY: 'auto', padding: '8px 4px',
-        display: 'flex', flexDirection: 'column', gap: 8,
+      <div className="portal-scroll" style={{
+        flex: 1, overflowY: 'auto', padding: '16px 16px 8px',
+        display: 'flex', flexDirection: 'column', gap: 6,
       }}>
-        {chatMessages.map(msg => {
-          const isTrainer = msg.from === 'trainer';
+        {chatMessages.map((msg, i) => {
+          const isClient = msg.from === 'client';
+          const showTime = i === 0 || new Date(msg.ts).getTime() - new Date(chatMessages[i - 1].ts).getTime() > 3600000;
           return (
-            <div key={msg.id} style={{
-              display: 'flex', justifyContent: isTrainer ? 'flex-start' : 'flex-end',
-            }}>
-              <div style={{
-                maxWidth: '78%', padding: '10px 14px',
-                background: isTrainer ? '#F0F0F0' : ACCENT,
-                color: isTrainer ? '#111' : '#fff',
-                borderRadius: isTrainer ? '16px 16px 16px 4px' : '16px 16px 4px 16px',
-                fontSize: 14, fontFamily: FONT, lineHeight: 1.5,
-              }}>
-                {msg.text}
+            <div key={msg.id}>
+              {showTime && (
+                <div style={{ textAlign: 'center', font: `400 11px ${FONT}`, color: TEXT3, margin: '10px 0 6px' }}>
+                  {fmtDate(msg.ts)} {new Date(msg.ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: isClient ? 'flex-end' : 'flex-start' }}>
                 <div style={{
-                  fontSize: 10, marginTop: 4, textAlign: 'right',
-                  color: isTrainer ? '#999' : 'rgba(255,255,255,0.7)',
-                }}>{msg.time}</div>
+                  maxWidth: '78%', padding: '10px 14px',
+                  borderRadius: isClient ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                  background: isClient ? ACCENT : '#F0F0F5',
+                  color: isClient ? '#fff' : TEXT,
+                  font: `400 14px ${FONT}`, lineHeight: 1.5, wordBreak: 'break-word',
+                }}>
+                  {msg.text}
+                </div>
               </div>
             </div>
           );
@@ -791,95 +707,179 @@ export default function Portal() {
 
       {/* Input */}
       <div style={{
-        display: 'flex', gap: 8, padding: '12px 0 4px',
+        padding: '10px 16px 10px', background: CARD_BG,
+        borderTop: `1px solid ${CARD_BORDER}`,
+        display: 'flex', alignItems: 'flex-end', gap: 10,
       }}>
-        <input
-          value={chatInput}
-          onChange={e => setChatInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && sendChat()}
+        <textarea
+          value={chatDraft}
+          onChange={e => setChatDraft(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } }}
           placeholder="Message your trainer..."
+          rows={1}
           style={{
-            flex: 1, padding: '12px 16px', borderRadius: 14,
-            border: '1px solid #E5E7EB', background: '#FAFAFA',
-            fontFamily: FONT, fontSize: 14, color: '#111', outline: 'none',
-            transition: 'border-color 0.2s',
+            flex: 1, padding: '11px 16px', borderRadius: 22,
+            border: `1px solid ${CARD_BORDER}`, background: '#FAFAFA',
+            font: `400 14px ${FONT}`, color: TEXT, outline: 'none',
+            resize: 'none', minHeight: 42, maxHeight: 100,
+            boxSizing: 'border-box',
           }}
-          onFocus={e => e.target.style.borderColor = ACCENT}
-          onBlur={e => e.target.style.borderColor = '#E5E7EB'}
         />
-        <button onClick={sendChat} style={{
-          background: ACCENT, color: '#fff', border: 'none', borderRadius: 14,
-          width: 48, height: 48, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
-        }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
-          </svg>
+        <button
+          onClick={sendChat}
+          disabled={!chatDraft.trim()}
+          style={{
+            width: 42, height: 42, borderRadius: '50%', border: 'none',
+            background: chatDraft.trim() ? ACCENT : '#E8E8EA',
+            cursor: chatDraft.trim() ? 'pointer' : 'default',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <SendIcon color={chatDraft.trim() ? '#fff' : TEXT3} />
         </button>
       </div>
     </div>
   );
 
-  /* ════════════════════════
-     MAIN RENDER
-     ════════════════════════ */
+  // ── Bottom Tabs Config ──
+  const bottomTabs = [
+    { id: 'home', label: 'Home', Icon: HomeIcon },
+    { id: 'workouts', label: 'Workouts', Icon: DumbbellIcon },
+    { id: 'progress', label: 'Progress', Icon: ChartIcon },
+    { id: 'nutrition', label: 'Nutrition', Icon: AppleIcon },
+    { id: 'chat', label: 'Chat', Icon: ChatBubbleIcon },
+  ];
+
   return (
-    <div style={{ minHeight: '100vh', background: '#F5F5F5', fontFamily: FONT }} className="portal-client-page">
-      {/* Dark Hero Header */}
+    <div style={{ background: '#F8F8FA', minHeight: '100vh', fontFamily: FONT, position: 'relative' }}>
+      {/* ── Dark Gradient Header ── */}
       <div style={{
-        background: DARK_GRAD, padding: '24px 20px 28px',
-        position: 'relative', overflow: 'hidden',
+        background: DARK_GRAD,
+        padding: '20px 16px 18px',
+        position: 'relative',
       }}>
-        {/* Subtle decorative circles */}
-        <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,255,255,0.03)' }} />
-        <div style={{ position: 'absolute', bottom: -60, left: -30, width: 200, height: 200, borderRadius: '50%', background: 'rgba(255,255,255,0.02)' }} />
-
-        {/* Client Selector */}
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <select
-            value={selectedClientId}
-            onChange={e => setSelectedClientId(e.target.value)}
-            style={{
-              background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)',
-              border: '1px solid rgba(255,255,255,0.15)', borderRadius: 10,
-              padding: '6px 12px', fontFamily: FONT, fontSize: 11, cursor: 'pointer',
-              outline: 'none', marginBottom: 16, appearance: 'none',
-              WebkitAppearance: 'none', paddingRight: 28,
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
-              backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center',
-            }}
-          >
-            {clients.slice(0, 10).map(c => (
-              <option key={c.id} value={c.id} style={{ color: '#111', background: '#fff' }}>
-                {c.firstName} {c.lastName}
-              </option>
-            ))}
-          </select>
-
-          {/* Greeting */}
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#fff', marginBottom: 4 }}>
-            Hey {client?.firstName} 💪
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ font: `400 11px ${FONT}`, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
+              Client Portal
+            </div>
+            <div style={{ font: `600 18px ${HEADING}`, color: '#fff' }}>FORGE</div>
           </div>
-          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)' }}>
-            {todayAppt
-              ? `You have a ${getServiceName(todayAppt.serviceId).toLowerCase()} today at ${fmtTime(todayAppt.time)}`
-              : "Let's keep the momentum going!"
-            }
+
+          {/* Client Selector */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowClientDropdown(!showClientDropdown)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '8px 14px', borderRadius: 10,
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                color: '#fff', cursor: 'pointer',
+                font: `500 13px ${FONT}`,
+              }}
+            >
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%',
+                background: `linear-gradient(135deg, ${ACCENT}, #065a60)`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#fff', fontWeight: 600, fontSize: 11, fontFamily: FONT,
+              }}>
+                {client.firstName[0]}{client.lastName[0]}
+              </div>
+              {client.firstName}
+              <ChevronDown />
+            </button>
+
+            {showClientDropdown && (
+              <div style={{
+                position: 'absolute', top: '100%', right: 0, marginTop: 6,
+                background: CARD_BG, borderRadius: 12, padding: 6,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                border: `1px solid ${CARD_BORDER}`,
+                zIndex: 100, minWidth: 200, maxHeight: 300, overflowY: 'auto',
+              }}>
+                {topClients.map(p => (
+                  <button
+                    key={p.id}
+                    onClick={() => { setSelectedClientId(p.id); setShowClientDropdown(false); setActiveTab('home'); }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      width: '100%', padding: '10px 12px', borderRadius: 8,
+                      border: 'none', cursor: 'pointer',
+                      background: p.id === selectedClientId ? ACCENT_LIGHT : 'transparent',
+                      font: `500 13px ${FONT}`, color: TEXT,
+                      textAlign: 'left',
+                    }}
+                  >
+                    <div style={{
+                      width: 30, height: 30, borderRadius: '50%',
+                      background: `linear-gradient(135deg, ${ACCENT}, #065a60)`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: '#fff', fontWeight: 600, fontSize: 10, fontFamily: FONT, flexShrink: 0,
+                    }}>
+                      {p.firstName[0]}{p.lastName[0]}
+                    </div>
+                    {p.firstName} {p.lastName}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Content Area */}
-      <div style={{ padding: '16px 16px 88px', maxWidth: 560, margin: '0 auto' }}>
-        {tab === 'home' && renderHome()}
-        {tab === 'workouts' && renderWorkouts()}
-        {tab === 'progress' && renderProgress()}
-        {tab === 'nutrition' && renderNutrition()}
-        {tab === 'chat' && renderChat()}
+      {/* Close dropdown on outside click */}
+      {showClientDropdown && (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 50 }}
+          onClick={() => setShowClientDropdown(false)}
+        />
+      )}
+
+      {/* ── Main Content Area ── */}
+      <div style={{ overflowY: 'auto' }}>
+        {activeTab === 'home' && renderHome()}
+        {activeTab === 'workouts' && renderWorkouts()}
+        {activeTab === 'progress' && renderProgress()}
+        {activeTab === 'nutrition' && renderNutrition()}
+        {activeTab === 'chat' && renderChat()}
       </div>
 
-      {/* Bottom Navigation */}
-      <BottomNav active={tab} onNav={setTab} />
+      {/* ── Bottom Tab Bar ── */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        background: '#fff',
+        borderTop: `1px solid ${CARD_BORDER}`,
+        display: 'flex', justifyContent: 'space-around',
+        padding: '6px 0 env(safe-area-inset-bottom, 8px)',
+        zIndex: 200,
+      }}>
+        {bottomTabs.map(t => {
+          const active = activeTab === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id)}
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                padding: '6px 12px', border: 'none', background: 'none', cursor: 'pointer',
+                minWidth: 56,
+              }}
+            >
+              <t.Icon active={active} />
+              <span style={{
+                font: `${active ? 600 : 400} 10px ${FONT}`,
+                color: active ? ACCENT : TEXT3,
+              }}>{t.label}</span>
+              {active && (
+                <div style={{ width: 4, height: 4, borderRadius: 2, background: ACCENT, marginTop: 1 }} />
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

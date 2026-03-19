@@ -1,133 +1,111 @@
-import { useState, useEffect } from 'react';
-import { useStyles } from '../theme';
+import { useState, useEffect, useMemo } from 'react';
+import { useStyles, getAvatarGradient } from '../theme';
 import { getAppointments, addAppointment, updateAppointment, deleteAppointment, getPatients, getServices, getProviders, subscribe } from '../data/store';
+
+const ANIM_ID = 'schedule-anims-v2';
+if (!document.getElementById(ANIM_ID)) {
+  const sheet = document.createElement('style');
+  sheet.id = ANIM_ID;
+  sheet.textContent = `
+    @keyframes schedFadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes schedModalIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+  `;
+  document.head.appendChild(sheet);
+}
+
+function getInitials(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  return parts.map(p => p[0]).join('').toUpperCase().slice(0, 2);
+}
 
 export default function Schedule() {
   const s = useStyles();
   const [, setTick] = useState(0);
   useEffect(() => subscribe(() => setTick(t => t + 1)), []);
 
-  const [view, setView] = useState(() => {
-    if (typeof window !== 'undefined' && window.innerWidth <= 860) return 'list';
-    return 'day';
-  }); // 'day' | 'week' | 'list' | 'grid'
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+
+  const [view, setView] = useState(() => isMobile ? 'list' : 'day');
   const [currentDate, setCurrentDate] = useState(new Date().toISOString().slice(0, 10));
   const [showForm, setShowForm] = useState(false);
   const [editAppt, setEditAppt] = useState(null);
+  const [detailAppt, setDetailAppt] = useState(null);
   const [form, setForm] = useState({ patientId: '', serviceId: '', providerId: 'PRV-1', date: '', time: '', duration: 30, notes: '' });
-  const [gridDetail, setGridDetail] = useState(null);
 
   const appointments = getAppointments();
   const patients = getPatients();
   const services = getServices();
   const providers = getProviders();
 
-  const filteredAppointments = appointments;
-  const dayAppts = filteredAppointments.filter(a => a.date === currentDate).sort((a, b) => a.time.localeCompare(b.time));
+  const dayAppts = useMemo(() =>
+    appointments.filter(a => a.date === currentDate).sort((a, b) => a.time.localeCompare(b.time)),
+    [appointments, currentDate]
+  );
 
-  // Week view
-  const weekStart = new Date(currentDate + 'T12:00:00');
-  const dayOfWeek = weekStart.getDay();
-  weekStart.setDate(weekStart.getDate() - dayOfWeek);
-  const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(weekStart);
-    d.setDate(d.getDate() + i);
-    return d.toISOString().slice(0, 10);
-  });
+  // Week calculations
+  const weekStart = useMemo(() => {
+    const d = new Date(currentDate + 'T12:00:00');
+    const day = d.getDay();
+    d.setDate(d.getDate() - day);
+    return d;
+  }, [currentDate]);
+
+  const weekDays = useMemo(() =>
+    Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(weekStart);
+      d.setDate(d.getDate() + i);
+      return d.toISOString().slice(0, 10);
+    }),
+    [weekStart]
+  );
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const hours = Array.from({ length: 16 }, (_, i) => i + 6); // 6AM-9PM
 
   const navigate = (dir) => {
     const d = new Date(currentDate + 'T12:00:00');
-    d.setDate(d.getDate() + ((view === 'week' || view === 'grid') ? dir * 7 : dir));
+    d.setDate(d.getDate() + (view === 'week' ? dir * 7 : dir));
     setCurrentDate(d.toISOString().slice(0, 10));
   };
 
-  // Category colors for class grid
-  const categoryColor = (cat) => {
-    const colors = {
-      Strength: { bg: '#EFF6FF', border: '#3B82F6', text: '#1E40AF' },
-      Cardio: { bg: '#F0FDF4', border: '#22C55E', text: '#166534' },
-      Group: { bg: '#FDF2F8', border: '#EC4899', text: '#9D174D' },
-      Performance: { bg: '#FFF7ED', border: '#F97316', text: '#9A3412' },
-      Wellness: { bg: '#F0FDFA', border: '#14B8A6', text: '#115E59' },
-      Private: { bg: '#F9FAFB', border: '#9CA3AF', text: '#374151' },
-    };
-    return colors[cat] || colors.Private;
+  const statusColor = (status) => {
+    if (status === 'completed') return s.success;
+    if (status === 'confirmed') return s.accent;
+    if (status === 'pending') return s.warning;
+    if (status === 'cancelled') return s.danger;
+    return s.text3;
   };
 
-  // Capacity by category
-  const getCapacity = (cat) => {
-    if (cat === 'Strength') return 12;
-    if (cat === 'Cardio' || cat === 'Group') return 20;
-    if (cat === 'Private') return 8;
-    if (cat === 'Performance' || cat === 'Wellness') return 15;
-    return 12;
-  };
-
-  // Grid time slots: 5:30 AM through 8:00 PM in 30-min increments
-  const gridTimeSlots = [];
-  for (let h = 5; h <= 20; h++) {
-    for (let m = (h === 5 ? 30 : 0); m < 60; m += 30) {
-      if (h === 20 && m > 0) break;
-      gridTimeSlots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-    }
-  }
-
-  const formatGridTime = (t) => {
-    const [hh, mm] = t.split(':').map(Number);
-    const suffix = hh >= 12 ? 'PM' : 'AM';
-    const h12 = hh > 12 ? hh - 12 : hh === 0 ? 12 : hh;
-    return `${h12}:${String(mm).padStart(2, '0')} ${suffix}`;
-  };
-
-  // Group appointments into class blocks for the grid
-  const buildClassGrid = () => {
-    const filteredAppts = appointments;
-    // Group by date + time + serviceId to form "classes"
-    const classMap = {};
-    filteredAppts.forEach(a => {
-      const key = `${a.date}|${a.time}|${a.serviceId}`;
-      if (!classMap[key]) {
-        const svc = services.find(sv => sv.id === a.serviceId);
-        const prov = providers.find(p => p.id === a.providerId);
-        classMap[key] = {
-          date: a.date,
-          time: a.time,
-          serviceId: a.serviceId,
-          serviceName: svc?.name || 'Class',
-          category: svc?.category || 'Strength',
-          instructor: prov?.name?.split(',')[0] || 'TBD',
-          duration: a.duration || svc?.duration || 55,
-          attendees: [],
-        };
-      }
-      classMap[key].attendees.push(a);
-    });
-    return Object.values(classMap);
-  };
-
-  // Snap a time string to the nearest 30-min slot
-  const snapToSlot = (time) => {
-    const [h, m] = time.split(':').map(Number);
-    const snapped = m < 15 ? 0 : m < 45 ? 30 : 0;
-    const snapH = m >= 45 ? h + 1 : h;
-    return `${String(snapH).padStart(2, '0')}:${String(snapped).padStart(2, '0')}`;
+  const statusBg = (status) => {
+    if (status === 'completed') return s.successBg;
+    if (status === 'confirmed') return s.accentLight;
+    if (status === 'pending') return s.warningBg;
+    if (status === 'cancelled') return s.dangerBg;
+    return s.surfaceAlt;
   };
 
   const openNew = (date, time) => {
     setEditAppt(null);
-    setForm({ patientId: '', serviceId: '', providerId: 'PRV-1', date: date || currentDate, time: time || '09:00', duration: 30, notes: '' });
+    setForm({ patientId: '', serviceId: '', providerId: 'PRV-1', date: date || currentDate, time: time || '09:00', duration: 60, notes: '' });
     setShowForm(true);
   };
 
   const openEdit = (appt) => {
     setEditAppt(appt);
-    setForm({ patientId: appt.patientId, serviceId: appt.serviceId, providerId: appt.providerId, date: appt.date, time: appt.time, duration: appt.duration, notes: appt.notes || '' });
+    setForm({ patientId: appt.patientId, serviceId: appt.serviceId, providerId: appt.providerId, date: appt.date, time: appt.time, duration: appt.duration || 60, notes: appt.notes || '' });
     setShowForm(true);
+    setDetailAppt(null);
   };
 
   const handleSave = () => {
     const pat = patients.find(p => p.id === form.patientId);
-    const data = { ...form, patientName: pat ? `${pat.firstName} ${pat.lastName}` : 'Unknown', status: 'confirmed' };
+    const data = { ...form, patientName: pat ? `${pat.firstName} ${pat.lastName}` : 'Unknown', status: editAppt?.status || 'confirmed' };
     if (editAppt) {
       updateAppointment(editAppt.id, data);
     } else {
@@ -138,33 +116,99 @@ export default function Schedule() {
 
   const handleStatusChange = (id, status) => {
     updateAppointment(id, { status });
+    if (detailAppt?.id === id) setDetailAppt({ ...detailAppt, status });
   };
 
-  const hours = Array.from({ length: 12 }, (_, i) => i + 8); // 8AM-7PM
-
-  const statusColor = (status) => {
-    if (status === 'completed') return s.success;
-    if (status === 'confirmed') return s.accent;
-    if (status === 'pending') return s.warning;
-    if (status === 'cancelled') return s.danger;
-    return s.text3;
+  // Get recent sessions for a client (for session detail)
+  const getClientRecentSessions = (patientId) => {
+    return appointments
+      .filter(a => a.patientId === patientId && a.id !== detailAppt?.id)
+      .sort((a, b) => `${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`))
+      .slice(0, 3);
   };
 
-  const ApptBlock = ({ appt, compact }) => {
+  const formatTime12 = (time) => {
+    if (!time) return '';
+    const [h, m] = time.split(':').map(Number);
+    const suffix = h >= 12 ? 'PM' : 'AM';
+    const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
+    return `${h12}:${String(m).padStart(2, '0')} ${suffix}`;
+  };
+
+  const dateLabel = (dateStr) => {
+    if (dateStr === todayStr) return 'Today';
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  };
+
+  // Count sessions for the current view
+  const viewSessionCount = view === 'week'
+    ? appointments.filter(a => weekDays.includes(a.date)).length
+    : dayAppts.length;
+
+  // ── Session Block (Day View) ──
+  const SessionBlock = ({ appt }) => {
     const svc = services.find(sv => sv.id === appt.serviceId);
-    const prov = providers.find(p => p.id === appt.providerId);
     return (
-      <div onClick={() => openEdit(appt)} style={{
-        padding: compact ? '6px 8px' : '10px 14px', borderRadius: 8, cursor: 'pointer',
-        background: s.dark ? '#252529' : 'rgba(255,255,255,0.5)', backdropFilter: s.dark ? 'none' : 'blur(8px)', borderLeft: `3px solid ${statusColor(appt.status)}`,
-        marginBottom: 4, transition: 'all 0.15s',
-      }}
-      onMouseEnter={e => e.currentTarget.style.background = s.dark ? '#2A2A2E' : 'rgba(0,0,0,0.04)'}
-      onMouseLeave={e => e.currentTarget.style.background = s.dark ? '#252529' : 'rgba(255,255,255,0.5)'}
+      <div
+        onClick={() => setDetailAppt(appt)}
+        style={{
+          padding: '10px 14px', borderRadius: 10, cursor: 'pointer',
+          background: s.surface, borderLeft: `3px solid ${statusColor(appt.status)}`,
+          marginBottom: 6, boxShadow: s.shadow, transition: 'all 0.2s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = s.shadowMd; }}
+        onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = s.shadow; }}
       >
-        <div style={{ font: `500 ${compact ? 11 : 13}px ${s.FONT}`, color: s.text }}>{appt.patientName}</div>
-        <div style={{ font: `400 ${compact ? 10 : 12}px ${s.FONT}`, color: s.text2 }}>
-          {appt.time} — {svc?.name || 'Service'}{!compact && prov ? ` · ${prov.name.split(',')[0]}` : ''}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: 16,
+            background: getAvatarGradient(appt.patientName || ''),
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            font: `600 11px ${s.HEADING}`, color: '#FFF', flexShrink: 0,
+          }}>
+            {getInitials(appt.patientName)}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ font: `500 13px ${s.FONT}`, color: s.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {appt.patientName}
+            </div>
+            <div style={{ font: `400 12px ${s.FONT}`, color: s.text2 }}>
+              {svc?.name || 'Session'} — {appt.duration || svc?.duration || 60}min
+            </div>
+          </div>
+          <span style={{
+            font: `500 10px ${s.FONT}`, padding: '3px 8px', borderRadius: 100,
+            background: statusBg(appt.status), color: statusColor(appt.status),
+            textTransform: 'capitalize', flexShrink: 0,
+          }}>
+            {appt.status}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  // ── Compact Session Block (Week View) ──
+  const CompactBlock = ({ appt }) => {
+    const svc = services.find(sv => sv.id === appt.serviceId);
+    return (
+      <div
+        onClick={() => setDetailAppt(appt)}
+        style={{
+          padding: '6px 8px', borderRadius: 6, cursor: 'pointer',
+          borderLeft: `3px solid ${statusColor(appt.status)}`,
+          background: s.surface, marginBottom: 4, boxShadow: s.shadow,
+          transition: 'all 0.15s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = s.surfaceHover}
+        onMouseLeave={e => e.currentTarget.style.background = s.surface}
+      >
+        <div style={{ font: `500 11px ${s.FONT}`, color: s.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {appt.patientName}
+        </div>
+        <div style={{ font: `400 10px ${s.FONT}`, color: s.text2 }}>
+          {formatTime12(appt.time)} — {svc?.name?.split(' ')[0] || 'Session'}
         </div>
       </div>
     );
@@ -172,50 +216,88 @@ export default function Schedule() {
 
   return (
     <div>
-      <div className="schedule-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+      {/* Header */}
+      <div className="sched-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ font: `600 26px ${s.FONT}`, color: s.text, marginBottom: 4 }}>Schedule</h1>
-          <p style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>{dayAppts.length} sessions {view === 'day' || view === 'list' ? 'today' : 'this week'}</p>
+          <h1 style={{ font: `600 26px ${s.HEADING}`, color: s.text, margin: 0 }}>Schedule</h1>
+          <p style={{ font: `400 14px ${s.FONT}`, color: s.text2, margin: '4px 0 0' }}>
+            {viewSessionCount} session{viewSessionCount !== 1 ? 's' : ''} {view === 'week' ? 'this week' : view === 'day' ? 'today' : 'today'}
+          </p>
         </div>
-        <button onClick={() => openNew()} style={s.pillAccent}>+ Book Session</button>
+        <button onClick={() => openNew()} style={s.pillCta}>+ Book Session</button>
       </div>
 
       {/* Controls */}
-      <div className="schedule-controls" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
-        <div className="schedule-date-nav" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={() => navigate(-1)} style={{ ...s.pillGhost, padding: '6px 12px' }}>←</button>
-          <span style={{ font: `500 15px ${s.FONT}`, color: s.text, minWidth: 180, textAlign: 'center' }}>
-            {new Date(currentDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+      <div className="sched-controls" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        {/* Date Nav */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button onClick={() => navigate(-1)} style={{ ...s.pillGhost, padding: '6px 12px' }}>
+            <span style={{ fontSize: 14 }}>&larr;</span>
+          </button>
+          <span style={{ font: `500 15px ${s.FONT}`, color: s.text, minWidth: isMobile ? 0 : 200, textAlign: 'center' }}>
+            {view === 'week' ? (
+              `${new Date(weekDays[0] + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} — ${new Date(weekDays[6] + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+            ) : (
+              dateLabel(currentDate)
+            )}
           </span>
-          <button onClick={() => navigate(1)} style={{ ...s.pillGhost, padding: '6px 12px' }}>→</button>
-          <button onClick={() => setCurrentDate(new Date().toISOString().slice(0, 10))} style={{ ...s.pillGhost, padding: '6px 12px', fontSize: 11 }}>Today</button>
+          <button onClick={() => navigate(1)} style={{ ...s.pillGhost, padding: '6px 12px' }}>
+            <span style={{ fontSize: 14 }}>&rarr;</span>
+          </button>
+          <button onClick={() => setCurrentDate(todayStr)} style={{ ...s.pillGhost, padding: '6px 12px', fontSize: 11 }}>Today</button>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div className="schedule-view-toggle" style={{ display: 'flex', gap: 0, background: s.dark ? '#252529' : 'rgba(0,0,0,0.04)', borderRadius: 8, overflow: 'hidden' }}>
-            {['day', 'week', 'grid', 'list'].map(v => (
-              <button key={v} onClick={() => setView(v)} className={v === 'grid' ? 'schedule-grid-btn' : ''} style={{
-                padding: '7px 16px', background: view === v ? s.cardSolid : 'transparent', border: 'none',
-                font: `500 12px ${s.FONT}`, color: view === v ? s.text : s.text3, cursor: 'pointer',
+
+        {/* View Toggle */}
+        <div style={{ display: 'flex', gap: 0, background: s.surfaceAlt, borderRadius: 8, overflow: 'hidden' }}>
+          {(isMobile ? ['day', 'list'] : ['day', 'week', 'list']).map(v => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              style={{
+                padding: '7px 16px', border: 'none', cursor: 'pointer',
+                background: view === v ? s.surface : 'transparent',
+                font: `500 12px ${s.FONT}`, color: view === v ? s.text : s.text3,
                 borderRadius: view === v ? 8 : 0, boxShadow: view === v ? s.shadow : 'none',
                 textTransform: 'capitalize',
-              }}>{v === 'grid' ? 'Session Grid' : v}</button>
-            ))}
-          </div>
+              }}
+            >
+              {v}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Day View */}
+      {/* ── DAY VIEW ── */}
       {view === 'day' && (
-        <div style={s.tableWrap}>
+        <div style={{ ...s.cardStyle, overflow: 'hidden' }}>
           {hours.map(h => {
             const hourAppts = dayAppts.filter(a => parseInt(a.time.split(':')[0]) === h);
+            const isCurrentHour = currentDate === todayStr && new Date().getHours() === h;
             return (
-              <div key={h} style={{ display: 'flex', borderBottom: `1px solid ${s.borderLight}`, minHeight: 72 }}>
-                <div className="schedule-time-col" style={{ width: 80, padding: '12px 16px', font: `400 12px ${s.MONO}`, color: s.text3, borderRight: `1px solid ${s.borderLight}`, flexShrink: 0 }}>
+              <div key={h} style={{
+                display: 'flex', borderBottom: `1px solid ${s.borderLight}`, minHeight: 72,
+                background: isCurrentHour ? (s.dark ? 'rgba(14,122,130,0.04)' : 'rgba(14,122,130,0.02)') : 'transparent',
+              }}>
+                <div className="sched-time-col" style={{
+                  width: 80, padding: '14px 16px', flexShrink: 0,
+                  font: `400 12px ${s.MONO}`, color: isCurrentHour ? s.accent : s.text3,
+                  borderRight: `1px solid ${s.borderLight}`,
+                }}>
                   {h > 12 ? h - 12 : h}:00 {h >= 12 ? 'PM' : 'AM'}
                 </div>
-                <div style={{ flex: 1, padding: '8px 12px', cursor: 'pointer' }} onClick={() => openNew(currentDate, `${String(h).padStart(2, '0')}:00`)}>
-                  {hourAppts.map(a => <ApptBlock key={a.id} appt={a} />)}
+                <div
+                  style={{ flex: 1, padding: '8px 12px', cursor: 'pointer', minHeight: 56 }}
+                  onClick={() => { if (hourAppts.length === 0) openNew(currentDate, `${String(h).padStart(2, '0')}:00`); }}
+                >
+                  {hourAppts.map(a => <SessionBlock key={a.id} appt={a} />)}
+                  {hourAppts.length === 0 && (
+                    <div style={{
+                      height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      font: `400 12px ${s.FONT}`, color: s.text3, opacity: 0.4,
+                    }}>
+                      +
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -223,30 +305,51 @@ export default function Schedule() {
         </div>
       )}
 
-      {/* Week View */}
+      {/* ── WEEK VIEW ── */}
       {view === 'week' && (
-        <div className="schedule-week-wrap" style={{ ...s.tableWrap, overflowX: 'auto' }}>
+        <div style={{ ...s.cardStyle, overflowX: 'auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minWidth: 800 }}>
             {weekDays.map(day => {
-              const isToday = day === new Date().toISOString().slice(0, 10);
-              const dayA = filteredAppointments.filter(a => a.date === day).sort((a, b) => a.time.localeCompare(b.time));
+              const isToday = day === todayStr;
+              const dayA = appointments.filter(a => a.date === day).sort((a, b) => a.time.localeCompare(b.time));
+              const isSelected = day === currentDate;
               return (
-                <div key={day} style={{ borderRight: `1px solid ${s.borderLight}`, minHeight: 300 }}>
-                  <div style={{
-                    padding: '12px 10px', borderBottom: `1px solid ${s.borderLight}`, textAlign: 'center',
-                    background: isToday ? s.accentLight : 'transparent',
-                  }}>
-                    <div style={{ font: `400 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase' }}>
+                <div key={day} style={{ borderRight: `1px solid ${s.borderLight}`, minHeight: 340 }}>
+                  {/* Day header */}
+                  <div
+                    onClick={() => { setCurrentDate(day); setView('day'); }}
+                    style={{
+                      padding: '12px 10px', borderBottom: `1px solid ${s.borderLight}`, textAlign: 'center',
+                      background: isToday ? s.accentLight : 'transparent', cursor: 'pointer',
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={e => { if (!isToday) e.currentTarget.style.background = s.surfaceHover; }}
+                    onMouseLeave={e => { if (!isToday) e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    <div style={{ font: `400 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1 }}>
                       {new Date(day + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' })}
                     </div>
-                    <div style={{ font: `600 18px ${s.FONT}`, color: isToday ? s.accent : s.text }}>
+                    <div style={{
+                      font: `600 18px ${s.FONT}`, color: isToday ? s.accent : s.text,
+                      width: 32, height: 32, borderRadius: 16, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      background: isToday ? (s.dark ? 'rgba(14,122,130,0.2)' : 'rgba(14,122,130,0.1)') : 'transparent',
+                    }}>
                       {new Date(day + 'T12:00:00').getDate()}
                     </div>
+                    <div style={{ font: `500 10px ${s.FONT}`, color: s.text3, marginTop: 2 }}>
+                      {dayA.length} session{dayA.length !== 1 ? 's' : ''}
+                    </div>
                   </div>
+                  {/* Sessions */}
                   <div style={{ padding: 6 }}>
-                    {dayA.map(a => <ApptBlock key={a.id} appt={a} compact />)}
+                    {dayA.map(a => <CompactBlock key={a.id} appt={a} />)}
                     {dayA.length === 0 && (
-                      <div onClick={() => openNew(day)} style={{ padding: 12, textAlign: 'center', font: `400 11px ${s.FONT}`, color: s.text3, cursor: 'pointer' }}>+</div>
+                      <div
+                        onClick={() => openNew(day)}
+                        style={{ padding: 16, textAlign: 'center', font: `400 12px ${s.FONT}`, color: s.text3, cursor: 'pointer', opacity: 0.5 }}
+                      >
+                        + Add
+                      </div>
                     )}
                   </div>
                 </div>
@@ -256,305 +359,300 @@ export default function Schedule() {
         </div>
       )}
 
-      {/* List View */}
+      {/* ── LIST VIEW ── */}
       {view === 'list' && (
         <div style={s.tableWrap}>
-          <table className="schedule-list-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className="sched-list-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: `1px solid ${s.borderLight}` }}>
-                {['Time', 'Client', 'Session', 'Trainer', 'Status', 'Actions'].map(h => (
-                  <th key={h} className={(h === 'Trainer' || h === 'Actions') ? 'schedule-hide-mobile' : ''} style={{ padding: '12px 16px', font: `500 11px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: s.text3, textAlign: 'left' }}>{h}</th>
+                {['Time', 'Client', 'Session Type', 'Status', 'Actions'].map(h => (
+                  <th
+                    key={h}
+                    className={h === 'Actions' ? 'sched-hide-mobile' : ''}
+                    style={{ padding: '12px 16px', font: `500 10px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: s.text3, textAlign: 'left' }}
+                  >
+                    {h}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {dayAppts.map(a => {
                 const svc = services.find(sv => sv.id === a.serviceId);
-                const prov = providers.find(p => p.id === a.providerId);
                 return (
-                  <tr key={a.id} style={{ borderBottom: `1px solid ${s.borderLight}` }}>
-                    <td style={{ padding: '14px 16px', font: `500 13px ${s.MONO}`, color: s.text }}>{a.time}</td>
-                    <td style={{ padding: '14px 16px', font: `500 13px ${s.FONT}`, color: s.text }}>{a.patientName}</td>
-                    <td style={{ padding: '14px 16px', font: `400 13px ${s.FONT}`, color: s.text2 }}>{svc?.name || '—'}</td>
-                    <td className="schedule-hide-mobile" style={{ padding: '14px 16px', font: `400 13px ${s.FONT}`, color: s.text2 }}>{prov?.name?.split(',')[0] || '—'}</td>
+                  <tr
+                    key={a.id}
+                    onClick={() => setDetailAppt(a)}
+                    style={{ borderBottom: `1px solid ${s.borderLight}`, cursor: 'pointer', transition: 'background 0.15s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = s.surfaceHover}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
                     <td style={{ padding: '14px 16px' }}>
-                      <select value={a.status} onChange={e => handleStatusChange(a.id, e.target.value)} style={{ ...s.input, width: 'auto', padding: '4px 8px', fontSize: 12, cursor: 'pointer', color: statusColor(a.status), fontWeight: 500 }}>
-                        <option value="pending">Pending</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                      </select>
+                      <div style={{ font: `500 13px ${s.MONO}`, color: s.text }}>{formatTime12(a.time)}</div>
+                      <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>{a.duration || svc?.duration || 60}min</div>
                     </td>
-                    <td className="schedule-hide-mobile" style={{ padding: '14px 16px' }}>
+                    <td style={{ padding: '14px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{
+                          width: 32, height: 32, borderRadius: 16, flexShrink: 0,
+                          background: getAvatarGradient(a.patientName || ''),
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          font: `600 11px ${s.HEADING}`, color: '#FFF',
+                        }}>
+                          {getInitials(a.patientName)}
+                        </div>
+                        <span style={{ font: `500 13px ${s.FONT}`, color: s.text }}>{a.patientName}</span>
+                      </div>
+                    </td>
+                    <td style={{ padding: '14px 16px', font: `400 13px ${s.FONT}`, color: s.text2 }}>{svc?.name || '—'}</td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{
+                        font: `500 11px ${s.FONT}`, textTransform: 'capitalize',
+                        padding: '3px 10px', borderRadius: 100,
+                        background: statusBg(a.status), color: statusColor(a.status),
+                      }}>
+                        {a.status}
+                      </span>
+                    </td>
+                    <td className="sched-hide-mobile" style={{ padding: '14px 16px' }} onClick={e => e.stopPropagation()}>
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <button onClick={() => openEdit(a)} style={{ ...s.pillGhost, padding: '4px 10px', fontSize: 11 }}>Edit</button>
-                        <button onClick={() => { if (confirm('Delete?')) deleteAppointment(a.id); }} style={{ ...s.pillGhost, padding: '4px 10px', fontSize: 11, color: s.danger }}>×</button>
+                        <button onClick={() => openEdit(a)} style={{ ...s.pillGhost, padding: '4px 12px', fontSize: 11 }}>Edit</button>
+                        <button
+                          onClick={() => { if (confirm('Delete this session?')) deleteAppointment(a.id); }}
+                          style={{ ...s.pillGhost, padding: '4px 10px', fontSize: 11, color: s.danger }}
+                        >
+                          Delete
+                        </button>
                       </div>
                     </td>
                   </tr>
                 );
               })}
               {dayAppts.length === 0 && (
-                <tr><td colSpan="6" style={{ padding: 40, textAlign: 'center', font: `400 13px ${s.FONT}`, color: s.text3 }}>No sessions for this day</td></tr>
+                <tr>
+                  <td colSpan="5" style={{ padding: 48, textAlign: 'center' }}>
+                    <div style={{ font: `400 14px ${s.FONT}`, color: s.text3, marginBottom: 12 }}>No sessions scheduled for this day</div>
+                    <button onClick={() => openNew()} style={s.pillAccent}>Book a Session</button>
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
         </div>
       )}
 
-      {/* Class Grid View */}
-      {view === 'grid' && (() => {
-        const classes = buildClassGrid();
-        const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        // Build week days starting Monday
-        const ws = new Date(currentDate + 'T12:00:00');
-        const dow = ws.getDay();
-        const mondayOffset = dow === 0 ? -6 : 1 - dow;
-        ws.setDate(ws.getDate() + mondayOffset);
-        const gridWeekDays = Array.from({ length: 7 }, (_, i) => {
-          const dd = new Date(ws);
-          dd.setDate(dd.getDate() + i);
-          return dd.toISOString().slice(0, 10);
-        });
-
-        // Build lookup: slot -> day -> classes[]
-        const lookup = {};
-        classes.forEach(cls => {
-          const slot = snapToSlot(cls.time);
-          if (!lookup[slot]) lookup[slot] = {};
-          const dayIdx = gridWeekDays.indexOf(cls.date);
-          if (dayIdx === -1) return;
-          const dayKey = gridWeekDays[dayIdx];
-          if (!lookup[slot][dayKey]) lookup[slot][dayKey] = [];
-          lookup[slot][dayKey].push(cls);
-        });
-
-        // Filter to only time slots that have at least one class
-        const activeSlots = gridTimeSlots.filter(slot => lookup[slot] && Object.keys(lookup[slot]).length > 0);
-        const slotsToShow = activeSlots.length > 0 ? gridTimeSlots : gridTimeSlots.filter((_, i) => i % 2 === 0).slice(0, 12);
+      {/* ── SESSION DETAIL MODAL ── */}
+      {detailAppt && (() => {
+        const a = detailAppt;
+        const svc = services.find(sv => sv.id === a.serviceId);
+        const prov = providers.find(p => p.id === a.providerId);
+        const client = patients.find(p => p.id === a.patientId);
+        const recentSessions = getClientRecentSessions(a.patientId);
 
         return (
-          <div className="schedule-grid-wrap" style={{ ...s.tableWrap, overflowX: 'auto' }}>
-            <div style={{ minWidth: 900 }}>
-              {/* Header row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '80px repeat(7, 1fr)', borderBottom: `1px solid ${s.borderLight}` }}>
-                <div style={{ padding: '14px 10px', font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1 }}>Time</div>
-                {gridWeekDays.map((day, i) => {
-                  const isToday = day === new Date().toISOString().slice(0, 10);
-                  const dateNum = new Date(day + 'T12:00:00').getDate();
-                  return (
-                    <div key={day} style={{
-                      padding: '10px 8px', textAlign: 'center', borderLeft: `1px solid ${s.borderLight}`,
-                      background: isToday ? s.accentLight : 'transparent',
-                    }}>
-                      <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1 }}>{dayNames[i]}</div>
-                      <div style={{ font: `600 16px ${s.FONT}`, color: isToday ? s.accent : s.text, marginTop: 2 }}>{dateNum}</div>
-                    </div>
-                  );
-                })}
+          <div
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }}
+            onClick={() => setDetailAppt(null)}
+          >
+            <div
+              style={{
+                background: s.surface, borderRadius: 20, maxWidth: 560, width: '95%',
+                boxShadow: s.shadowLg, maxHeight: '90vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch',
+                animation: 'schedModalIn 0.25s ease',
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div style={{
+                padding: '24px 24px 20px', borderBottom: `1px solid ${s.border}`,
+                display: 'flex', alignItems: 'center', gap: 16,
+              }}>
+                <div style={{
+                  width: 52, height: 52, borderRadius: 26,
+                  background: getAvatarGradient(a.patientName || ''),
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  font: `600 16px ${s.HEADING}`, color: '#FFF', flexShrink: 0,
+                }}>
+                  {getInitials(a.patientName)}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ font: `600 20px ${s.HEADING}`, color: s.text }}>{a.patientName}</div>
+                  <div style={{ font: `400 14px ${s.FONT}`, color: s.text2 }}>{svc?.name || 'Session'}</div>
+                </div>
+                <span style={{
+                  font: `600 12px ${s.FONT}`, textTransform: 'capitalize',
+                  padding: '5px 14px', borderRadius: 100,
+                  background: statusBg(a.status), color: statusColor(a.status),
+                }}>
+                  {a.status}
+                </span>
               </div>
 
-              {/* Time rows */}
-              {slotsToShow.map(slot => {
-                const slotClasses = lookup[slot] || {};
-                const hasAny = Object.keys(slotClasses).length > 0;
-                return (
-                  <div key={slot} style={{ display: 'grid', gridTemplateColumns: '80px repeat(7, 1fr)', borderBottom: `1px solid ${s.borderLight}`, minHeight: hasAny ? 'auto' : 36 }}>
-                    <div style={{ padding: '10px 10px', font: `400 11px ${s.MONO}`, color: s.text3, borderRight: `1px solid ${s.borderLight}`, display: 'flex', alignItems: 'flex-start' }}>
-                      {formatGridTime(slot)}
+              {/* Session Info Grid */}
+              <div style={{ padding: '20px 24px', borderBottom: `1px solid ${s.border}` }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  {[
+                    { label: 'Date', value: new Date(a.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' }) },
+                    { label: 'Time', value: `${formatTime12(a.time)} (${a.duration || svc?.duration || 60}min)` },
+                    { label: 'Session Type', value: svc?.name || '—' },
+                    { label: 'Trainer', value: prov?.name?.split(',')[0] || 'Marcus Cole' },
+                    { label: 'Category', value: svc?.category || '—' },
+                    { label: 'Price', value: svc?.price ? `$${(svc.price / 100).toFixed(0)}` : 'N/A' },
+                  ].map(item => (
+                    <div key={item.label}>
+                      <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>{item.label}</div>
+                      <div style={{ font: `500 14px ${s.FONT}`, color: s.text }}>{item.value}</div>
                     </div>
-                    {gridWeekDays.map(day => {
-                      const cellClasses = slotClasses[day] || [];
-                      const isToday = day === new Date().toISOString().slice(0, 10);
-                      return (
-                        <div key={day} style={{
-                          padding: '4px 4px', borderLeft: `1px solid ${s.borderLight}`,
-                          background: isToday ? 'rgba(0,0,0,0.01)' : 'transparent',
-                          minHeight: 36,
-                        }}>
-                          {cellClasses.map((cls, ci) => {
-                            const cc = categoryColor(cls.category);
-                            const capacity = getCapacity(cls.category);
-                            const enrolled = cls.attendees.length;
-                            const spotsLeft = Math.max(0, capacity - enrolled);
-                            return (
-                              <div key={ci} onClick={() => setGridDetail(cls)} style={{
-                                background: cc.bg, border: `1px solid ${cc.border}40`, borderLeft: `3px solid ${cc.border}`,
-                                borderRadius: 8, padding: '8px 10px', marginBottom: 4, cursor: 'pointer',
-                                transition: 'all 0.15s ease',
-                              }}
-                              onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 2px 12px ${cc.border}20`; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                              onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; }}
-                              >
-                                <div style={{ font: `600 12px ${s.FONT}`, color: cc.text, marginBottom: 2, lineHeight: 1.2 }}>{cls.serviceName}</div>
-                                <div style={{ font: `400 10px ${s.FONT}`, color: cc.text + 'BB', marginBottom: 3 }}>{cls.instructor}</div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <span style={{ font: `500 10px ${s.MONO}`, color: cc.text + '99' }}>{formatGridTime(cls.time)}</span>
-                                  <span style={{
-                                    font: `600 10px ${s.FONT}`, padding: '2px 6px', borderRadius: 100,
-                                    background: spotsLeft <= 3 ? (s.dark ? 'rgba(220,38,38,0.12)' : '#FEE2E2') : spotsLeft <= 6 ? (s.dark ? 'rgba(251,191,36,0.12)' : '#FEF3C7') : `${cc.border}15`,
-                                    color: spotsLeft <= 3 ? '#991B1B' : spotsLeft <= 6 ? '#92400E' : cc.text,
-                                  }}>{spotsLeft} left</span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })}
+                  ))}
+                </div>
+              </div>
 
-              {/* Legend */}
-              <div style={{ padding: '16px 12px', display: 'flex', flexWrap: 'wrap', gap: 16, borderTop: `1px solid ${s.borderLight}` }}>
-                {['Strength', 'Cardio', 'Group', 'Performance', 'Wellness', 'Private', 'Assessment'].map(cat => {
-                  const cc = categoryColor(cat);
-                  return (
-                    <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <div style={{ width: 10, height: 10, borderRadius: 3, background: cc.border }} />
-                      <span style={{ font: `400 11px ${s.FONT}`, color: s.text2 }}>{cat}</span>
+              {/* Client Info */}
+              {client && (
+                <div style={{ padding: '16px 24px', borderBottom: `1px solid ${s.border}` }}>
+                  <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Client Info</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div style={{ background: s.surfaceAlt, borderRadius: 10, padding: '10px 14px' }}>
+                      <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>Goal</div>
+                      <div style={{ font: `500 13px ${s.FONT}`, color: s.text }}>{client.goals || 'Not set'}</div>
                     </div>
-                  );
-                })}
+                    <div style={{ background: s.surfaceAlt, borderRadius: 10, padding: '10px 14px' }}>
+                      <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>Membership</div>
+                      <div style={{ font: `500 13px ${s.FONT}`, color: s.text }}>{client.membershipTier || 'None'}</div>
+                    </div>
+                    <div style={{ background: s.surfaceAlt, borderRadius: 10, padding: '10px 14px' }}>
+                      <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>Total Sessions</div>
+                      <div style={{ font: `500 13px ${s.FONT}`, color: s.text }}>{client.visitCount || 0}</div>
+                    </div>
+                    <div style={{ background: s.surfaceAlt, borderRadius: 10, padding: '10px 14px' }}>
+                      <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>Favorite</div>
+                      <div style={{ font: `500 13px ${s.FONT}`, color: s.text }}>{client.favoriteClass || '—'}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Recent History */}
+              {recentSessions.length > 0 && (
+                <div style={{ padding: '16px 24px', borderBottom: `1px solid ${s.border}` }}>
+                  <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Recent Sessions</div>
+                  {recentSessions.map((rs, i) => {
+                    const rsSvc = services.find(sv => sv.id === rs.serviceId);
+                    return (
+                      <div key={rs.id} style={{
+                        display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0',
+                        borderBottom: i < recentSessions.length - 1 ? `1px solid ${s.borderLight}` : 'none',
+                      }}>
+                        <div style={{ width: 6, height: 6, borderRadius: 3, background: statusColor(rs.status), flexShrink: 0 }} />
+                        <div style={{ flex: 1 }}>
+                          <span style={{ font: `400 12px ${s.FONT}`, color: s.text }}>{rsSvc?.name || 'Session'}</span>
+                        </div>
+                        <span style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>
+                          {new Date(rs.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </span>
+                        <span style={{
+                          font: `500 10px ${s.FONT}`, textTransform: 'capitalize',
+                          color: statusColor(rs.status),
+                        }}>
+                          {rs.status}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Notes */}
+              <div style={{ padding: '16px 24px', borderBottom: `1px solid ${s.border}` }}>
+                <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Notes</div>
+                <div style={{ font: `400 13px ${s.FONT}`, color: a.notes ? s.text : s.text3, minHeight: 40 }}>
+                  {a.notes || 'No notes for this session'}
+                </div>
+              </div>
+
+              {/* Status Changer */}
+              <div style={{ padding: '16px 24px', borderBottom: `1px solid ${s.border}` }}>
+                <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Update Status</div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {['pending', 'confirmed', 'completed', 'cancelled'].map(st => (
+                    <button
+                      key={st}
+                      onClick={() => handleStatusChange(a.id, st)}
+                      style={{
+                        padding: '8px 16px', borderRadius: 100, border: 'none', cursor: 'pointer',
+                        font: `500 12px ${s.FONT}`, textTransform: 'capitalize', transition: 'all 0.2s',
+                        background: a.status === st ? statusColor(st) : statusBg(st),
+                        color: a.status === st ? '#FFF' : statusColor(st),
+                      }}
+                    >
+                      {st}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div style={{ padding: '20px 24px', display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => { if (confirm('Delete this session?')) { deleteAppointment(a.id); setDetailAppt(null); } }}
+                  style={{ ...s.pillGhost, color: s.danger }}
+                >
+                  Delete
+                </button>
+                <button onClick={() => setDetailAppt(null)} style={s.pillGhost}>Close</button>
+                <button onClick={() => openEdit(a)} style={s.pillAccent}>Edit Session</button>
               </div>
             </div>
           </div>
         );
       })()}
 
-      {/* Class Detail Popover */}
-      {gridDetail && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }} onClick={() => setGridDetail(null)}>
-          <div style={{ background: s.cardSolid, borderRadius: 16, padding: 28, maxWidth: 420, width: '90%', boxShadow: s.shadowLg }} onClick={e => e.stopPropagation()}>
-            {(() => {
-              const cls = gridDetail;
-              const cc = categoryColor(cls.category);
-              const capacity = getCapacity(cls.category);
-              const enrolled = cls.attendees.length;
-              const spotsLeft = Math.max(0, capacity - enrolled);
-              return (
-                <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                    <div style={{ width: 4, height: 36, borderRadius: 2, background: cc.border }} />
-                    <div>
-                      <h3 style={{ font: `600 18px ${s.FONT}`, color: s.text, margin: 0 }}>{cls.serviceName}</h3>
-                      <span style={{ font: `400 12px ${s.FONT}`, color: s.text2 }}>{cls.category}</span>
-                    </div>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-                    <div style={{ background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)', borderRadius: 10, padding: '10px 14px' }}>
-                      <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Trainer</div>
-                      <div style={{ font: `500 13px ${s.FONT}`, color: s.text }}>{cls.instructor}</div>
-                    </div>
-                    <div style={{ background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)', borderRadius: 10, padding: '10px 14px' }}>
-                      <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Time</div>
-                      <div style={{ font: `500 13px ${s.FONT}`, color: s.text }}>{formatGridTime(cls.time)} ({cls.duration}min)</div>
-                    </div>
-                    <div style={{ background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)', borderRadius: 10, padding: '10px 14px' }}>
-                      <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Date</div>
-                      <div style={{ font: `500 13px ${s.FONT}`, color: s.text }}>{new Date(cls.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</div>
-                    </div>
-                    <div style={{ background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)', borderRadius: 10, padding: '10px 14px' }}>
-                      <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Spots</div>
-                      <div style={{ font: `500 13px ${s.FONT}`, color: spotsLeft <= 3 ? '#DC2626' : s.text }}>{enrolled}/{capacity} enrolled ({spotsLeft} left)</div>
-                    </div>
-                  </div>
-                  {/* Attendee list */}
-                  <div style={{ marginBottom: 16 }}>
-                    <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Enrolled Clients</div>
-                    {cls.attendees.map((a, i) => (
-                      <div key={i} style={{ padding: '6px 0', borderBottom: i < cls.attendees.length - 1 ? `1px solid ${s.borderLight}` : 'none', display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ font: `400 13px ${s.FONT}`, color: s.text }}>{a.patientName}</span>
-                        <span style={{ font: `400 11px ${s.FONT}`, color: statusColor(a.status), textTransform: 'capitalize' }}>{a.status}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {/* Capacity bar */}
-                  <div style={{ background: s.dark ? '#252529' : 'rgba(0,0,0,0.04)', borderRadius: 100, height: 6, marginBottom: 20, overflow: 'hidden' }}>
-                    <div style={{ width: `${Math.min(100, (enrolled / capacity) * 100)}%`, height: '100%', background: spotsLeft <= 3 ? '#DC2626' : cc.border, borderRadius: 100, transition: 'width 0.3s ease' }} />
-                  </div>
-                  <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-                    <button onClick={() => setGridDetail(null)} style={s.pillGhost}>Close</button>
-                    <button onClick={() => { openNew(cls.date, cls.time); setGridDetail(null); }} style={s.pillAccent}>Book Session</button>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        </div>
-      )}
-
-      <style>{`
-        @media (max-width: 860px) {
-          .schedule-grid-btn {
-            display: none !important;
-          }
-          .schedule-view-toggle button {
-            padding: 6px 12px !important;
-            font-size: 11px !important;
-          }
-          .schedule-week-wrap {
-            -webkit-overflow-scrolling: touch;
-          }
-          .schedule-week-wrap::after {
-            content: 'Scroll to see full week \\2192';
-            display: block;
-            text-align: center;
-            font: 400 11px 'Inter', sans-serif;
-            color: #999;
-            padding: 8px 0 4px;
-          }
-          .schedule-time-col {
-            width: 56px !important;
-            padding: 10px 6px !important;
-            font-size: 10px !important;
-          }
-          .schedule-grid-wrap {
-            -webkit-overflow-scrolling: touch;
-          }
-          .schedule-grid-wrap::after {
-            content: 'Scroll to see full week \\2192';
-            display: block;
-            text-align: center;
-            font: 400 11px 'Inter', sans-serif;
-            color: #999;
-            padding: 8px 0 4px;
-          }
-          /* Mobile schedule fixes */
-          .schedule-header { flex-direction: column !important; align-items: stretch !important; gap: 8px !important; }
-          .schedule-header h1 { font-size: 22px !important; }
-          .schedule-header p { font-size: 12px !important; }
-          .schedule-controls { flex-direction: column !important; gap: 8px !important; }
-          .schedule-date-nav { justify-content: center !important; gap: 8px !important; }
-          .schedule-date-nav span { font-size: 13px !important; min-width: 0 !important; }
-          .schedule-list-table th.schedule-hide-mobile,
-          .schedule-list-table td.schedule-hide-mobile { display: none !important; }
-          .schedule-list-table th,
-          .schedule-list-table td { padding: 10px 8px !important; font-size: 12px !important; }
-          .schedule-list-table { table-layout: fixed !important; }
-        }
-      `}</style>
-
-      {/* Booking Modal */}
+      {/* ── BOOKING MODAL ── */}
       {showForm && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }} onClick={() => setShowForm(false)}>
-          <div style={{ background: s.cardSolid, borderRadius: 16, padding: '32px 32px 80px', maxWidth: 520, width: '90%', boxShadow: s.shadowLg, maxHeight: '95vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }} onClick={e => e.stopPropagation()}>
-            <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 24 }}>{editAppt ? 'Edit Session' : 'Book Session'}</h2>
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }}
+          onClick={() => setShowForm(false)}
+        >
+          <div
+            style={{
+              background: s.surface, borderRadius: 20, padding: '28px 28px 80px', maxWidth: 520, width: '95%',
+              boxShadow: s.shadowLg, maxHeight: '95vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch',
+              animation: 'schedModalIn 0.25s ease',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h2 style={{ font: `600 20px ${s.HEADING}`, color: s.text, marginBottom: 24 }}>
+              {editAppt ? 'Edit Session' : 'Book Session'}
+            </h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={s.label}>Client</label>
-                <select value={form.patientId} onChange={e => setForm({ ...form, patientId: e.target.value })} style={{ ...s.input, cursor: 'pointer' }}>
+                <select
+                  value={form.patientId}
+                  onChange={e => setForm({ ...form, patientId: e.target.value })}
+                  style={{ ...s.input, cursor: 'pointer' }}
+                >
                   <option value="">Select client...</option>
-                  {patients.map(p => <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>)}
+                  {patients.sort((a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)).map(p => (
+                    <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>
+                  ))}
                 </select>
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={s.label}>Session Type</label>
-                <select value={form.serviceId} onChange={e => { const svc = services.find(sv => sv.id === e.target.value); setForm({ ...form, serviceId: e.target.value, duration: svc?.duration || 30 }); }} style={{ ...s.input, cursor: 'pointer' }}>
-                  <option value="">Select session...</option>
-                  {services.map(sv => <option key={sv.id} value={sv.id}>{sv.name} ({sv.duration}min)</option>)}
+                <select
+                  value={form.serviceId}
+                  onChange={e => {
+                    const svc = services.find(sv => sv.id === e.target.value);
+                    setForm({ ...form, serviceId: e.target.value, duration: svc?.duration || 60 });
+                  }}
+                  style={{ ...s.input, cursor: 'pointer' }}
+                >
+                  <option value="">Select session type...</option>
+                  {services.map(sv => (
+                    <option key={sv.id} value={sv.id}>{sv.name} ({sv.duration}min) — ${(sv.price / 100).toFixed(0)}</option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -567,21 +665,48 @@ export default function Schedule() {
               </div>
               <div>
                 <label style={s.label}>Duration (min)</label>
-                <input type="number" value={form.duration} onChange={e => setForm({ ...form, duration: parseInt(e.target.value) || 30 })} style={s.input} />
+                <input type="number" value={form.duration} onChange={e => setForm({ ...form, duration: parseInt(e.target.value) || 60 })} style={s.input} />
               </div>
             </div>
+
             <div style={{ marginTop: 16 }}>
               <label style={s.label}>Notes</label>
-              <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} style={{ ...s.input, resize: 'vertical' }} />
+              <textarea
+                value={form.notes}
+                onChange={e => setForm({ ...form, notes: e.target.value })}
+                rows={3}
+                placeholder="Session notes, client preferences, focus areas..."
+                style={{ ...s.input, resize: 'vertical' }}
+              />
             </div>
 
             <div style={{ display: 'flex', gap: 12, marginTop: 24, justifyContent: 'flex-end' }}>
               <button onClick={() => setShowForm(false)} style={s.pillGhost}>Cancel</button>
-              <button onClick={handleSave} style={s.pillAccent}>{editAppt ? 'Save Changes' : 'Book'}</button>
+              <button
+                onClick={handleSave}
+                disabled={!form.patientId || !form.serviceId || !form.date || !form.time}
+                style={{
+                  ...s.pillCta,
+                  opacity: (!form.patientId || !form.serviceId || !form.date || !form.time) ? 0.5 : 1,
+                  cursor: (!form.patientId || !form.serviceId || !form.date || !form.time) ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {editAppt ? 'Save Changes' : 'Book Session'}
+              </button>
             </div>
           </div>
         </div>
       )}
+
+      <style>{`
+        @media (max-width: 768px) {
+          .sched-header { flex-direction: column !important; align-items: stretch !important; }
+          .sched-controls { flex-direction: column !important; gap: 10px !important; }
+          .sched-time-col { width: 60px !important; padding: 10px 8px !important; font-size: 10px !important; }
+          .sched-hide-mobile { display: none !important; }
+          .sched-list-table th, .sched-list-table td { padding: 10px 10px !important; }
+        }
+      `}</style>
     </div>
   );
 }
