@@ -1,25 +1,25 @@
-import { queryItems, getItem, putItem, deleteItem, updateItem } from '../shared/db.mjs';
-import { ok, error } from '../shared/response.mjs';
-import { getTrainerId } from '../shared/auth.mjs';
+import { queryItems, getItem, putItem, deleteItem, updateItem } from './shared/db.mjs';
+import { ok, error } from './shared/response.mjs';
+import { parseEvent } from './shared/auth.mjs';
 
 const TABLE = process.env.TABLE_NAME || 'forge-pt-programs';
 
 export async function handler(event) {
-  if (event.httpMethod === 'OPTIONS') return ok({});
+  if (method === 'OPTIONS') return ok({});
 
-  const trainerId = getTrainerId(event);
-  const method = event.httpMethod;
-  const pathParams = event.pathParameters || {};
-  const body = event.body ? JSON.parse(event.body) : {};
+  const { method, id, body, trainerId } = parseEvent(event);
+  
+  
+  
 
   try {
-    if (method === 'GET' && !pathParams.id) {
+    if (method === 'GET' && !id) {
       const items = await queryItems(TABLE, 'trainerId = :tid', { ':tid': trainerId });
       return ok(items);
     }
 
-    if (method === 'GET' && pathParams.id) {
-      const item = await getItem(TABLE, { trainerId, programId: pathParams.id });
+    if (method === 'GET' && id) {
+      const item = await getItem(TABLE, { trainerId, programId: id });
       return item ? ok(item) : error(404, 'Not found');
     }
 
@@ -35,16 +35,16 @@ export async function handler(event) {
       return ok(item);
     }
 
-    if (method === 'PUT' && pathParams.id) {
-      await updateItem(TABLE, { trainerId, programId: pathParams.id }, {
+    if (method === 'PUT' && id) {
+      await updateItem(TABLE, { trainerId, programId: id }, {
         ...body,
         updatedAt: new Date().toISOString(),
       });
       return ok({ success: true });
     }
 
-    if (method === 'DELETE' && pathParams.id) {
-      await deleteItem(TABLE, { trainerId, programId: pathParams.id });
+    if (method === 'DELETE' && id) {
+      await deleteItem(TABLE, { trainerId, programId: id });
       return ok({ success: true });
     }
 

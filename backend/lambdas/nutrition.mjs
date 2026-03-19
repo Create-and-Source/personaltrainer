@@ -1,14 +1,14 @@
-import { queryItems, getItem, putItem, deleteItem, updateItem } from '../shared/db.mjs';
-import { ok, error } from '../shared/response.mjs';
-import { getTrainerId } from '../shared/auth.mjs';
+import { queryItems, getItem, putItem, deleteItem, updateItem } from './shared/db.mjs';
+import { ok, error } from './shared/response.mjs';
+import { getTrainerId } from './shared/auth.mjs';
 
 const TABLE = process.env.TABLE_NAME || 'forge-pt-nutrition';
 
 export async function handler(event) {
-  if (event.httpMethod === 'OPTIONS') return ok({});
+  if (event.requestContext?.http?.method || event.httpMethod === 'OPTIONS') return ok({});
 
   const trainerId = getTrainerId(event);
-  const method = event.httpMethod;
+  const method = event.requestContext?.http?.method || event.httpMethod;
   const pathParams = event.pathParameters || {};
   const queryParams = event.queryStringParameters || {};
   const body = event.body ? JSON.parse(event.body) : {};

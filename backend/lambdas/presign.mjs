@@ -1,16 +1,16 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { ok, error } from '../shared/response.mjs';
-import { getTrainerId } from '../shared/auth.mjs';
+import { ok, error } from './shared/response.mjs';
+import { getTrainerId } from './shared/auth.mjs';
 
 const s3 = new S3Client({ region: process.env.AWS_REGION || 'us-west-2' });
 const BUCKET = process.env.S3_BUCKET || 'forge-pt-uploads';
 
 export async function handler(event) {
-  if (event.httpMethod === 'OPTIONS') return ok({});
+  if (event.requestContext?.http?.method || event.httpMethod === 'OPTIONS') return ok({});
 
   const trainerId = getTrainerId(event);
-  const method = event.httpMethod;
+  const method = event.requestContext?.http?.method || event.httpMethod;
   const body = event.body ? JSON.parse(event.body) : {};
 
   try {

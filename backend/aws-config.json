@@ -10,6 +10,8 @@
     "sub": "5f0e1115-7588-46ed-8a64-1dd6e7e5e96c",
     "temporaryPassword": "TempPass123!"
   },
+  "apiEndpoint": "https://w9jf3j7fjc.execute-api.us-west-2.amazonaws.com",
+  "apiId": "w9jf3j7fjc",
   "tables": {
     "clients": "forge-pt-clients",
     "sessions": "forge-pt-sessions",

@@ -1,15 +1,15 @@
-import { getItem, putItem, updateItem } from '../shared/db.mjs';
-import { ok, error } from '../shared/response.mjs';
-import { getTrainerId } from '../shared/auth.mjs';
+import { getItem, putItem, updateItem } from './shared/db.mjs';
+import { ok, error } from './shared/response.mjs';
+import { parseEvent } from './shared/auth.mjs';
 
 const TABLE = process.env.TABLE_NAME || 'forge-pt-settings';
 
 export async function handler(event) {
-  if (event.httpMethod === 'OPTIONS') return ok({});
+  if (method === 'OPTIONS') return ok({});
 
-  const trainerId = getTrainerId(event);
-  const method = event.httpMethod;
-  const body = event.body ? JSON.parse(event.body) : {};
+  const { method, id, body, trainerId } = parseEvent(event);
+  
+  
 
   try {
     if (method === 'GET') {

@@ -63,7 +63,7 @@ deploy_lambda() {
   # Determine handler path (filename without .mjs + .handler)
   local HANDLER_BASE
   HANDLER_BASE=$(basename "$HANDLER_FILE" .mjs)
-  local HANDLER="lambdas/$HANDLER_BASE.handler"
+  local HANDLER="$HANDLER_BASE.handler"
 
   # Check if function exists
   if aws lambda get-function --function-name "$NAME" --region "$REGION" &>/dev/null; then
