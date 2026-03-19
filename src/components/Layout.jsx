@@ -383,14 +383,15 @@ export default function Layout({ children }) {
       </div>
 
       {/* Content */}
-      <div style={{ padding: '20px 20px 68px' }}>
+      <div style={{ padding: '20px 20px calc(72px + env(safe-area-inset-bottom, 0px))' }}>
         {children}
       </div>
 
       {/* Bottom Tab Bar */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 150,
-        height: 48, paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        height: 'calc(56px + env(safe-area-inset-bottom, 0px))',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         background: `${s.surface}E6`,
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',

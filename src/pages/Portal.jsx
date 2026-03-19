@@ -1979,10 +1979,11 @@ export default function Portal() {
       {/* Bottom Tab Bar */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
-        height: 56,
+        height: 'calc(56px + env(safe-area-inset-bottom, 16px))',
         background: SURFACE,
         borderTop: `1px solid ${BORDER}`,
-        display: 'flex', justifyContent: 'space-around', alignItems: 'center',
+        display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start',
+        paddingTop: 8,
         paddingBottom: 'env(safe-area-inset-bottom, 16px)',
         zIndex: 200,
       }}>
