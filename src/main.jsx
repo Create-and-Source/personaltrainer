@@ -7,11 +7,11 @@ const GLOBAL_CSS = `
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body, #root { min-height: 100vh; }
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #F5F3F0;
-  color: #111;
+  background: #FAF8F5;
+  color: #2D2A26;
 }
 input, textarea, select, button { font-family: inherit; }
 ::selection { background: rgba(0,0,0,0.06); }

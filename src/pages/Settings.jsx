@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useTheme, useStyles, PRESETS } from '../theme';
+import { useTheme, useStyles, THEMES } from '../theme';
 import { getSettings, updateSettings, getProviders, addProvider, updateProvider, getServices, addService, updateService, deleteService, subscribe } from '../data/store';
 
 export default function Settings() {

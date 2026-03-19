@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { useTheme, useStyles, PRESETS } from '../theme';
+import { useTheme, useStyles, THEMES } from '../theme';
 
 const SunIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -79,7 +79,7 @@ const ICONS = {
 };
 
 function ThemePicker({ show, onClose }) {
-  const { theme, setTheme, setCustomColor, darkMode } = useTheme();
+  const { theme, setTheme } = useTheme();
   const s = useStyles();
   if (!show) return null;
 
@@ -87,31 +87,36 @@ function ThemePicker({ show, onClose }) {
     <div style={{ position: 'fixed', inset: 0, zIndex: 999 }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{
         position: 'absolute', bottom: 60, left: 16, width: 260,
-        background: s.cardSolid, border: `1px solid ${s.borderLight}`, borderRadius: 14,
+        background: s.surface, border: `1px solid ${s.border}`, borderRadius: 16,
         boxShadow: s.shadowLg, padding: 20,
         animation: 'fadeIn 0.2s ease',
       }}>
-        <div style={{ font: "600 13px 'Inter', sans-serif", color: s.text, marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          Brand Color
+        <div style={{ font: "600 13px 'Figtree', sans-serif", color: s.text, marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          Brand Theme
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: s.text3 }}>{ICONS.x}</button>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 14 }}>
-          {PRESETS.map(p => (
-            <button key={p.id} onClick={() => setTheme(p)} style={{
-              width: '100%', aspectRatio: '1', borderRadius: 10, border: theme.id === p.id ? `2.5px solid ${s.text}` : `2px solid ${s.borderLight}`,
-              background: p.accent, cursor: 'pointer', transition: 'all 0.15s',
-              outline: theme.id === p.id ? `2px solid ${s.cardSolid}` : 'none',
-              outlineOffset: '-4px',
-            }} title={p.name} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {Object.values(THEMES).map(t => (
+            <button key={t.id} onClick={() => setTheme(t.id)} style={{
+              display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px',
+              borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s',
+              background: theme.id === t.id ? s.accentLight : 'transparent',
+              border: theme.id === t.id ? `2px solid ${s.accent}` : `1.5px solid ${s.border}`,
+            }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 10,
+                background: t.dark ? '#1A1A1E' : '#FAF8F5',
+                border: `2px solid ${t.dark ? '#2A2A2E' : '#E8E3DD'}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <div style={{ width: 14, height: 14, borderRadius: '50%', background: t.accent }} />
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ font: `600 13px 'Figtree', sans-serif`, color: s.text }}>{t.name}</div>
+                <div style={{ font: `400 11px 'Figtree', sans-serif`, color: s.text3 }}>{t.dark ? 'Dark, intense, bold' : 'Warm, soft, premium'}</div>
+              </div>
+            </button>
           ))}
-        </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <label style={{ font: "500 12px 'Inter', sans-serif", color: s.text2 }}>Custom</label>
-          <input type="color" value={theme.accent} onChange={e => setCustomColor(e.target.value)} style={{
-            width: 32, height: 32, border: `1px solid ${s.borderLight}`, borderRadius: 8,
-            cursor: 'pointer', padding: 2,
-          }} />
-          <span style={{ font: "400 11px 'JetBrains Mono', monospace", color: s.text3 }}>{theme.accent}</span>
         </div>
       </div>
     </div>
@@ -123,7 +128,7 @@ export default function Layout({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showTheme, setShowTheme] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
-  const { theme, darkMode, toggleDarkMode } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth <= 860);
 
   useEffect(() => {
@@ -144,7 +149,7 @@ export default function Layout({ children }) {
   useEffect(() => {
     document.body.style.background = s.bg;
     document.documentElement.style.background = s.bg;
-  }, [darkMode, s.bg]);
+  }, [theme.dark, s.bg]);
 
   // Global Cmd+K / Ctrl+K listener
   useEffect(() => {
@@ -253,14 +258,14 @@ export default function Layout({ children }) {
 
       {/* Theme picker + dark mode buttons */}
       <div style={{ padding: '12px', borderTop: `1px solid ${sidebarBorder}` }}>
-        <button onClick={toggleDarkMode} style={{
+        <button onClick={toggleTheme} style={{
           display: 'flex', alignItems: 'center', gap: 10, width: '100%',
           padding: collapsed ? '10px 0' : '10px 16px', justifyContent: collapsed ? 'center' : 'flex-start',
           background: 'transparent', border: 'none', borderRadius: 8, cursor: 'pointer',
           font: "400 13px 'Inter', sans-serif", color: sidebarMuted, transition: 'all 0.15s',
         }}>
-          <span style={{ display: 'flex', flexShrink: 0 }}>{darkMode ? <SunIcon /> : <MoonIcon />}</span>
-          {!collapsed && (darkMode ? 'Light Mode' : 'Dark Mode')}
+          <span style={{ display: 'flex', flexShrink: 0 }}>{theme.dark ? <SunIcon /> : <MoonIcon />}</span>
+          {!collapsed && (theme.dark ? 'Light Mode' : 'Dark Mode')}
         </button>
         <button onClick={() => setShowTheme(true)} style={{
           display: 'flex', alignItems: 'center', gap: 10, width: '100%',
@@ -316,7 +321,7 @@ export default function Layout({ children }) {
         {/* Desktop Topbar — glassmorphism */}
         <div style={{
           position: 'sticky', top: 0, zIndex: 50,
-          background: darkMode ? 'rgba(13,13,15,0.85)' : 'rgba(245,243,240,0.6)',
+          background: theme.dark ? 'rgba(13,13,15,0.85)' : 'rgba(245,243,240,0.6)',
           backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
           borderBottom: `1px solid ${s.borderLight}`,
           padding: '0 32px', height: 56,
@@ -334,13 +339,13 @@ export default function Layout({ children }) {
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '6px 12px 6px 10px', borderRadius: 100,
               border: `1px solid ${s.borderLight}`,
-              background: darkMode ? '#252529' : 'rgba(255,255,255,0.5)',
+              background: theme.dark ? '#252529' : 'rgba(255,255,255,0.5)',
               font: "400 12px 'Inter', sans-serif", color: s.text3,
-              cursor: 'pointer', backdropFilter: darkMode ? 'none' : 'blur(8px)',
+              cursor: 'pointer', backdropFilter: theme.dark ? 'none' : 'blur(8px)',
               transition: 'all 0.2s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = darkMode ? '#2A2A2E' : 'rgba(255,255,255,0.8)'; e.currentTarget.style.color = s.text2; }}
-            onMouseLeave={e => { e.currentTarget.style.background = darkMode ? '#252529' : 'rgba(255,255,255,0.5)'; e.currentTarget.style.color = s.text3; }}
+            onMouseEnter={e => { e.currentTarget.style.background = theme.dark ? '#2A2A2E' : 'rgba(255,255,255,0.8)'; e.currentTarget.style.color = s.text2; }}
+            onMouseLeave={e => { e.currentTarget.style.background = theme.dark ? '#252529' : 'rgba(255,255,255,0.5)'; e.currentTarget.style.color = s.text3; }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               <span className="cmd-k-label" style={{ font: "400 11px 'JetBrains Mono', monospace", color: s.text3 }}>
@@ -356,8 +361,8 @@ export default function Layout({ children }) {
             {!isEmbed && <div className="topbar-divider" style={{ width: 1, height: 20, background: s.borderLight }} />}
             {!isEmbed && <button onClick={() => window.location.href = '/'} style={{
               padding: '6px 14px', borderRadius: 100, border: `1px solid ${s.borderLight}`,
-              background: darkMode ? '#252529' : 'rgba(255,255,255,0.5)', font: "400 11px 'Inter', sans-serif", color: s.text3,
-              cursor: 'pointer', backdropFilter: darkMode ? 'none' : 'blur(8px)', transition: 'all 0.2s',
+              background: theme.dark ? '#252529' : 'rgba(255,255,255,0.5)', font: "400 11px 'Inter', sans-serif", color: s.text3,
+              cursor: 'pointer', backdropFilter: theme.dark ? 'none' : 'blur(8px)', transition: 'all 0.2s',
             }}
             onMouseEnter={e => { e.currentTarget.style.color = s.text2; }}
             onMouseLeave={e => { e.currentTarget.style.color = s.text3; }}
@@ -392,11 +397,11 @@ export default function Layout({ children }) {
             }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
             </NavLink>
-            <button onClick={toggleDarkMode} style={{
+            <button onClick={toggleTheme} style={{
               width: 34, height: 34, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: 'transparent', border: 'none', cursor: 'pointer', color: s.text3,
             }}>
-              {darkMode ? <SunIcon /> : <MoonIcon />}
+              {theme.dark ? <SunIcon /> : <MoonIcon />}
             </button>
             {!isEmbed && <NotificationBell />}
           </div>
@@ -412,7 +417,7 @@ export default function Layout({ children }) {
       <div className="mobile-bottom-tabs" style={{
         display: 'none', position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 150,
         height: 48, paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        background: darkMode ? 'rgba(13,13,15,0.92)' : 'rgba(245,243,240,0.92)',
+        background: theme.dark ? 'rgba(13,13,15,0.92)' : 'rgba(245,243,240,0.92)',
         backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
         borderTop: `1px solid ${s.borderLight}`,
         alignItems: 'center', justifyContent: 'space-around',
