@@ -1,0 +1,25 @@
+{
+  "region": "us-west-2",
+  "cognitoUserPoolId": "us-west-2_TvS6pEeA1",
+  "cognitoClientId": "4sci30mkp1e62rg2rg54f51e13",
+  "s3Bucket": "forge-pt-media-010822068371",
+  "lambdaRoleArn": "arn:aws:iam::010822068371:role/forge-pt-lambda-role",
+  "demoTrainer": {
+    "email": "marcus@forgetraining.com",
+    "name": "Marcus Cole",
+    "sub": "5f0e1115-7588-46ed-8a64-1dd6e7e5e96c",
+    "temporaryPassword": "TempPass123!"
+  },
+  "tables": {
+    "clients": "forge-pt-clients",
+    "sessions": "forge-pt-sessions",
+    "programs": "forge-pt-programs",
+    "progress": "forge-pt-progress",
+    "nutrition": "forge-pt-nutrition",
+    "habits": "forge-pt-habits",
+    "messages": "forge-pt-messages",
+    "settings": "forge-pt-settings",
+    "workouts": "forge-pt-workouts",
+    "memberships": "forge-pt-memberships"
+  }
+}
