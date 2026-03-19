@@ -103,7 +103,7 @@ function ProgressBar({ value, total, color, height = 6, showGlow = false }) {
   const pct = total > 0 ? Math.min((value / total) * 100, 100) : 0;
   return (
     <div style={{
-      height, borderRadius: height, background: 'rgba(0,0,0,0.06)', overflow: 'hidden', position: 'relative',
+      height, borderRadius: height, background: s.borderLight, overflow: 'hidden', position: 'relative',
     }}>
       <div style={{
         width: `${pct}%`, height: '100%', borderRadius: height,
@@ -311,7 +311,7 @@ export default function Memberships() {
                 </div>
 
                 {/* Divider */}
-                <div style={{ height: 1, background: 'rgba(0,0,0,0.06)', marginBottom: 18 }} />
+                <div style={{ height: 1, background: s.borderLight, marginBottom: 18 }} />
 
                 {/* Feature checklist */}
                 <div style={{ display: 'grid', gap: 10 }}>
@@ -331,7 +331,7 @@ export default function Memberships() {
                     border: 'none', cursor: 'pointer',
                     font: `600 13px ${s.FONT}`, letterSpacing: '0.02em',
                     background: isHovered ? tier.color : `${tier.color}14`,
-                    color: isHovered ? '#FFFFFF' : tier.color,
+                    color: isHovered ? '#fff' : tier.color,
                     transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
                     boxShadow: isHovered ? `0 4px 20px ${tier.color}33` : 'none',
                   }}
@@ -420,8 +420,8 @@ export default function Memberships() {
       }}>
         <div style={{
           display: 'inline-flex', padding: 4, borderRadius: 14,
-          background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(12px)',
-          border: '1px solid rgba(0,0,0,0.04)',
+          background: s.card, backdropFilter: 'blur(12px)',
+          border: `1px solid ${s.borderLight}`,
         }}>
           {[
             { id: 'memberships', label: 'Members', count: filteredMemberships.length },
@@ -453,13 +453,13 @@ export default function Memberships() {
         {/* View toggle */}
         <div style={{
           display: 'inline-flex', padding: 3, borderRadius: 10,
-          background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.04)',
+          background: s.card, border: `1px solid ${s.borderLight}`,
         }}>
           {['cards', 'table'].map(v => (
             <button key={v} onClick={() => setView(v)} style={{
               padding: '7px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
               font: `500 11px ${s.FONT}`, textTransform: 'capitalize',
-              background: view === v ? 'rgba(0,0,0,0.06)' : 'transparent',
+              background: view === v ? s.borderLight : 'transparent',
               color: view === v ? s.text : s.text3,
               transition: 'all 0.2s',
             }}>{v}</button>
@@ -494,8 +494,8 @@ export default function Memberships() {
                 style={{
                   padding: '8px 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
                   font: `500 12px ${s.FONT}`,
-                  background: filter === id ? (TIERS[id]?.color || s.accent) : 'rgba(255,255,255,0.5)',
-                  color: filter === id ? '#FFFFFF' : s.text2,
+                  background: filter === id ? (TIERS[id]?.color || s.accent) : s.card,
+                  color: filter === id ? '#fff' : s.text2,
                   boxShadow: filter === id ? `0 2px 12px ${(TIERS[id]?.color || s.accent)}33` : 'none',
                   transition: 'all 0.25s cubic-bezier(0.16,1,0.3,1)',
                   backdropFilter: 'blur(8px)',
@@ -521,7 +521,7 @@ export default function Memberships() {
                 style={{
                   padding: '8px 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
                   font: `500 12px ${s.FONT}`,
-                  background: filter === id ? s.accent : 'rgba(255,255,255,0.5)',
+                  background: filter === id ? s.accent : s.card,
                   color: filter === id ? s.accentText : s.text2,
                   boxShadow: filter === id ? `0 2px 12px ${s.accent}33` : 'none',
                   transition: 'all 0.25s cubic-bezier(0.16,1,0.3,1)',
@@ -589,7 +589,7 @@ export default function Memberships() {
                           <span style={{
                             padding: '4px 12px', borderRadius: 100,
                             font: `500 10px ${s.FONT}`,
-                            background: '#FEF2F2', color: s.danger,
+                            background: s.dark ? 'rgba(220,38,38,0.12)' : '#FEF2F2', color: s.danger,
                             border: '1px solid #FECACA',
                           }}>Paused</span>
                         )}
@@ -597,7 +597,7 @@ export default function Memberships() {
                           <span style={{
                             padding: '4px 12px', borderRadius: 100,
                             font: `600 10px ${s.FONT}`,
-                            background: '#F0FDF4', color: s.success,
+                            background: s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4', color: s.success,
                             border: '1px solid #BBF7D0',
                           }}>${m.credits} credit</span>
                         )}
@@ -605,7 +605,7 @@ export default function Memberships() {
                           <span style={{
                             padding: '4px 12px', borderRadius: 100,
                             font: `600 10px ${s.FONT}`,
-                            background: '#FEF3C7', color: s.warning,
+                            background: s.dark ? 'rgba(251,191,36,0.12)' : '#FEF3C7', color: s.warning,
                             border: '1px solid #FDE68A',
                           }}>Low units</span>
                         )}
@@ -662,7 +662,7 @@ export default function Memberships() {
                   {selectedMember === m.id && (
                     <div style={{
                       marginTop: 18, paddingTop: 16,
-                      borderTop: '1px solid rgba(0,0,0,0.06)',
+                      borderTop: `1px solid ${s.borderLight}`,
                       animation: 'memFadeUp 0.25s ease-out',
                     }}>
                       <div style={{
@@ -717,7 +717,7 @@ export default function Memberships() {
         }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', font: `400 13px ${s.FONT}` }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+              <tr style={{ borderBottom: `1px solid ${s.borderLight}` }}>
                 {['Client', 'Tier', 'Status', 'Next Billing', 'Credits', 'Wallet Summary', ''].map(h => (
                   <th key={h} style={{
                     padding: '14px 18px', textAlign: 'left',
@@ -732,7 +732,7 @@ export default function Memberships() {
                 const tc = tierColor(m.tier);
                 return (
                   <tr key={m.id} style={{
-                    borderBottom: '1px solid rgba(0,0,0,0.04)',
+                    borderBottom: `1px solid ${s.borderLight}`,
                     transition: 'background 0.2s',
                   }}
                   onMouseOver={e => e.currentTarget.style.background = 'rgba(0,0,0,0.015)'}
@@ -749,7 +749,7 @@ export default function Memberships() {
                     <td style={{ padding: '14px 18px' }}>
                       <span style={{
                         padding: '4px 12px', borderRadius: 100, font: `500 11px ${s.FONT}`, textTransform: 'capitalize',
-                        background: m.status === 'active' ? '#F0FDF4' : '#FEF2F2',
+                        background: m.status === 'active' ? (s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4') : (s.dark ? 'rgba(220,38,38,0.12)' : '#FEF2F2'),
                         color: m.status === 'active' ? s.success : s.danger,
                       }}>{m.status}</span>
                     </td>
@@ -765,7 +765,7 @@ export default function Memberships() {
                           <span key={w.service} style={{
                             padding: '3px 10px', borderRadius: 100,
                             font: `400 10px ${s.MONO}`,
-                            background: w.remaining === 0 ? 'rgba(0,0,0,0.04)' : `${tc}0A`,
+                            background: w.remaining === 0 ? s.borderLight : `${tc}0A`,
                             color: w.remaining === 0 ? s.text3 : tc,
                           }}>
                             {w.service}: {w.remaining}/{w.total}
@@ -849,9 +849,9 @@ export default function Memberships() {
                     <span style={{
                       padding: '4px 14px', borderRadius: 100,
                       font: `600 11px ${s.FONT}`, textTransform: 'capitalize',
-                      background: p.status === 'active' ? '#F0FDF4' : 'rgba(0,0,0,0.04)',
+                      background: p.status === 'active' ? (s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4') : s.borderLight,
                       color: p.status === 'active' ? s.success : s.text3,
-                      border: p.status === 'active' ? '1px solid #BBF7D0' : '1px solid rgba(0,0,0,0.06)',
+                      border: p.status === 'active' ? '1px solid #BBF7D0' : `1px solid ${s.borderLight}`,
                     }}>{p.status}</span>
                   </div>
 
@@ -936,7 +936,7 @@ export default function Memberships() {
         <div style={{ ...glassCard, overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', font: `400 13px ${s.FONT}` }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+              <tr style={{ borderBottom: `1px solid ${s.borderLight}` }}>
                 {['Client', 'Package', 'Session', 'Progress', 'Expires', 'Status', ''].map(h => (
                   <th key={h} style={{
                     padding: '14px 18px', textAlign: 'left',
@@ -951,7 +951,7 @@ export default function Memberships() {
                 const remaining = p.totalSessions - p.usedSessions;
                 const daysLeft = Math.ceil((new Date(p.expiresDate) - new Date()) / (1000 * 60 * 60 * 24));
                 return (
-                  <tr key={p.id} style={{ borderBottom: '1px solid rgba(0,0,0,0.04)', transition: 'background 0.2s' }}
+                  <tr key={p.id} style={{ borderBottom: `1px solid ${s.borderLight}`, transition: 'background 0.2s' }}
                     onMouseOver={e => e.currentTarget.style.background = 'rgba(0,0,0,0.015)'}
                     onMouseOut={e => e.currentTarget.style.background = 'transparent'}
                   >
@@ -975,7 +975,7 @@ export default function Memberships() {
                     <td style={{ padding: '14px 18px' }}>
                       <span style={{
                         padding: '4px 12px', borderRadius: 100, font: `500 11px ${s.FONT}`, textTransform: 'capitalize',
-                        background: p.status === 'active' ? '#F0FDF4' : 'rgba(0,0,0,0.04)',
+                        background: p.status === 'active' ? (s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4') : s.borderLight,
                         color: p.status === 'active' ? s.success : s.text3,
                       }}>{p.status}</span>
                     </td>
@@ -1053,7 +1053,7 @@ export default function Memberships() {
                     <div key={w.service} style={{
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                       padding: '12px 16px', borderRadius: 12,
-                      background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.05)',
+                      background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)', border: `1px solid ${s.borderLight}`,
                     }}>
                       <div style={{ flex: 1, marginRight: 16 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -1087,7 +1087,7 @@ export default function Memberships() {
                   marginTop: 20, width: '100%', padding: '12px 20px', borderRadius: 12,
                   border: '1px solid rgba(0,0,0,0.08)', cursor: 'pointer',
                   font: `500 13px ${s.FONT}`, color: s.text2,
-                  background: 'rgba(0,0,0,0.02)',
+                  background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)',
                   transition: 'all 0.2s',
                 }}
               >Close</button>

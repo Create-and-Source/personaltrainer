@@ -1116,11 +1116,7 @@ export default function Nutrition() {
     });
   });
 
-  const handleSync = () => {
-    setMfpSyncing(true);
-    setMfpSynced(false);
-    setTimeout(() => { setMfpSyncing(false); setMfpSynced(true); }, 1200);
-  };
+  // MFP sync removed
 
   const handleAddFood = (mealType) => {
     setFoodModalMeal(mealType);

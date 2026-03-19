@@ -308,7 +308,7 @@ function Modal({ show, onClose, title, children, s }) {
     }}>
       <div onClick={e => e.stopPropagation()} style={{
         background: s.cardSolid, borderRadius: 20, padding: 32, width: '90%', maxWidth: 480,
-        boxShadow: '0 24px 80px rgba(0,0,0,0.18)', maxHeight: '85vh', overflowY: 'auto',
+        boxShadow: '0 24px 80px rgba(0,0,0,0.18)', maxHeight: '95vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch',
         animation: 'progScaleIn 0.3s cubic-bezier(0.16,1,0.3,1)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -418,11 +418,11 @@ export default function Progress() {
   };
 
   const glass = {
-    background: 'rgba(255,255,255,0.6)',
+    background: s.card,
     backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255,255,255,0.65)',
+    border: `1px solid ${s.borderLight}`,
     borderRadius: 18,
-    boxShadow: '0 4px 24px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
+    boxShadow: s.shadow,
     transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
   };
 
@@ -497,7 +497,7 @@ export default function Progress() {
                   <span style={{
                     display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 100,
                     font: `500 11px ${s.FONT}`,
-                    background: weightTrend < 0 ? '#F0FDF4' : weightTrend > 0 ? '#FEF2F2' : 'rgba(0,0,0,0.04)',
+                    background: weightTrend < 0 ? (s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4') : weightTrend > 0 ? (s.dark ? 'rgba(220,38,38,0.12)' : '#FEF2F2') : s.borderLight,
                     color: weightTrend < 0 ? s.success : weightTrend > 0 ? s.danger : s.text3,
                   }}>
                     {weightTrend < 0 ? '\u2193' : weightTrend > 0 ? '\u2191' : '\u2192'} {Math.abs(weightTrend).toFixed(1)} lbs
@@ -523,7 +523,7 @@ export default function Progress() {
                   <span style={{
                     display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: 100,
                     font: `500 11px ${s.FONT}`,
-                    background: bfTrend < 0 ? '#F0FDF4' : bfTrend > 0 ? '#FEF2F2' : 'rgba(0,0,0,0.04)',
+                    background: bfTrend < 0 ? (s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4') : bfTrend > 0 ? (s.dark ? 'rgba(220,38,38,0.12)' : '#FEF2F2') : s.borderLight,
                     color: bfTrend < 0 ? s.success : bfTrend > 0 ? s.danger : s.text3,
                   }}>
                     {bfTrend < 0 ? '\u2193' : bfTrend > 0 ? '\u2191' : '\u2192'} {Math.abs(bfTrend).toFixed(1)}%
@@ -547,7 +547,7 @@ export default function Progress() {
                 <span style={{
                   display: 'inline-block', padding: '2px 8px', borderRadius: 100,
                   font: `500 11px ${s.FONT}`,
-                  background: calcBMI < 18.5 ? '#FFFBEB' : calcBMI < 25 ? '#F0FDF4' : calcBMI < 30 ? '#FFFBEB' : '#FEF2F2',
+                  background: calcBMI < 18.5 ? (s.dark ? 'rgba(251,191,36,0.12)' : '#FFFBEB') : calcBMI < 25 ? (s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4') : calcBMI < 30 ? (s.dark ? 'rgba(251,191,36,0.12)' : '#FFFBEB') : (s.dark ? 'rgba(220,38,38,0.12)' : '#FEF2F2'),
                   color: calcBMI < 18.5 ? s.warning : calcBMI < 25 ? s.success : calcBMI < 30 ? s.warning : s.danger,
                 }}>
                   {calcBMI < 18.5 ? 'Underweight' : calcBMI < 25 ? 'Normal' : calcBMI < 30 ? 'Overweight' : 'Obese'}
@@ -626,7 +626,7 @@ export default function Progress() {
                       background: recent
                         ? 'linear-gradient(135deg, rgba(184,150,12,0.06) 0%, rgba(255,255,255,0.8) 100%)'
                         : 'rgba(255,255,255,0.5)',
-                      border: recent ? '1.5px solid rgba(184,150,12,0.25)' : '1px solid rgba(0,0,0,0.04)',
+                      border: recent ? '1.5px solid rgba(184,150,12,0.25)' : `1px solid ${s.borderLight}`,
                       backdropFilter: 'blur(8px)',
                       animation: `progFadeInUp 0.4s cubic-bezier(0.16,1,0.3,1) ${600 + idx * 60}ms backwards`,
                       transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
@@ -691,7 +691,7 @@ export default function Progress() {
                         <th key={i} style={{
                           padding: '10px 14px', textAlign: i === 0 ? 'left' : 'center',
                           font: `500 10px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.5,
-                          color: s.text3, borderBottom: '1px solid rgba(0,0,0,0.06)',
+                          color: s.text3, borderBottom: `1px solid ${s.borderLight}`,
                         }}>{h}</th>
                       ))}
                     </tr>
@@ -705,7 +705,7 @@ export default function Progress() {
                           background: isLast ? `${s.accentLight}` : 'transparent',
                           animation: `progFadeInUp 0.3s ease ${700 + ri * 60}ms backwards`,
                         }}>
-                          <td style={{ padding: '12px 14px', font: `500 12px ${s.MONO}`, color: s.text2, borderBottom: '1px solid rgba(0,0,0,0.03)', whiteSpace: 'nowrap' }}>
+                          <td style={{ padding: '12px 14px', font: `500 12px ${s.MONO}`, color: s.text2, borderBottom: `1px solid ${s.borderLight}`, whiteSpace: 'nowrap' }}>
                             {fmtDate(row.date)}
                             {isLast && <span style={{ font: `500 9px ${s.FONT}`, color: s.accent, marginLeft: 6, textTransform: 'uppercase' }}>Latest</span>}
                           </td>
@@ -717,7 +717,7 @@ export default function Progress() {
                               <td key={fi} style={{
                                 padding: '12px 14px', textAlign: 'center',
                                 font: `500 13px ${s.FONT}`, color: s.text,
-                                borderBottom: '1px solid rgba(0,0,0,0.03)',
+                                borderBottom: `1px solid ${s.borderLight}`,
                               }}>
                                 {val ? `${val}"` : '-'}
                                 {isLast && diff !== null && diff !== 0 && (
@@ -790,7 +790,7 @@ export default function Progress() {
                 return (
                   <div key={label} style={{
                     borderRadius: 16, overflow: 'hidden',
-                    border: '1px solid rgba(0,0,0,0.06)',
+                    border: `1px solid ${s.borderLight}`,
                     animation: `progScaleIn 0.5s cubic-bezier(0.16,1,0.3,1) ${780 + idx * 100}ms backwards`,
                   }}>
                     {/* Photo placeholder */}
@@ -831,7 +831,7 @@ export default function Progress() {
                 <div key={i} style={{
                   width: 80, height: 80, borderRadius: 12, flexShrink: 0,
                   background: `linear-gradient(135deg, ${i === 0 ? '#E8E4E0' : i === photoDates.length - 1 ? s.accentLight : '#EDEBE8'} 0%, rgba(255,255,255,0.8) 100%)`,
-                  border: '1px solid rgba(0,0,0,0.06)',
+                  border: `1px solid ${s.borderLight}`,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer',
                   animation: `progScaleIn 0.3s ease ${900 + i * 60}ms backwards`,

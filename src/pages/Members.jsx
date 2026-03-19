@@ -400,8 +400,8 @@ export default function Members() {
             display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 300,
           }} onClick={() => { setShowForm(false); setAddedClient(null); }}>
             <div style={{
-              background: dm.card, borderRadius: '20px 20px 0 0', padding: '24px 20px', width: '100%',
-              maxHeight: '90vh', overflowY: 'auto',
+              background: dm.card, borderRadius: '20px 20px 0 0', padding: '24px 20px 100px', width: '100%',
+              maxHeight: '95vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch',
               animation: 'memFadeInUp 0.2s cubic-bezier(0.16,1,0.3,1) both',
             }} onClick={e => e.stopPropagation()}>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
@@ -899,7 +899,7 @@ export default function Members() {
         }} onClick={() => { setShowForm(false); setAddedClient(null); }}>
           <div style={{
             background: s.cardSolid, borderRadius: 20, padding: 32, maxWidth: 540, width: '90%',
-            boxShadow: s.shadowLg, maxHeight: '90vh', overflowY: 'auto',
+            boxShadow: s.shadowLg, maxHeight: '95vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch',
             animation: 'memFadeInUp 0.35s cubic-bezier(0.16,1,0.3,1) both',
           }} onClick={e => e.stopPropagation()}>
             {addedClient ? (

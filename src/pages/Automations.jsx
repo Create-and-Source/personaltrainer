@@ -339,7 +339,7 @@ export default function Automations() {
                   value={form.name}
                   onChange={e => setForm({ ...form, name: e.target.value })}
                   onFocus={e => { e.target.style.borderColor = s.accent + '60'; e.target.style.boxShadow = `0 0 0 3px ${s.accent}15`; }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.06)'; e.target.style.boxShadow = 'none'; }}
+                  onBlur={e => { e.target.style.borderColor = s.borderLight; e.target.style.boxShadow = 'none'; }}
                 />
               </div>
 
@@ -388,7 +388,7 @@ export default function Automations() {
                   value={form.message}
                   onChange={e => setForm({ ...form, message: e.target.value })}
                   onFocus={e => { e.target.style.borderColor = s.accent + '60'; e.target.style.boxShadow = `0 0 0 3px ${s.accent}15`; }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.06)'; e.target.style.boxShadow = 'none'; }}
+                  onBlur={e => { e.target.style.borderColor = s.borderLight; e.target.style.boxShadow = 'none'; }}
                 />
               </div>
 

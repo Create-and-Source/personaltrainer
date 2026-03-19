@@ -130,9 +130,9 @@ export default function Referrals() {
   };
 
   const statusBg = (status) => {
-    if (status === 'credited') return '#F0FDF4';
+    if (status === 'credited') return s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4';
     if (status === 'booked') return s.accentLight;
-    return '#FFFBEB';
+    return s.dark ? 'rgba(251,191,36,0.12)' : '#FFFBEB';
   };
 
   return (
@@ -169,7 +169,7 @@ export default function Referrals() {
         <div style={{ display: 'flex', gap: 16, overflowX: 'auto' }}>
           {leaderboard.map((ref, i) => (
             <div key={ref.id} style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 200, padding: '10px 14px', background: i === 0 ? s.accentLight : (s.dark ? '#252529' : '#F8F8F8'), borderRadius: 10 }}>
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: i === 0 ? s.accent : (s.dark ? '#333' : '#E5E5E5'), color: i === 0 ? s.accentText : s.text2, display: 'flex', alignItems: 'center', justifyContent: 'center', font: `600 13px ${s.FONT}`, flexShrink: 0 }}>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: i === 0 ? s.accent : s.borderLight, color: i === 0 ? s.accentText : s.text2, display: 'flex', alignItems: 'center', justifyContent: 'center', font: `600 13px ${s.FONT}`, flexShrink: 0 }}>
                 {i + 1}
               </div>
               <div>

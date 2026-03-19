@@ -423,7 +423,7 @@ export default function Habits() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                         <div style={{
                           width: 46, height: 46, borderRadius: 14,
-                          background: isComplete ? `${s.success}15` : 'rgba(0,0,0,0.03)',
+                          background: isComplete ? `${s.success}15` : (s.dark ? '#252529' : 'rgba(0,0,0,0.03)'),
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: 22, transition: 'all 0.3s',
                         }}>
@@ -438,7 +438,7 @@ export default function Habits() {
                       {/* Check button */}
                       <div style={{
                         width: 36, height: 36, borderRadius: 12,
-                        background: isComplete ? s.success : 'rgba(0,0,0,0.04)',
+                        background: isComplete ? s.success : s.borderLight,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
                         ...(isComplete ? { animation: 'habitPulseGreen 2s ease-in-out 1' } : {}),
@@ -468,7 +468,7 @@ export default function Habits() {
                       <div className={streak >= 7 ? 'habit-streak-glow' : ''} style={{
                         display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 12,
                         padding: '5px 12px', borderRadius: 100,
-                        background: streak >= 14 ? 'linear-gradient(135deg, #EA580C15, #DC262615)' : streak >= 7 ? '#EA580C10' : 'rgba(0,0,0,0.03)',
+                        background: streak >= 14 ? 'linear-gradient(135deg, #EA580C15, #DC262615)' : streak >= 7 ? '#EA580C10' : (s.dark ? '#252529' : 'rgba(0,0,0,0.03)'),
                         font: `600 12px ${s.FONT}`,
                         color: streak >= 14 ? '#DC2626' : streak >= 7 ? '#EA580C' : s.text2,
                       }}>
@@ -523,7 +523,7 @@ export default function Habits() {
                               width: 28, height: 28, borderRadius: 6, margin: '0 auto',
                               background: completed
                                 ? `linear-gradient(135deg, ${s.success}, ${s.success}BB)`
-                                : 'rgba(0,0,0,0.04)',
+                                : s.borderLight,
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                               transition: 'all 0.2s',
                             }}>
@@ -584,7 +584,7 @@ export default function Habits() {
                   <div key={idx} style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     padding: '12px 16px', borderRadius: 12,
-                    background: idx === 0 ? 'linear-gradient(135deg, #FEF3C7, #FDE68A33)' : 'rgba(0,0,0,0.02)',
+                    background: idx === 0 ? (s.dark ? 'linear-gradient(135deg, rgba(251,191,36,0.12), rgba(251,191,36,0.05))' : 'linear-gradient(135deg, #FEF3C7, #FDE68A33)') : (s.dark ? '#252529' : 'rgba(0,0,0,0.02)'),
                     border: idx === 0 ? '1px solid #F59E0B33' : '1px solid transparent',
                     animation: `habitFadeInUp 0.3s ease ${idx * 0.05}s both`,
                   }}>
@@ -687,7 +687,7 @@ export default function Habits() {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
                   <h3 style={{ font: `600 18px ${s.FONT}`, color: s.text, margin: 0 }}>Add Custom Habit</h3>
                   <button onClick={() => setShowModal(false)} style={{
-                    background: 'none', border: 'none', cursor: 'pointer', color: '#999', fontSize: 20, lineHeight: 1,
+                    background: 'none', border: 'none', cursor: 'pointer', color: s.text3, fontSize: 20, lineHeight: 1,
                   }}>{'\u{2715}'}</button>
                 </div>
 
@@ -708,7 +708,7 @@ export default function Habits() {
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 6 }}>
                     {EMOJI_OPTIONS.map(emoji => (
                       <button key={emoji} onClick={() => setNewHabit({ ...newHabit, icon: emoji })} style={{
-                        width: '100%', aspectRatio: '1', borderRadius: 10, border: newHabit.icon === emoji ? `2px solid ${s.accent}` : '1px solid rgba(0,0,0,0.06)',
+                        width: '100%', aspectRatio: '1', borderRadius: 10, border: newHabit.icon === emoji ? `2px solid ${s.accent}` : `1px solid ${s.borderLight}`,
                         background: newHabit.icon === emoji ? `${s.accent}10` : 'transparent',
                         fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                         transition: 'all 0.15s',
@@ -792,7 +792,7 @@ export default function Habits() {
                         }} style={{
                           width: 36, height: 36, borderRadius: 10, border: 'none', cursor: 'pointer',
                           font: `500 11px ${s.FONT}`,
-                          background: newHabit.days.includes(i) ? s.accent : 'rgba(0,0,0,0.04)',
+                          background: newHabit.days.includes(i) ? s.accent : s.borderLight,
                           color: newHabit.days.includes(i) ? s.accentText : s.text3,
                           transition: 'all 0.15s',
                         }}>

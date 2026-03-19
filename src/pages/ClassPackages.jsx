@@ -194,7 +194,7 @@ export default function ClassPackages() {
                         <span style={{ font: `600 15px ${s.FONT}`, color: s.text }}>{plan.name}</span>
                         <span style={{
                           padding: '2px 8px', borderRadius: 100, font: `500 9px ${s.FONT}`, textTransform: 'uppercase',
-                          background: planStatus === 'completed' ? '#F0FDF4' : planStatus === 'active' ? s.accentLight : 'rgba(0,0,0,0.04)',
+                          background: planStatus === 'completed' ? (s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4') : planStatus === 'active' ? s.accentLight : s.borderLight,
                           color: statusColor(planStatus),
                         }}>{planStatus}</span>
                       </div>
@@ -226,7 +226,7 @@ export default function ClassPackages() {
 
                 {/* Expanded classes */}
                 {expanded && (
-                  <div style={{ borderTop: '1px solid rgba(0,0,0,0.04)' }}>
+                  <div style={{ borderTop: `1px solid ${s.borderLight}` }}>
                     {plan.sessions.map((ses, idx) => {
                       const isToday = ses.date === today;
                       const isPast = ses.date && ses.date < today;
@@ -240,7 +240,7 @@ export default function ClassPackages() {
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0, width: 32 }}>
                             <button onClick={() => toggleSessionStatus(plan.id, idx)} style={{
                               width: 28, height: 28, borderRadius: '50%',
-                              border: `2px solid ${ses.status === 'completed' ? s.success : ses.status === 'in-progress' ? s.accent : 'rgba(0,0,0,0.12)'}`,
+                              border: `2px solid ${ses.status === 'completed' ? s.success : ses.status === 'in-progress' ? s.accent : s.borderLight}`,
                               background: ses.status === 'completed' ? s.success : 'transparent', cursor: 'pointer',
                               display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, flexShrink: 0,
                               transition: 'all 0.2s',
@@ -249,7 +249,7 @@ export default function ClassPackages() {
                               {ses.status === 'in-progress' && <div style={{ width: 10, height: 10, borderRadius: '50%', background: s.accent }} />}
                             </button>
                             {idx < plan.sessions.length - 1 && (
-                              <div style={{ width: 2, height: 16, background: ses.status === 'completed' ? s.success + '40' : 'rgba(0,0,0,0.06)', borderRadius: 1 }} />
+                              <div style={{ width: 2, height: 16, background: ses.status === 'completed' ? s.success + '40' : s.borderLight, borderRadius: 1 }} />
                             )}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
@@ -293,7 +293,7 @@ export default function ClassPackages() {
           <div style={{ font: `600 15px ${s.FONT}`, color: s.text, marginBottom: 16 }}>Upcoming Sessions</div>
           <div style={{ position: 'relative', paddingLeft: 24 }}>
             {/* Vertical line */}
-            <div style={{ position: 'absolute', left: 10, top: 0, bottom: 0, width: 2, background: 'rgba(0,0,0,0.06)', borderRadius: 1 }} />
+            <div style={{ position: 'absolute', left: 10, top: 0, bottom: 0, width: 2, background: s.borderLight, borderRadius: 1 }} />
 
             {upcomingSessions.map((ses, idx) => {
               const isToday = ses.date === today;
@@ -327,7 +327,7 @@ export default function ClassPackages() {
                   {/* Card */}
                   <div style={{
                     ...s.cardStyle, flex: 1, padding: '14px 18px',
-                    borderLeft: `3px solid ${isToday ? s.accent : ses.status === 'in-progress' ? s.accent : 'rgba(0,0,0,0.06)'}`,
+                    borderLeft: `3px solid ${isToday ? s.accent : ses.status === 'in-progress' ? s.accent : s.borderLight}`,
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                       <span style={{ font: `500 14px ${s.FONT}`, color: s.text }}>{ses.name}</span>
@@ -357,7 +357,7 @@ export default function ClassPackages() {
       {/* Form Modal */}
       {showForm && (
         <div className="cp-modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }} onClick={() => setShowForm(false)}>
-          <div className="cp-modal" style={{ background: s.cardSolid, borderRadius: 20, padding: 32, maxWidth: 600, width: '90%', boxShadow: s.shadowLg, maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+          <div className="cp-modal" style={{ background: s.cardSolid, borderRadius: 20, padding: 32, maxWidth: 600, width: '90%', boxShadow: s.shadowLg, maxHeight: '95vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }} onClick={e => e.stopPropagation()}>
             <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 24 }}>{editPlan ? 'Edit Training Program' : 'New Training Program'}</h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>

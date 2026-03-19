@@ -138,7 +138,7 @@ export default function Reviews() {
   const Stars = ({ rating, size = 16 }) => (
     <span style={{ display: 'inline-flex', gap: 1 }}>
       {[1, 2, 3, 4, 5].map(i => (
-        <span key={i} style={{ fontSize: size, color: i <= rating ? '#F59E0B' : '#E5E5E5', lineHeight: 1 }}>
+        <span key={i} style={{ fontSize: size, color: i <= rating ? '#F59E0B' : s.borderLight, lineHeight: 1 }}>
           {'\u2605'}
         </span>
       ))}
@@ -221,7 +221,7 @@ export default function Reviews() {
             {/* Avatar */}
             <div style={{
               width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-              background: rev.status === 'completed' ? (s.dark ? '#0F2918' : '#F0FDF4') : (s.dark ? '#252529' : '#F8F8F8'),
+              background: rev.status === 'completed' ? (s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4') : (s.dark ? '#252529' : '#F8F8F8'),
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               font: `500 14px ${s.FONT}`, color: rev.status === 'completed' ? s.success : s.text2,
             }}>
@@ -234,12 +234,12 @@ export default function Reviews() {
                 <span style={{ font: `500 14px ${s.FONT}`, color: s.text }}>{rev.patientName}</span>
                 <span style={{
                   padding: '2px 8px', borderRadius: 100, font: `500 9px ${s.FONT}`, textTransform: 'uppercase',
-                  background: rev.platform === 'Google' ? '#EFF6FF' : '#FEF2F2',
+                  background: rev.platform === 'Google' ? (s.dark ? 'rgba(37,99,235,0.12)' : '#EFF6FF') : (s.dark ? 'rgba(220,38,38,0.12)' : '#FEF2F2'),
                   color: rev.platform === 'Google' ? '#2563EB' : '#DC2626',
                 }}>{rev.platform}</span>
                 <span style={{
                   padding: '2px 8px', borderRadius: 100, font: `500 9px ${s.FONT}`, textTransform: 'uppercase',
-                  background: rev.status === 'completed' ? '#F0FDF4' : '#FFFBEB',
+                  background: rev.status === 'completed' ? (s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4') : (s.dark ? 'rgba(251,191,36,0.12)' : '#FFFBEB'),
                   color: rev.status === 'completed' ? s.success : s.warning,
                 }}>{rev.status}</span>
               </div>

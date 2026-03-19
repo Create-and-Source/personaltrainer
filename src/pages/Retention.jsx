@@ -88,7 +88,7 @@ export default function Retention() {
             }}>
               <div style={{
                 width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-                background: alert.priority === 'high' ? (s.dark ? '#3B1111' : '#FEF2F2') : (s.dark ? '#252529' : '#F8F8F8'),
+                background: alert.priority === 'high' ? (s.dark ? 'rgba(220,38,38,0.12)' : '#FEF2F2') : (s.dark ? '#252529' : '#F8F8F8'),
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 font: `500 14px ${s.FONT}`, color: alert.priority === 'high' ? s.danger : s.text2,
               }}>
@@ -98,10 +98,10 @@ export default function Retention() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
                   <span style={{ font: `500 14px ${s.FONT}`, color: s.text }}>{alert.patientName}</span>
                   {alert.priority === 'high' && (
-                    <span style={{ padding: '2px 8px', borderRadius: 100, font: `500 9px ${s.FONT}`, textTransform: 'uppercase', background: '#FEF2F2', color: s.danger }}>High Priority</span>
+                    <span style={{ padding: '2px 8px', borderRadius: 100, font: `500 9px ${s.FONT}`, textTransform: 'uppercase', background: s.dark ? 'rgba(220,38,38,0.12)' : '#FEF2F2', color: s.danger }}>High Priority</span>
                   )}
                   {alert.contacted && (
-                    <span style={{ padding: '2px 8px', borderRadius: 100, font: `500 9px ${s.FONT}`, textTransform: 'uppercase', background: '#F0FDF4', color: s.success }}>Contacted</span>
+                    <span style={{ padding: '2px 8px', borderRadius: 100, font: `500 9px ${s.FONT}`, textTransform: 'uppercase', background: s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4', color: s.success }}>Contacted</span>
                   )}
                 </div>
                 <div style={{ font: `400 13px ${s.FONT}`, color: s.text2 }}>{alert.suggestedAction}</div>

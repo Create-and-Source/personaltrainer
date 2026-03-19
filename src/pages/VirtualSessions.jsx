@@ -203,7 +203,7 @@ export default function VirtualSessions() {
             {UPCOMING_SESSIONS.map((session, i) => (
               <div key={session.id} style={{
                 display: 'flex', alignItems: 'center', gap: 14, padding: '14px 24px',
-                borderBottom: i < UPCOMING_SESSIONS.length - 1 ? '1px solid rgba(0,0,0,0.04)' : 'none',
+                borderBottom: i < UPCOMING_SESSIONS.length - 1 ? `1px solid ${s.borderLight}` : 'none',
               }}>
                 <Avatar name={session.client} size={38} />
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -244,7 +244,7 @@ export default function VirtualSessions() {
             {PAST_SESSIONS.map((session, i) => (
               <div key={session.id} style={{
                 display: 'flex', alignItems: 'center', gap: 14, padding: '14px 24px',
-                borderBottom: i < PAST_SESSIONS.length - 1 ? '1px solid rgba(0,0,0,0.04)' : 'none',
+                borderBottom: i < PAST_SESSIONS.length - 1 ? `1px solid ${s.borderLight}` : 'none',
               }}>
                 <Avatar name={session.client} size={38} />
                 <div style={{ flex: 1, minWidth: 0 }}>

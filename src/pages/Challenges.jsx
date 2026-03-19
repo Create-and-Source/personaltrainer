@@ -259,7 +259,7 @@ export default function Challenges() {
           <button key={t.id} onClick={() => setTab(t.id)} style={{
             padding: '10px 20px', borderRadius: 10, border: 'none', cursor: 'pointer',
             font: `500 13px ${s.FONT}`, transition: 'all 0.2s',
-            background: tab === t.id ? '#fff' : 'transparent',
+            background: tab === t.id ? s.cardSolid : 'transparent',
             color: tab === t.id ? s.text : s.text3,
             boxShadow: tab === t.id ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
           }}>
@@ -342,7 +342,7 @@ export default function Challenges() {
                     {top3.map((p, i) => (
                       <div key={i} style={{
                         display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0',
-                        borderBottom: i < 2 ? '1px solid rgba(0,0,0,0.03)' : 'none',
+                        borderBottom: i < 2 ? `1px solid ${s.borderLight}` : 'none',
                       }}>
                         <span style={{
                           width: 20, font: `600 12px ${s.MONO}`,
@@ -367,7 +367,7 @@ export default function Challenges() {
                       ))}
                       {ch.participants.length > 5 && (
                         <div style={{
-                          width: 28, height: 28, borderRadius: '50%', background: 'rgba(0,0,0,0.06)',
+                          width: 28, height: 28, borderRadius: '50%', background: s.borderLight,
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           font: `500 10px ${s.FONT}`, color: s.text3, marginLeft: -8,
                           border: '2px solid rgba(255,255,255,0.8)',
@@ -380,7 +380,7 @@ export default function Challenges() {
                       ...s.pillOutline, padding: '7px 16px', fontSize: 12,
                     }}
                     onMouseEnter={e => { e.currentTarget.style.background = s.accent; e.currentTarget.style.color = s.accentText; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.5)'; e.currentTarget.style.color = s.accent; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = s.card; e.currentTarget.style.color = s.accent; }}
                     >
                       View Details
                     </button>
@@ -426,7 +426,7 @@ export default function Challenges() {
                     </span>
                     <span style={{
                       padding: '4px 10px', borderRadius: 100, fontSize: 11, fontWeight: 600,
-                      fontFamily: s.MONO, background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0',
+                      fontFamily: s.MONO, background: s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0',
                     }}>
                       COMPLETED
                     </span>
@@ -478,7 +478,7 @@ export default function Challenges() {
                     {sortedP.slice(0, 5).map((p, i) => (
                       <div key={i} style={{
                         display: 'flex', alignItems: 'center', gap: 10, padding: '5px 0',
-                        borderBottom: i < 4 ? '1px solid rgba(0,0,0,0.03)' : 'none',
+                        borderBottom: i < 4 ? `1px solid ${s.borderLight}` : 'none',
                       }}>
                         <span style={{ width: 18, font: `600 11px ${s.MONO}`, color: s.text3 }}>
                           {i + 1}.
@@ -546,7 +546,7 @@ export default function Challenges() {
               {/* Earned count */}
               <div style={{
                 padding: '5px 12px', borderRadius: 100, display: 'inline-block',
-                background: badge.unlocked ? s.accent + '12' : 'rgba(0,0,0,0.04)',
+                background: badge.unlocked ? s.accent + '12' : s.borderLight,
                 font: `500 11px ${s.MONO}`, letterSpacing: 0.5,
                 color: badge.unlocked ? s.accent : s.text3,
               }}>
@@ -566,14 +566,14 @@ export default function Challenges() {
           animation: 'challengeFadeInUp 0.2s ease',
         }} onClick={() => setShowModal(false)}>
           <div onClick={e => e.stopPropagation()} style={{
-            width: '100%', maxWidth: 520, maxHeight: '85vh', overflowY: 'auto',
+            width: '100%', maxWidth: 520, maxHeight: '95vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch',
             background: s.cardSolid, borderRadius: 20, padding: 32,
             boxShadow: '0 24px 80px rgba(0,0,0,0.2)',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
               <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, margin: 0 }}>Create Challenge</h2>
               <button onClick={() => setShowModal(false)} style={{
-                background: 'none', border: 'none', cursor: 'pointer', color: '#999', fontSize: 20,
+                background: 'none', border: 'none', cursor: 'pointer', color: s.text3, fontSize: 20,
               }}>{'\u2715'}</button>
             </div>
 
@@ -586,7 +586,7 @@ export default function Challenges() {
                 placeholder="e.g. April Shred Challenge"
                 style={s.input}
                 onFocus={e => { e.target.style.borderColor = s.accent + '60'; e.target.style.boxShadow = `0 0 0 3px ${s.accent}15`; }}
-                onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.06)'; e.target.style.boxShadow = 'none'; }}
+                onBlur={e => { e.target.style.borderColor = s.borderLight; e.target.style.boxShadow = 'none'; }}
               />
             </div>
 
@@ -601,7 +601,7 @@ export default function Challenges() {
                     <button key={t} onClick={() => setForm(p => ({ ...p, type: t }))} style={{
                       padding: '8px 16px', borderRadius: 10, cursor: 'pointer',
                       font: `500 13px ${s.FONT}`, transition: 'all 0.2s',
-                      background: selected ? tStyle.bg : 'rgba(0,0,0,0.03)',
+                      background: selected ? tStyle.bg : (s.dark ? '#252529' : 'rgba(0,0,0,0.03)'),
                       color: selected ? tStyle.text : s.text3,
                       border: selected ? `1.5px solid ${tStyle.border}` : '1.5px solid transparent',
                     }}>
@@ -621,7 +621,7 @@ export default function Challenges() {
                 onChange={e => setForm(p => ({ ...p, duration: parseInt(e.target.value) || 1 }))}
                 style={{ ...s.input, width: 120 }}
                 onFocus={e => { e.target.style.borderColor = s.accent + '60'; e.target.style.boxShadow = `0 0 0 3px ${s.accent}15`; }}
-                onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.06)'; e.target.style.boxShadow = 'none'; }}
+                onBlur={e => { e.target.style.borderColor = s.borderLight; e.target.style.boxShadow = 'none'; }}
               />
             </div>
 
@@ -635,7 +635,7 @@ export default function Challenges() {
                 rows={3}
                 style={{ ...s.input, resize: 'vertical' }}
                 onFocus={e => { e.target.style.borderColor = s.accent + '60'; e.target.style.boxShadow = `0 0 0 3px ${s.accent}15`; }}
-                onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.06)'; e.target.style.boxShadow = 'none'; }}
+                onBlur={e => { e.target.style.borderColor = s.borderLight; e.target.style.boxShadow = 'none'; }}
               />
             </div>
 
@@ -644,7 +644,7 @@ export default function Challenges() {
               <label style={s.label}>Select Participants ({form.participants.length} selected)</label>
               <div style={{
                 maxHeight: 180, overflowY: 'auto', borderRadius: 12,
-                border: '1px solid rgba(0,0,0,0.06)', padding: 8,
+                border: `1px solid ${s.borderLight}`, padding: 8,
               }}>
                 {(clients.length > 0 ? clients.map(c => c.name || `${c.firstName || ''} ${c.lastName || ''}`.trim()) : SAMPLE_NAMES).map(name => (
                   <button key={name} onClick={() => toggleParticipant(name)} style={{
