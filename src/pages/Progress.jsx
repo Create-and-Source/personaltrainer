@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useStyles, getAvatarGradient } from '../theme';
 import { getPatients, subscribe } from '../data/store';
 
@@ -31,6 +31,10 @@ if (!document.getElementById(PROGRESS_ANIM_ID)) {
     .prog-pr-recent {
       animation: progPulseGold 2.5s ease-in-out infinite !important;
     }
+    @keyframes progSpin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
   `;
   document.head.appendChild(sheet);
 }
@@ -58,6 +62,14 @@ const ICO = {
   camera: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>,
   ruler: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg>,
   scale: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 3v17.25M18.5 8h-13L2 16h20z"/></svg>,
+  close: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  check: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>,
+  muscle: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6.5 6.5c1.5-1.5 3.5-2 5-1s2 3 1 5-3.5 3-5 4-3 2-3 4c0 1.5 1 2.5 2 3"/><path d="M17.5 6.5c-1.5-1.5-3.5-2-5-1s-2 3-1 5 3.5 3 5 4 3 2 3 4c0 1.5-1 2.5-2 3"/></svg>,
+  droplet: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>,
+  flame: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>,
+  link: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>,
+  refresh: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>,
+  download: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
 };
 
 /* ── Seed progress data for 3 clients ── */
@@ -167,6 +179,358 @@ function seedProgressData() {
   });
 }
 
+/* ── Simulated API data per client index ── */
+const INBODY_DATA = [
+  { weight: 183, bodyFat: 17, smm: 82.5, bmi: 24.2, tbw: 52.3, vfl: 8, bmr: 1890, score: 78 },
+  { weight: 142, bodyFat: 24, smm: 54.2, bmi: 24.4, tbw: 38.1, vfl: 5, bmr: 1380, score: 72 },
+  { weight: 218, bodyFat: 15, smm: 98.6, bmi: 26.8, tbw: 59.7, vfl: 10, bmr: 2120, score: 82 },
+];
+
+const STYKU_DATA = [
+  { chest: 43.5, waist: 32, hips: 38.5, thighL: 25, thighR: 25, armL: 16, armR: 16.5, neck: 16, calf: 15.5 },
+  { chest: 34.5, waist: 27, hips: 36.5, thighL: 21.5, thighR: 21, armL: 11.5, armR: 11.5, neck: 13, calf: 14 },
+  { chest: 46.5, waist: 35.5, hips: 40, thighL: 27, thighR: 27, armL: 17, armR: 17.5, neck: 17.5, calf: 16.5 },
+];
+
+function getClientIndex(clientId, clients) {
+  const idx = clients.findIndex(c => c.id === clientId);
+  return idx >= 0 ? idx % 3 : 0;
+}
+
+/* ── Import Body Scan Modal ── */
+function ImportScanModal({ isOpen, onClose, s, clientId, clients, onSaved }) {
+  const [step, setStep] = useState('choose'); // 'choose' | 'connecting-inbody' | 'connected-inbody' | 'connecting-styku' | 'connected-styku' | 'saved'
+  const [inBodyData, setInBodyData] = useState(null);
+  const [stykuData, setStykuData] = useState(null);
+
+  const resetState = useCallback(() => {
+    setStep('choose');
+    setInBodyData(null);
+    setStykuData(null);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    resetState();
+    onClose();
+  }, [resetState, onClose]);
+
+  const ci = getClientIndex(clientId, clients);
+
+  const connectInBody = useCallback(() => {
+    setStep('connecting-inbody');
+    setTimeout(() => {
+      setInBodyData(INBODY_DATA[ci]);
+      setStep('connected-inbody');
+    }, 1500);
+  }, [ci]);
+
+  const connectStyku = useCallback(() => {
+    setStep('connecting-styku');
+    setTimeout(() => {
+      setStykuData(STYKU_DATA[ci]);
+      setStep('connected-styku');
+    }, 1500);
+  }, [ci]);
+
+  const importInBody = useCallback(() => {
+    if (!clientId || !inBodyData) return;
+    const dateStr = new Date().toISOString().slice(0, 10);
+
+    // Save to progress
+    const progressKey = `ms_progress_${clientId}`;
+    let progress = [];
+    try { progress = JSON.parse(localStorage.getItem(progressKey) || '[]'); } catch {}
+    progress.push({ date: dateStr, weight: inBodyData.weight, bodyFat: inBodyData.bodyFat, bmi: inBodyData.bmi });
+    localStorage.setItem(progressKey, JSON.stringify(progress));
+
+    // Save full scan
+    const scanKey = `ms_body_scans_${clientId}`;
+    let scans = [];
+    try { scans = JSON.parse(localStorage.getItem(scanKey) || '[]'); } catch {}
+    scans.push({ date: dateStr, source: 'inbody', ...inBodyData });
+    localStorage.setItem(scanKey, JSON.stringify(scans));
+
+    setStep('saved');
+    if (onSaved) onSaved();
+  }, [clientId, inBodyData, onSaved]);
+
+  const importStyku = useCallback(() => {
+    if (!clientId || !stykuData) return;
+    const dateStr = new Date().toISOString().slice(0, 10);
+
+    // Save measurements
+    const measKey = `ms_measurements_${clientId}`;
+    let measurements = [];
+    try { measurements = JSON.parse(localStorage.getItem(measKey) || '[]'); } catch {}
+
+    const stykuMap = {
+      chest: 'Chest', waist: 'Waist', hips: 'Hips',
+      thighL: 'Left Thigh', thighR: 'Right Thigh',
+      armL: 'Left Arm', armR: 'Right Arm',
+      neck: 'Neck', calf: 'Calf',
+    };
+    for (const [key, label] of Object.entries(stykuMap)) {
+      if (stykuData[key]) {
+        const existing = measurements.find(m => m.area === label);
+        if (existing) {
+          existing.current = stykuData[key];
+        } else {
+          measurements.push({ area: label, current: stykuData[key], start: stykuData[key], unit: 'in' });
+        }
+      }
+    }
+    localStorage.setItem(measKey, JSON.stringify(measurements));
+
+    // Save full scan
+    const scanKey = `ms_body_scans_${clientId}`;
+    let scans = [];
+    try { scans = JSON.parse(localStorage.getItem(scanKey) || '[]'); } catch {}
+    scans.push({ date: dateStr, source: 'styku', ...stykuData });
+    localStorage.setItem(scanKey, JSON.stringify(scans));
+
+    setStep('saved');
+    if (onSaved) onSaved();
+  }, [clientId, stykuData, onSaved]);
+
+  if (!isOpen) return null;
+
+  const inBodyFields = [
+    { label: 'Weight', value: inBodyData?.weight, unit: 'lbs' },
+    { label: 'Body Fat', value: inBodyData?.bodyFat, unit: '%' },
+    { label: 'Skeletal Muscle', value: inBodyData?.smm, unit: 'lbs' },
+    { label: 'BMI', value: inBodyData?.bmi, unit: '' },
+    { label: 'Body Water', value: inBodyData?.tbw, unit: 'L' },
+    { label: 'Visceral Fat', value: inBodyData?.vfl, unit: '' },
+    { label: 'BMR', value: inBodyData?.bmr, unit: 'kcal' },
+    { label: 'InBody Score', value: inBodyData?.score, unit: '/100' },
+  ];
+
+  const stykuFields = [
+    { label: 'Chest', value: stykuData?.chest, unit: 'in' },
+    { label: 'Waist', value: stykuData?.waist, unit: 'in' },
+    { label: 'Hips', value: stykuData?.hips, unit: 'in' },
+    { label: 'Left Thigh', value: stykuData?.thighL, unit: 'in' },
+    { label: 'Right Thigh', value: stykuData?.thighR, unit: 'in' },
+    { label: 'Left Arm', value: stykuData?.armL, unit: 'in' },
+    { label: 'Right Arm', value: stykuData?.armR, unit: 'in' },
+    { label: 'Neck', value: stykuData?.neck, unit: 'in' },
+    { label: 'Calf', value: stykuData?.calf, unit: 'in' },
+  ];
+
+  const isConnecting = step === 'connecting-inbody' || step === 'connecting-styku';
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)',
+    }} onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}>
+      <div style={{
+        ...s.cardStyle, width: '100%', maxWidth: 560, maxHeight: '90vh',
+        overflow: 'auto', padding: 0, margin: 16,
+        animation: 'progScaleIn 0.25s ease',
+      }}>
+        {/* Modal Header */}
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '18px 24px', borderBottom: `1px solid ${s.border}`,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ color: s.accent }}>{ICO.link}</span>
+            <h3 style={{ fontFamily: s.HEADING, fontSize: 18, fontWeight: 600, color: s.text, margin: 0 }}>
+              Import Body Scan
+            </h3>
+          </div>
+          <button onClick={handleClose} style={{
+            background: 'none', border: 'none', color: s.text3, cursor: 'pointer',
+            padding: 4, borderRadius: 8, display: 'flex',
+          }}>{ICO.close}</button>
+        </div>
+
+        <div style={{ padding: 24 }}>
+
+          {/* ── Saved confirmation ── */}
+          {step === 'saved' && (
+            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+              <div style={{
+                width: 56, height: 56, borderRadius: '50%',
+                background: s.successBg, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '0 auto 16px', color: s.success,
+              }}>{ICO.check}</div>
+              <h4 style={{ fontFamily: s.HEADING, fontSize: 18, fontWeight: 600, color: s.text, margin: '0 0 6px' }}>
+                Imported to Progress
+              </h4>
+              <p style={{ fontFamily: s.FONT, fontSize: 14, color: s.text2, margin: '0 0 20px' }}>
+                Scan data has been saved to this client's records.
+              </p>
+              <button onClick={handleClose} style={{
+                ...s.btnPrimary, padding: '10px 28px', borderRadius: 10, cursor: 'pointer',
+                fontFamily: s.FONT, fontSize: 14, fontWeight: 600,
+              }}>Done</button>
+            </div>
+          )}
+
+          {/* ── Connecting spinner ── */}
+          {isConnecting && (
+            <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+              <div style={{
+                width: 40, height: 40, border: `3px solid ${s.border}`,
+                borderTopColor: step === 'connecting-inbody' ? '#1B365D' : '#00B4D8',
+                borderRadius: '50%', margin: '0 auto 20px',
+                animation: 'progSpin 0.8s linear infinite',
+              }} />
+              <p style={{ fontFamily: s.FONT, fontSize: 15, fontWeight: 600, color: s.text, margin: '0 0 4px' }}>
+                {step === 'connecting-inbody' ? 'Connecting to LookinBody Web...' : 'Connecting to Styku Cloud...'}
+              </p>
+              <p style={{ fontFamily: s.FONT, fontSize: 13, color: s.text3, margin: 0 }}>
+                Authenticating and pulling latest scan
+              </p>
+            </div>
+          )}
+
+          {/* ── Choose provider ── */}
+          {step === 'choose' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <p style={{ fontFamily: s.FONT, fontSize: 14, color: s.text2, margin: '0 0 4px' }}>
+                Connect to a body scanning platform to import the latest results.
+              </p>
+
+              {/* InBody option */}
+              <button onClick={connectInBody} style={{
+                display: 'flex', alignItems: 'center', gap: 14,
+                padding: '18px 20px', borderRadius: 12, cursor: 'pointer',
+                background: s.surfaceAlt, border: `1px solid ${s.border}`, color: s.text,
+                fontFamily: s.FONT, fontSize: 15, fontWeight: 500, textAlign: 'left',
+                transition: 'all 0.15s',
+              }}>
+                <div style={{
+                  width: 48, height: 48, borderRadius: 12, background: '#1B365D',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: 'system-ui', fontSize: 18, fontWeight: 800, color: '#fff',
+                  letterSpacing: '-0.02em', flexShrink: 0,
+                }}>IB</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600 }}>InBody Connect</div>
+                  <div style={{ fontSize: 12, color: s.text3, marginTop: 2 }}>Body composition via LookinBody Web API</div>
+                </div>
+                <span style={{ color: s.text3 }}>{ICO.link}</span>
+              </button>
+
+              {/* Styku option */}
+              <button onClick={connectStyku} style={{
+                display: 'flex', alignItems: 'center', gap: 14,
+                padding: '18px 20px', borderRadius: 12, cursor: 'pointer',
+                background: s.surfaceAlt, border: `1px solid ${s.border}`, color: s.text,
+                fontFamily: s.FONT, fontSize: 15, fontWeight: 500, textAlign: 'left',
+                transition: 'all 0.15s',
+              }}>
+                <div style={{
+                  width: 48, height: 48, borderRadius: 12, background: '#00B4D8',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: 'system-ui', fontSize: 18, fontWeight: 800, color: '#fff',
+                  letterSpacing: '-0.02em', flexShrink: 0,
+                }}>Sk</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600 }}>Styku Connect</div>
+                  <div style={{ fontSize: 12, color: s.text3, marginTop: 2 }}>3D body measurements via Styku Cloud API</div>
+                </div>
+                <span style={{ color: s.text3 }}>{ICO.link}</span>
+              </button>
+            </div>
+          )}
+
+          {/* ── InBody results ── */}
+          {step === 'connected-inbody' && inBodyData && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: 8, background: '#1B365D',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: 'system-ui', fontSize: 13, fontWeight: 800, color: '#fff',
+                }}>IB</div>
+                <div>
+                  <div style={{ fontFamily: s.FONT, fontSize: 14, fontWeight: 600, color: s.text }}>InBody Connected</div>
+                  <div style={{ fontFamily: s.FONT, fontSize: 12, color: s.success, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {ICO.check} LookinBody Web
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+                {inBodyFields.map(f => (
+                  <div key={f.label} style={{
+                    background: s.surfaceAlt, padding: '14px 16px', borderRadius: 10,
+                    border: `1px solid ${s.border}`,
+                  }}>
+                    <div style={{ fontFamily: s.FONT, fontSize: 11, fontWeight: 600, color: s.text3, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      {f.label}
+                    </div>
+                    <div style={{ fontFamily: s.MONO, fontSize: 22, fontWeight: 700, color: s.text, lineHeight: 1 }}>
+                      {f.value}<span style={{ fontSize: 12, color: s.text3, fontWeight: 400, marginLeft: 3 }}>{f.unit}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button onClick={importInBody} style={{
+                ...s.btnPrimary, width: '100%', padding: '12px 20px', borderRadius: 10,
+                cursor: 'pointer', fontFamily: s.FONT, fontSize: 15, fontWeight: 600,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}>
+                {ICO.download} Import to Progress
+              </button>
+            </div>
+          )}
+
+          {/* ── Styku results ── */}
+          {step === 'connected-styku' && stykuData && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: 8, background: '#00B4D8',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: 'system-ui', fontSize: 13, fontWeight: 800, color: '#fff',
+                }}>Sk</div>
+                <div>
+                  <div style={{ fontFamily: s.FONT, fontSize: 14, fontWeight: 600, color: s.text }}>Styku Connected</div>
+                  <div style={{ fontFamily: s.FONT, fontSize: 12, color: s.success, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {ICO.check} Styku Cloud
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
+                {stykuFields.map(f => (
+                  <div key={f.label} style={{
+                    background: s.surfaceAlt, padding: '12px 14px', borderRadius: 10,
+                    border: `1px solid ${s.border}`,
+                  }}>
+                    <div style={{ fontFamily: s.FONT, fontSize: 10, fontWeight: 600, color: s.text3, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      {f.label}
+                    </div>
+                    <div style={{ fontFamily: s.MONO, fontSize: 18, fontWeight: 700, color: s.text, lineHeight: 1 }}>
+                      {f.value}<span style={{ fontSize: 11, color: s.text3, fontWeight: 400, marginLeft: 2 }}>{f.unit}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button onClick={importStyku} style={{
+                ...s.btnPrimary, width: '100%', padding: '12px 20px', borderRadius: 10,
+                cursor: 'pointer', fontFamily: s.FONT, fontSize: 15, fontWeight: 600,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}>
+                {ICO.download} Import to Progress
+              </button>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ═══════════════════ MAIN ═══════════════════ */
 export default function Progress() {
   const s = useStyles();
@@ -175,6 +539,9 @@ export default function Progress() {
   const [progressData, setProgressData] = useState([]);
   const [prs, setPrs] = useState([]);
   const [measurements, setMeasurements] = useState([]);
+  const [scanModalOpen, setScanModalOpen] = useState(false);
+  const [scanData, setScanData] = useState([]);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => { seedProgressData(); }, []);
   useEffect(() => subscribe(() => setClients(getPatients())), []);
@@ -189,12 +556,14 @@ export default function Progress() {
       setProgressData(JSON.parse(localStorage.getItem(`ms_progress_${selectedClient}`) || '[]'));
       setPrs(JSON.parse(localStorage.getItem(`ms_prs_${selectedClient}`) || '[]'));
       setMeasurements(JSON.parse(localStorage.getItem(`ms_measurements_${selectedClient}`) || '[]'));
+      setScanData(JSON.parse(localStorage.getItem(`ms_body_scans_${selectedClient}`) || '[]'));
     } catch {
       setProgressData([]);
       setPrs([]);
       setMeasurements([]);
+      setScanData([]);
     }
-  }, [selectedClient]);
+  }, [selectedClient, refreshKey]);
 
   const latest = progressData[progressData.length - 1] || {};
   const prev = progressData[progressData.length - 2] || {};
@@ -205,9 +574,20 @@ export default function Progress() {
   const bmiDelta = latest.bmi && prev.bmi ? +(latest.bmi - prev.bmi).toFixed(1) : 0;
 
   const client = clients.find(c => c.id === selectedClient);
+  const latestScan = scanData.length > 0 ? scanData[scanData.length - 1] : null;
 
   return (
     <div style={{ padding: '32px 24px', maxWidth: 1200, margin: '0 auto' }}>
+      {/* Import Body Scan Modal */}
+      <ImportScanModal
+        isOpen={scanModalOpen}
+        onClose={() => setScanModalOpen(false)}
+        s={s}
+        clientId={selectedClient}
+        clients={clients}
+        onSaved={() => setRefreshKey(k => k + 1)}
+      />
+
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
         <div>
@@ -216,16 +596,27 @@ export default function Progress() {
             Body metrics, PRs, and transformation tracking
           </p>
         </div>
-        <select
-          style={{ ...s.input, width: 'auto', minWidth: 220, cursor: 'pointer' }}
-          value={selectedClient}
-          onChange={e => setSelectedClient(e.target.value)}
-        >
-          <option value="">Select client...</option>
-          {clients.map(c => (
-            <option key={c.id} value={c.id}>{c.firstName} {c.lastName}</option>
-          ))}
-        </select>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          {selectedClient && (
+            <button onClick={() => setScanModalOpen(true)} style={{
+              ...s.btnPrimary, padding: '10px 18px', borderRadius: 10, cursor: 'pointer',
+              fontFamily: s.FONT, fontSize: 14, fontWeight: 600,
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              {ICO.download} Import Body Scan
+            </button>
+          )}
+          <select
+            style={{ ...s.input, width: 'auto', minWidth: 220, cursor: 'pointer' }}
+            value={selectedClient}
+            onChange={e => setSelectedClient(e.target.value)}
+          >
+            <option value="">Select client...</option>
+            {clients.map(c => (
+              <option key={c.id} value={c.id}>{c.firstName} {c.lastName}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {!selectedClient ? (
@@ -278,6 +669,9 @@ export default function Progress() {
               );
             })}
           </div>
+
+          {/* ═══ BODY SCAN HISTORY ═══ */}
+          <BodyScanHistory scanData={scanData} s={s} clientId={selectedClient} clients={clients} onRefresh={() => setRefreshKey(k => k + 1)} />
 
           {/* ═══ WEIGHT CHART ═══ */}
           <div style={{ ...s.cardStyle, padding: 24, marginBottom: 24, animation: 'progFadeInUp 0.4s ease 0.1s both' }}>
@@ -481,6 +875,173 @@ export default function Progress() {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+/* ═══ Body Scan History section ═══ */
+function BodyScanHistory({ scanData, s, clientId, clients, onRefresh }) {
+  if (!scanData || scanData.length === 0) return null;
+
+  const latestInBody = [...scanData].reverse().find(sc => sc.source === 'inbody');
+  const latestStyku = [...scanData].reverse().find(sc => sc.source === 'styku');
+
+  if (!latestInBody && !latestStyku) return null;
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    const ci = getClientIndex(clientId, clients);
+    const dateStr = new Date().toISOString().slice(0, 10);
+
+    // Simulate pulling fresh data with slight variation
+    const scanKey = `ms_body_scans_${clientId}`;
+    let scans = [];
+    try { scans = JSON.parse(localStorage.getItem(scanKey) || '[]'); } catch {}
+
+    // Add a new InBody scan with small random variation
+    const base = INBODY_DATA[ci];
+    const fresh = {
+      date: dateStr,
+      source: 'inbody',
+      weight: +(base.weight + (Math.random() - 0.5) * 2).toFixed(1),
+      bodyFat: +(base.bodyFat + (Math.random() - 0.5) * 0.6).toFixed(1),
+      smm: +(base.smm + (Math.random() - 0.3) * 1).toFixed(1),
+      bmi: +(base.bmi + (Math.random() - 0.5) * 0.3).toFixed(1),
+      tbw: +(base.tbw + (Math.random() - 0.5) * 0.8).toFixed(1),
+      vfl: base.vfl,
+      bmr: Math.round(base.bmr + (Math.random() - 0.5) * 20),
+      score: Math.round(base.score + (Math.random() - 0.3) * 2),
+    };
+    scans.push(fresh);
+    localStorage.setItem(scanKey, JSON.stringify(scans));
+
+    setTimeout(() => {
+      setRefreshing(false);
+      if (onRefresh) onRefresh();
+    }, 1200);
+  }, [clientId, clients, onRefresh]);
+
+  const inBodyFields = latestInBody ? [
+    { label: 'Weight', value: latestInBody.weight, unit: 'lbs', icon: ICO.scale },
+    { label: 'Body Fat', value: latestInBody.bodyFat, unit: '%', icon: ICO.flame },
+    { label: 'Skeletal Muscle', value: latestInBody.smm, unit: 'lbs', icon: ICO.muscle },
+    { label: 'BMI', value: latestInBody.bmi, unit: '', icon: ICO.ruler },
+    { label: 'Body Water', value: latestInBody.tbw, unit: 'L', icon: ICO.droplet },
+    { label: 'Visceral Fat', value: latestInBody.vfl, unit: '', icon: ICO.scale },
+    { label: 'BMR', value: latestInBody.bmr, unit: 'kcal', icon: ICO.flame },
+    { label: 'InBody Score', value: latestInBody.score, unit: '/100', icon: ICO.trophy },
+  ] : [];
+
+  const stykuFields = latestStyku ? [
+    { label: 'Chest', value: latestStyku.chest },
+    { label: 'Waist', value: latestStyku.waist },
+    { label: 'Hips', value: latestStyku.hips },
+    { label: 'Left Thigh', value: latestStyku.thighL },
+    { label: 'Right Thigh', value: latestStyku.thighR },
+    { label: 'Left Arm', value: latestStyku.armL },
+    { label: 'Right Arm', value: latestStyku.armR },
+    { label: 'Neck', value: latestStyku.neck },
+    { label: 'Calf', value: latestStyku.calf },
+  ].filter(f => f.value) : [];
+
+  return (
+    <div style={{ marginBottom: 24, animation: 'progFadeInUp 0.4s ease 0.08s both' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ color: s.accent }}>{ICO.link}</span>
+          <h2 style={{ fontFamily: s.HEADING, fontSize: 18, fontWeight: 600, color: s.text, margin: 0 }}>
+            Body Scan History
+          </h2>
+        </div>
+        <button onClick={handleRefresh} disabled={refreshing} style={{
+          background: s.surfaceAlt, border: `1px solid ${s.border}`,
+          padding: '6px 14px', borderRadius: 8, cursor: refreshing ? 'wait' : 'pointer',
+          fontFamily: s.FONT, fontSize: 12, fontWeight: 600, color: s.text2,
+          display: 'flex', alignItems: 'center', gap: 6,
+          opacity: refreshing ? 0.6 : 1, transition: 'opacity 0.2s',
+        }}>
+          <span style={{ display: 'flex', animation: refreshing ? 'progSpin 0.8s linear infinite' : 'none' }}>{ICO.refresh}</span>
+          {refreshing ? 'Syncing...' : 'Refresh'}
+        </button>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: latestInBody && latestStyku ? '1fr 1fr' : '1fr', gap: 16 }}>
+        {/* InBody Card */}
+        {latestInBody && (
+          <div style={{ ...s.cardStyle, padding: 0, overflow: 'hidden' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10, padding: '16px 20px',
+              borderBottom: `1px solid ${s.border}`, background: s.surfaceAlt,
+            }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: 8, background: '#1B365D',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'system-ui', fontSize: 12, fontWeight: 800, color: '#fff',
+              }}>IB</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: s.FONT, fontSize: 13, fontWeight: 600, color: s.text }}>InBody Results</div>
+                <div style={{ fontFamily: s.MONO, fontSize: 11, color: s.text3 }}>{fmtDate(latestInBody.date)}</div>
+              </div>
+              <span style={{
+                fontFamily: s.MONO, fontSize: 10, fontWeight: 600,
+                color: s.success, background: s.successBg,
+                padding: '2px 8px', borderRadius: 100,
+              }}>CONNECTED</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, background: s.border }}>
+              {inBodyFields.map(f => (
+                <div key={f.label} style={{ padding: '12px 16px', background: s.surface }}>
+                  <div style={{ fontFamily: s.FONT, fontSize: 10, fontWeight: 600, color: s.text3, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 3 }}>
+                    {f.label}
+                  </div>
+                  <div style={{ fontFamily: s.MONO, fontSize: 18, fontWeight: 700, color: s.text, lineHeight: 1 }}>
+                    {f.value}<span style={{ fontSize: 11, color: s.text3, fontWeight: 400, marginLeft: 2 }}>{f.unit}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Styku Card */}
+        {latestStyku && (
+          <div style={{ ...s.cardStyle, padding: 0, overflow: 'hidden' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10, padding: '16px 20px',
+              borderBottom: `1px solid ${s.border}`, background: s.surfaceAlt,
+            }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: 8, background: '#00B4D8',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'system-ui', fontSize: 12, fontWeight: 800, color: '#fff',
+              }}>Sk</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: s.FONT, fontSize: 13, fontWeight: 600, color: s.text }}>Styku Measurements</div>
+                <div style={{ fontFamily: s.MONO, fontSize: 11, color: s.text3 }}>{fmtDate(latestStyku.date)}</div>
+              </div>
+              <span style={{
+                fontFamily: s.MONO, fontSize: 10, fontWeight: 600,
+                color: s.success, background: s.successBg,
+                padding: '2px 8px', borderRadius: 100,
+              }}>CONNECTED</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1, background: s.border }}>
+              {stykuFields.map(f => (
+                <div key={f.label} style={{ padding: '12px 14px', background: s.surface }}>
+                  <div style={{ fontFamily: s.FONT, fontSize: 10, fontWeight: 600, color: s.text3, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 3 }}>
+                    {f.label}
+                  </div>
+                  <div style={{ fontFamily: s.MONO, fontSize: 16, fontWeight: 700, color: s.text, lineHeight: 1 }}>
+                    {f.value}<span style={{ fontSize: 11, color: s.text3, fontWeight: 400, marginLeft: 2 }}>in</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
