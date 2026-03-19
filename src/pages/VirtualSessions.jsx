@@ -128,7 +128,7 @@ export default function VirtualSessions() {
                 <div style={{ fontFamily: s.FONT, fontSize: 14, fontWeight: 500, color: s.text }}>{session.client}</div>
                 <div style={{ fontFamily: s.FONT, fontSize: 12, color: s.text3 }}>{formatDate(session.date)} &middot; {session.duration} min</div>
               </div>
-              <button onClick={() => showToast('Recordings coming soon')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: s.FONT, fontSize: 12, fontWeight: 500, color: s.accent, padding: '6px 0' }}>View Recording</button>
+              <span style={{ fontFamily: s.MONO, fontSize: 11, color: s.text3 }}>{session.duration} min</span>
             </div>
           ))}
         </div>

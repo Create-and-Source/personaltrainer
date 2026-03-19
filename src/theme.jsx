@@ -59,7 +59,8 @@ export const THEMES = {
   },
 };
 
-export const CTA_COLOR = '#0E7A82';
+// CTA uses theme accent — no separate blue/teal
+export const CTA_COLOR = null; // deprecated, use s.accent instead
 
 function loadTheme() {
   try {
@@ -129,8 +130,8 @@ export function useStyles() {
     HEADING: "'Poppins', 'Figtree', -apple-system, sans-serif",
     MONO: "'Source Code Pro', 'SF Mono', monospace",
     // CTA
-    cta: CTA_COLOR,
-    ctaText: '#FFFFFF',
+    cta: t.accent,
+    ctaText: t.accentText,
     // Card
     cardStyle: {
       background: t.surface,
@@ -153,8 +154,8 @@ export function useStyles() {
     pillCta: {
       padding: '12px 28px', borderRadius: 112, border: 'none', cursor: 'pointer',
       font: "600 15px 'Figtree', sans-serif", transition: 'all 0.2s ease',
-      background: CTA_COLOR, color: '#FFFFFF',
-      boxShadow: '0 4px 16px rgba(14,122,130,0.24)',
+      background: t.accent, color: t.accentText,
+      boxShadow: t.dark ? '0 4px 16px rgba(14,122,130,0.24)' : '0 4px 16px rgba(98,85,74,0.2)',
     },
     pillOutline: {
       padding: '10px 24px', borderRadius: 112, cursor: 'pointer',

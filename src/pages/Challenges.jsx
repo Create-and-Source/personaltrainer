@@ -156,7 +156,7 @@ export default function Challenges() {
                       {ch.participants.slice(0, 5).map((p, i) => (<div key={i} style={{ marginLeft: i > 0 ? -8 : 0, zIndex: 5 - i }}><Avatar name={p.name} size={28} /></div>))}
                       {ch.participants.length > 5 && (<div style={{ width: 28, height: 28, borderRadius: '50%', background: s.borderLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: s.FONT, fontSize: 10, fontWeight: 500, color: s.text3, marginLeft: -8, border: '2px solid rgba(255,255,255,0.8)' }}>+{ch.participants.length - 5}</div>)}
                     </div>
-                    <button style={{ ...s.pillOutline, padding: '7px 16px', fontSize: 12 }}>Details</button>
+                    <button onClick={() => { setTab('active'); }} style={{ ...s.pillOutline, padding: '7px 16px', fontSize: 12 }}>Details</button>
                   </div>
                 </div>
               </div>

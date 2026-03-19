@@ -851,7 +851,7 @@ export default function Members() {
           {(search || filter !== 'All') ? (
             <button onClick={() => { setSearch(''); setFilter('All'); }} style={{ ...s.pillGhost, fontSize: 12, marginTop: 8 }}>Clear Filters</button>
           ) : (
-            <button onClick={() => {}} style={{ ...s.pillAccent, marginTop: 12 }}>Add Your First Client</button>
+            <button onClick={() => { setSelected(null); setForm({ firstName: '', lastName: '', email: '', phone: '', dob: '', goals: '', membershipTier: 'Drop-in' }); setShowForm(true); }} style={{ ...s.pillAccent, marginTop: 12 }}>Add Your First Client</button>
           )}
         </div>
       )}

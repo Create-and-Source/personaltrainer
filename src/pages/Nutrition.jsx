@@ -74,7 +74,7 @@ const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 /* ── Macro colors ── */
 const MACRO_COLORS = {
-  calories: '#0E7A82',
+  calories: '#62554A',
   protein: '#22C55E',
   carbs: '#EAB308',
   fat: '#EF4444',

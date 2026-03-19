@@ -142,10 +142,6 @@ export default function Community() {
       {activeTab === 'groups' && (
         <div>
           <div style={{ marginBottom: 20 }}>
-            <button onClick={() => showToast('Group creation coming soon!')} style={{ ...s.pillAccent, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Create Group
-            </button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
             {GROUPS.map((group) => (

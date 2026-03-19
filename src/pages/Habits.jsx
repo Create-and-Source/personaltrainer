@@ -340,8 +340,8 @@ export default function Habits() {
               const log = todayLogs.find(l => l.habitId === habit.id);
               const done = log?.completed || false;
               return (
-                <div key={habit.id} onClick={() => toggleHabit(habit.id)} style={{
-                  ...s.cardStyle, padding: '14px 18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                <div key={habit.id} style={{
+                  ...s.cardStyle, padding: '14px 18px', cursor: 'default', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   ...(done ? { background: s.dark ? `${s.success}10` : s.successBg, borderColor: `${s.success}30` } : {}),
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -356,13 +356,17 @@ export default function Habits() {
                       <span style={{ fontFamily: s.FONT, fontSize: 12, color: s.text3, marginLeft: 10 }}>{habit.target}</span>
                     </div>
                   </div>
-                  <div style={{
-                    width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-                    background: done ? s.success : 'transparent',
-                    border: done ? 'none' : `2px solid ${s.border}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s',
-                  }}>
-                    {done && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg>}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontFamily: s.FONT, fontSize: 10, color: s.text3, fontStyle: 'italic' }}>Client-managed</span>
+                    <div style={{
+                      width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+                      background: done ? s.success : 'transparent',
+                      border: done ? 'none' : `2px solid ${s.border}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s',
+                      opacity: 0.7,
+                    }}>
+                      {done && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg>}
+                    </div>
                   </div>
                 </div>
               );

@@ -458,6 +458,8 @@ export default function Portal() {
   // Navigation
   const [activeTab, setActiveTab] = useState('home');
   const [subView, setSubView] = useState(null); // 'workout-detail', 'active-workout', 'workout-complete'
+  const [selectedWorkout, setSelectedWorkout] = useState(null); // tracks which workout to show in detail
+  const [selectedProgram, setSelectedProgram] = useState(null); // tracks which program to show in detail
 
   // Train tab segments
   const [trainSeg, setTrainSeg] = useState('Calendar');
@@ -468,6 +470,18 @@ export default function Portal() {
 
   // Habits
   const [habits, setHabits] = useState({ water: false, sleep: true, steps: false, eat: false });
+
+  // Meal log modal
+  const [showMealModal, setShowMealModal] = useState(false);
+  const [mealForm, setMealForm] = useState({ name: '', calories: '', protein: '', carbs: '', fat: '' });
+  const [mealLog, setMealLog] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(`ms_meal_log_${selectedClientId}`)) || []; } catch { return []; }
+  });
+
+  // Refresh meal log when client changes
+  useEffect(() => {
+    try { setMealLog(JSON.parse(localStorage.getItem(`ms_meal_log_${selectedClientId}`)) || []); } catch { setMealLog([]); }
+  }, [selectedClientId]);
 
   // Active workout state
   const [workoutIndex, setWorkoutIndex] = useState(0);
@@ -524,14 +538,121 @@ export default function Portal() {
 
   const getServiceName = (svcId) => (services.find(s => s.id === svcId) || {}).name || 'Session';
 
-  const allExercises = SAMPLE_WORKOUT.sections.flatMap(s => s.exercises);
+  const allExercises = activeWorkoutData.sections.flatMap(s => s.exercises);
   const totalExerciseCount = allExercises.length;
-  const totalSets = SAMPLE_WORKOUT.sections.flatMap(s => s.exercises).reduce((sum, e) => sum + (e.sets || 1), 0);
+  const totalSets = activeWorkoutData.sections.flatMap(s => s.exercises).reduce((sum, e) => sum + (e.sets || 1), 0);
 
   const sendChat = () => {
     if (!chatDraft.trim()) return;
     setChatMessages(prev => [...prev, { id: `cm${Date.now()}`, from: 'client', text: chatDraft.trim(), ts: new Date().toISOString() }]);
     setChatDraft('');
+  };
+
+  const saveMeal = () => {
+    if (!mealForm.name.trim()) return;
+    const entry = {
+      id: `meal-${Date.now()}`,
+      name: mealForm.name.trim(),
+      calories: Number(mealForm.calories) || 0,
+      protein: Number(mealForm.protein) || 0,
+      carbs: Number(mealForm.carbs) || 0,
+      fat: Number(mealForm.fat) || 0,
+      date: today(),
+      ts: new Date().toISOString(),
+    };
+    const updated = [...mealLog, entry];
+    setMealLog(updated);
+    localStorage.setItem(`ms_meal_log_${selectedClientId}`, JSON.stringify(updated));
+    setMealForm({ name: '', calories: '', protein: '', carbs: '', fat: '' });
+    setShowMealModal(false);
+  };
+
+  // Build workout data for library items so detail view can show real exercises
+  const LIBRARY_WORKOUTS = {
+    'lib-1': {
+      title: 'Upper Body Push', duration: 40, difficulty: 'Intermediate',
+      focus: ['Chest', 'Shoulders', 'Triceps'],
+      sections: [
+        { name: 'Warm-up', exercises: [
+          { name: 'Arm Circles', sets: null, reps: null, weight: null, time: '2 min', icon: '🔄' },
+          { name: 'Band Pull-Aparts', sets: null, reps: null, weight: null, time: '2 min', icon: '💪' },
+        ]},
+        { name: 'Main', exercises: [
+          { name: 'Incline Dumbbell Press', sets: 4, reps: 10, weight: '45 lbs', time: null, icon: '🏋️' },
+          { name: 'Flat Barbell Bench', sets: 4, reps: 8, weight: '165 lbs', time: null, icon: '💪' },
+          { name: 'Overhead Press', sets: 3, reps: 10, weight: '85 lbs', time: null, icon: '🙌' },
+          { name: 'Cable Flyes', sets: 3, reps: 12, weight: '25 lbs', time: null, icon: '🔥' },
+          { name: 'Lateral Raises', sets: 3, reps: 15, weight: '20 lbs', time: null, icon: '💪' },
+          { name: 'Tricep Pushdowns', sets: 3, reps: 12, weight: '40 lbs', time: null, icon: '🔥' },
+        ]},
+        { name: 'Cooldown', exercises: [
+          { name: 'Chest Stretch', sets: null, reps: null, weight: null, time: '60s each', icon: '🧘' },
+          { name: 'Shoulder Stretch', sets: null, reps: null, weight: null, time: '60s each', icon: '🧘' },
+        ]},
+      ],
+    },
+    'lib-2': {
+      title: 'Lower Body Power', duration: 45, difficulty: 'Advanced',
+      focus: ['Quads', 'Glutes', 'Hamstrings'],
+      sections: [
+        { name: 'Warm-up', exercises: [
+          { name: 'Leg Swings', sets: null, reps: null, weight: null, time: '2 min', icon: '🦵' },
+          { name: 'Bodyweight Squats', sets: null, reps: null, weight: null, time: '2 min', icon: '🏋️' },
+        ]},
+        { name: 'Main', exercises: [
+          { name: 'Barbell Back Squat', sets: 5, reps: 5, weight: '225 lbs', time: null, icon: '🏋️' },
+          { name: 'Romanian Deadlift', sets: 4, reps: 8, weight: '185 lbs', time: null, icon: '🦵' },
+          { name: 'Bulgarian Split Squats', sets: 3, reps: 10, weight: '50 lbs', time: null, icon: '💪' },
+          { name: 'Leg Press', sets: 3, reps: 12, weight: '360 lbs', time: null, icon: '🔥' },
+          { name: 'Hamstring Curls', sets: 3, reps: 12, weight: '90 lbs', time: null, icon: '🦵' },
+        ]},
+        { name: 'Cooldown', exercises: [
+          { name: 'Quad Stretch', sets: null, reps: null, weight: null, time: '60s each', icon: '🧘' },
+          { name: 'Hamstring Stretch', sets: null, reps: null, weight: null, time: '60s each', icon: '🧘' },
+        ]},
+      ],
+    },
+    'lib-3': {
+      title: 'Core & Conditioning', duration: 25, difficulty: 'Beginner',
+      focus: ['Core', 'Cardio'],
+      sections: [
+        { name: 'Warm-up', exercises: [
+          { name: 'Jumping Jacks', sets: null, reps: null, weight: null, time: '2 min', icon: '🏃' },
+        ]},
+        { name: 'Main', exercises: [
+          { name: 'Plank', sets: 3, reps: null, weight: null, time: '45s', icon: '💪' },
+          { name: 'Mountain Climbers', sets: 3, reps: 20, weight: null, time: null, icon: '🏃' },
+          { name: 'Russian Twists', sets: 3, reps: 20, weight: '15 lbs', time: null, icon: '🔥' },
+          { name: 'Bicycle Crunches', sets: 3, reps: 20, weight: null, time: null, icon: '💪' },
+          { name: 'Dead Bug', sets: 3, reps: 12, weight: null, time: null, icon: '🧘' },
+        ]},
+        { name: 'Cooldown', exercises: [
+          { name: "Child's Pose", sets: null, reps: null, weight: null, time: '90s', icon: '🧘' },
+        ]},
+      ],
+    },
+    'lib-4': {
+      title: 'Active Recovery Flow', duration: 30, difficulty: 'Beginner',
+      focus: ['Mobility', 'Flexibility'],
+      sections: [
+        { name: 'Flow', exercises: [
+          { name: 'Cat-Cow', sets: null, reps: null, weight: null, time: '3 min', icon: '🧘' },
+          { name: "World's Greatest Stretch", sets: null, reps: null, weight: null, time: '3 min', icon: '🧘' },
+          { name: 'Pigeon Pose', sets: null, reps: null, weight: null, time: '2 min each', icon: '🧘' },
+          { name: 'Thoracic Rotation', sets: null, reps: null, weight: null, time: '2 min each', icon: '🔄' },
+          { name: 'Hip 90/90', sets: null, reps: null, weight: null, time: '2 min each', icon: '🦵' },
+          { name: 'Foam Roll - Full Body', sets: null, reps: null, weight: null, time: '10 min', icon: '🧘' },
+        ]},
+      ],
+    },
+  };
+
+  // Get the active workout data (selected or default)
+  const activeWorkoutData = selectedWorkout || SAMPLE_WORKOUT;
+
+  const openWorkoutDetail = (workout) => {
+    setSelectedWorkout(workout);
+    setSubView('workout-detail');
   };
 
   const startWorkout = () => {
@@ -582,7 +703,7 @@ export default function Portal() {
       </div>
 
       {/* Today's Plan Hero Card */}
-      <Card className="ios-fadeUp ios-d2" style={{ marginBottom: 12, padding: 20 }} onClick={() => setSubView('workout-detail')}>
+      <Card className="ios-fadeUp ios-d2" style={{ marginBottom: 12, padding: 20 }} onClick={() => openWorkoutDetail(SAMPLE_WORKOUT)}>
         <SectionLabel style={{ color: ACCENT, marginBottom: 8 }}>Today's Plan</SectionLabel>
         <div style={{ font: `600 20px ${FONT}`, color: TEXT, marginBottom: 4 }}>{SAMPLE_WORKOUT.title}</div>
         <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
@@ -644,7 +765,7 @@ export default function Portal() {
           <MacroBar label="Fat" current={nutrition.fat.current} target={nutrition.fat.target} color="#D4A843" />
         </div>
         <div style={{ marginTop: 14 }}>
-          <PillButton variant="secondary" onClick={(e) => e.stopPropagation()} style={{ font: `500 13px ${FONT}`, padding: '10px 0' }}>Log Meal</PillButton>
+          <PillButton variant="secondary" onClick={(e) => { e.stopPropagation(); setShowMealModal(true); }} style={{ font: `500 13px ${FONT}`, padding: '10px 0' }}>Log Meal</PillButton>
         </div>
       </Card>
 
@@ -696,7 +817,7 @@ export default function Portal() {
   const renderTrain = () => (
     <div className="ios-page" style={{ padding: '24px 16px 100px' }}>
       <h1 style={{ font: `700 28px ${FONT}`, color: TEXT, margin: '0 0 16px', letterSpacing: '-0.3px' }}>Train</h1>
-      <SegmentedControl options={['Calendar', 'Programs', 'Library']} active={trainSeg} onChange={setTrainSeg} />
+      <SegmentedControl options={['Calendar', 'Programs', 'Library']} active={trainSeg} onChange={(seg) => { setTrainSeg(seg); setSelectedProgram(null); }} />
       <div style={{ marginTop: 16 }}>
         {trainSeg === 'Calendar' && renderTrainCalendar()}
         {trainSeg === 'Programs' && renderTrainPrograms()}
@@ -730,7 +851,7 @@ export default function Portal() {
         <SectionLabel>Today</SectionLabel>
 
         {/* Workout card */}
-        <Card className="ios-fadeUp ios-d1" style={{ marginBottom: 10 }} onClick={() => setSubView('workout-detail')}>
+        <Card className="ios-fadeUp ios-d1" style={{ marginBottom: 10 }} onClick={() => openWorkoutDetail(SAMPLE_WORKOUT)}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
               width: 40, height: 40, borderRadius: 10,
@@ -804,10 +925,125 @@ export default function Portal() {
     );
   };
 
+  const renderProgramDetail = (prog) => {
+    const isSampleProg = !!prog.phases;
+    const completedCount = isSampleProg
+      ? Math.round((prog.progress / 100) * (prog.totalWeeks * (parseInt(prog.frequency) || 4)))
+      : (prog.sessions ? prog.sessions.filter(s => s.status === 'completed').length : 0);
+    const totalCount = isSampleProg
+      ? (prog.totalWeeks * (parseInt(prog.frequency) || 4))
+      : (prog.sessions ? prog.sessions.length : 0);
+
+    return (
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 500,
+        background: BG, overflowY: 'auto',
+      }}>
+        <div style={{ padding: '20px 16px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <button onClick={() => setSelectedProgram(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+            <IconChevron dir="left" size={24} color={ACCENT} />
+          </button>
+          <span style={{ font: `600 15px ${FONT}`, color: TEXT }}>Program</span>
+          <div style={{ width: 32 }} />
+        </div>
+        <div style={{ padding: '20px 16px 100px' }}>
+          <h1 style={{ font: `700 28px ${FONT}`, color: TEXT, margin: '0 0 8px', letterSpacing: '-0.3px' }}>{prog.name}</h1>
+          {isSampleProg && (
+            <div style={{ font: `400 14px ${FONT}`, color: TEXT2, marginBottom: 12 }}>
+              Week {prog.week} of {prog.totalWeeks} — {prog.frequency}
+            </div>
+          )}
+          {!isSampleProg && prog.sessions && (
+            <div style={{ font: `400 14px ${FONT}`, color: TEXT2, marginBottom: 12 }}>
+              {completedCount} of {totalCount} sessions completed
+            </div>
+          )}
+
+          {/* Progress bar */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ height: 8, borderRadius: 4, background: '#EFEBE7', overflow: 'hidden', marginBottom: 6 }}>
+              <div style={{ height: '100%', borderRadius: 4, background: ACCENT, width: `${isSampleProg ? prog.progress : (totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0)}%`, transition: 'width 0.5s ease' }} />
+            </div>
+            <div style={{ font: `500 12px ${MONO}`, color: ACCENT, textAlign: 'right' }}>
+              {isSampleProg ? prog.progress : (totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0)}% complete
+            </div>
+          </div>
+
+          {/* Phases for sample programs */}
+          {isSampleProg && prog.phases && (
+            <>
+              <SectionLabel>Phases</SectionLabel>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+                {prog.phases.map((p, idx) => (
+                  <Card key={p} style={{ flex: 1, padding: 14, textAlign: 'center', border: idx === 0 ? `2px solid ${ACCENT}` : 'none' }}>
+                    <div style={{ font: `600 14px ${FONT}`, color: idx === 0 ? ACCENT : TEXT }}>{p}</div>
+                    <div style={{ font: `400 11px ${FONT}`, color: TEXT3, marginTop: 4 }}>
+                      {idx === 0 ? 'Current' : idx < Math.ceil(prog.week / (prog.totalWeeks / prog.phases.length)) ? 'Completed' : 'Upcoming'}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Sessions list for store programs */}
+          {!isSampleProg && prog.sessions && (
+            <>
+              <SectionLabel>Sessions</SectionLabel>
+              {prog.sessions.map((sess, idx) => (
+                <Card key={idx} style={{ marginBottom: 8, padding: '12px 14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: '50%',
+                        background: sess.status === 'completed' ? ACCENT : '#EFEBE7',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {sess.status === 'completed' ? (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg>
+                        ) : (
+                          <span style={{ font: `600 12px ${FONT}`, color: TEXT3 }}>{idx + 1}</span>
+                        )}
+                      </div>
+                      <div>
+                        <div style={{ font: `500 14px ${FONT}`, color: TEXT }}>{sess.name || `Session ${idx + 1}`}</div>
+                        {sess.date && <div style={{ font: `400 12px ${FONT}`, color: TEXT3 }}>{fmtDate(sess.date)}</div>}
+                      </div>
+                    </div>
+                    <span style={{
+                      padding: '4px 10px', borderRadius: 100,
+                      background: sess.status === 'completed' ? '#ECFDF5' : ACCENT_LIGHT,
+                      color: sess.status === 'completed' ? SUCCESS : TEXT2,
+                      font: `500 11px ${FONT}`, textTransform: 'capitalize',
+                    }}>{sess.status || 'upcoming'}</span>
+                  </div>
+                </Card>
+              ))}
+            </>
+          )}
+
+          {/* Stats */}
+          <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+            <Card style={{ flex: 1, padding: 14, textAlign: 'center' }}>
+              <div style={{ font: `700 20px ${FONT}`, color: TEXT }}>{completedCount}</div>
+              <div style={{ font: `400 11px ${FONT}`, color: TEXT3 }}>Completed</div>
+            </Card>
+            <Card style={{ flex: 1, padding: 14, textAlign: 'center' }}>
+              <div style={{ font: `700 20px ${FONT}`, color: TEXT }}>{totalCount - completedCount}</div>
+              <div style={{ font: `400 11px ${FONT}`, color: TEXT3 }}>Remaining</div>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderTrainPrograms = () => (
     <>
+      {selectedProgram && renderProgramDetail(selectedProgram)}
+
       {SAMPLE_PROGRAMS.map(prog => (
-        <Card key={prog.id} className="ios-fadeUp" style={{ marginBottom: 12 }}>
+        <Card key={prog.id} className="ios-fadeUp" style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => setSelectedProgram(prog)}>
           <div style={{ font: `600 17px ${FONT}`, color: TEXT, marginBottom: 4 }}>{prog.name}</div>
           <div style={{ font: `400 13px ${FONT}`, color: TEXT2, marginBottom: 4 }}>
             Week {prog.week} of {prog.totalWeeks} — {prog.frequency}
@@ -829,7 +1065,7 @@ export default function Portal() {
 
       {/* Programs from store */}
       {clientPrograms.map(prog => (
-        <Card key={prog.id} className="ios-fadeUp" style={{ marginBottom: 12 }}>
+        <Card key={prog.id} className="ios-fadeUp" style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => setSelectedProgram(prog)}>
           <div style={{ font: `600 17px ${FONT}`, color: TEXT, marginBottom: 4 }}>{prog.name}</div>
           <div style={{ font: `400 13px ${FONT}`, color: TEXT2, marginBottom: 8 }}>
             {prog.sessions ? `${prog.sessions.filter(s => s.status === 'completed').length} of ${prog.sessions.length} sessions` : 'Program'}
@@ -871,7 +1107,7 @@ export default function Portal() {
       </div>
 
       {SAMPLE_LIBRARY.map(w => (
-        <Card key={w.id} className="ios-fadeUp" style={{ marginBottom: 10 }} onClick={() => setSubView('workout-detail')}>
+        <Card key={w.id} className="ios-fadeUp" style={{ marginBottom: 10 }} onClick={() => openWorkoutDetail(LIBRARY_WORKOUTS[w.id] || SAMPLE_WORKOUT)}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <div style={{ font: `500 15px ${FONT}`, color: TEXT, marginBottom: 4 }}>{w.title}</div>
@@ -915,13 +1151,13 @@ export default function Portal() {
       <div style={{ padding: '20px 16px 120px' }}>
         {/* Hero */}
         <div className="ios-fadeUp ios-d1" style={{ marginBottom: 20 }}>
-          <h1 style={{ font: `700 28px ${FONT}`, color: TEXT, margin: '0 0 8px', letterSpacing: '-0.3px' }}>{SAMPLE_WORKOUT.title}</h1>
+          <h1 style={{ font: `700 28px ${FONT}`, color: TEXT, margin: '0 0 8px', letterSpacing: '-0.3px' }}>{activeWorkoutData.title}</h1>
           <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-            <span style={{ font: `400 14px ${FONT}`, color: TEXT2 }}>{SAMPLE_WORKOUT.duration} min</span>
-            <span style={{ font: `400 14px ${FONT}`, color: TEXT2 }}>{SAMPLE_WORKOUT.difficulty}</span>
+            <span style={{ font: `400 14px ${FONT}`, color: TEXT2 }}>{activeWorkoutData.duration} min</span>
+            <span style={{ font: `400 14px ${FONT}`, color: TEXT2 }}>{activeWorkoutData.difficulty}</span>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
-            {SAMPLE_WORKOUT.focus.map(f => (
+            {activeWorkoutData.focus.map(f => (
               <span key={f} style={{
                 padding: '5px 12px', borderRadius: 100, background: ACCENT_LIGHT,
                 font: `500 12px ${FONT}`, color: ACCENT,
@@ -947,7 +1183,7 @@ export default function Portal() {
         </div>
 
         {/* Exercise List by Section */}
-        {SAMPLE_WORKOUT.sections.map((section, si) => (
+        {activeWorkoutData.sections.map((section, si) => (
           <div key={si} className="ios-fadeUp" style={{ animationDelay: `${0.08 + si * 0.04}s`, marginBottom: 20 }}>
             <SectionLabel>{section.name}</SectionLabel>
             {section.exercises.map((ex, ei) => (
@@ -1110,7 +1346,7 @@ export default function Portal() {
       <div className="ios-fadeUp" style={{ textAlign: 'center', maxWidth: 340 }}>
         <div style={{ fontSize: 60, marginBottom: 16 }}>🎉</div>
         <h1 style={{ font: `700 28px ${FONT}`, color: TEXT, margin: '0 0 8px' }}>Workout Complete!</h1>
-        <p style={{ font: `400 15px ${FONT}`, color: TEXT2, margin: '0 0 32px' }}>{SAMPLE_WORKOUT.title}</p>
+        <p style={{ font: `400 15px ${FONT}`, color: TEXT2, margin: '0 0 32px' }}>{activeWorkoutData.title}</p>
 
         <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginBottom: 32 }}>
           <div style={{ textAlign: 'center' }}>
@@ -1683,6 +1919,62 @@ export default function Portal() {
         {activeTab === 'progress' && renderProgress()}
         {activeTab === 'profile' && renderProfile()}
       </div>
+
+      {/* Meal Log Modal */}
+      {showMealModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 700, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setShowMealModal(false)}>
+          <div onClick={e => e.stopPropagation()} style={{ background: SURFACE, borderRadius: 20, padding: 24, width: '100%', maxWidth: 380, boxShadow: '0 16px 48px rgba(0,0,0,0.15)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ font: `600 18px ${FONT}`, color: TEXT, margin: 0 }}>Log Meal</h3>
+              <button onClick={() => setShowMealModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+                <IconClose size={20} color={TEXT3} />
+              </button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label style={{ font: `500 12px ${FONT}`, color: TEXT2, display: 'block', marginBottom: 6 }}>Food Name</label>
+                <input value={mealForm.name} onChange={e => setMealForm({...mealForm, name: e.target.value})} placeholder="e.g., Grilled Chicken Salad"
+                  style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: `1px solid ${BORDER}`, font: `400 15px ${FONT}`, color: TEXT, outline: 'none', boxSizing: 'border-box', background: BG }} />
+              </div>
+              <div>
+                <label style={{ font: `500 12px ${FONT}`, color: TEXT2, display: 'block', marginBottom: 6 }}>Calories</label>
+                <input type="number" value={mealForm.calories} onChange={e => setMealForm({...mealForm, calories: e.target.value})} placeholder="0"
+                  style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: `1px solid ${BORDER}`, font: `400 15px ${MONO}`, color: TEXT, outline: 'none', boxSizing: 'border-box', background: BG }} />
+              </div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ font: `500 12px ${FONT}`, color: TEXT2, display: 'block', marginBottom: 6 }}>Protein (g)</label>
+                  <input type="number" value={mealForm.protein} onChange={e => setMealForm({...mealForm, protein: e.target.value})} placeholder="0"
+                    style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: `1px solid ${BORDER}`, font: `400 15px ${MONO}`, color: TEXT, outline: 'none', boxSizing: 'border-box', background: BG }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ font: `500 12px ${FONT}`, color: TEXT2, display: 'block', marginBottom: 6 }}>Carbs (g)</label>
+                  <input type="number" value={mealForm.carbs} onChange={e => setMealForm({...mealForm, carbs: e.target.value})} placeholder="0"
+                    style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: `1px solid ${BORDER}`, font: `400 15px ${MONO}`, color: TEXT, outline: 'none', boxSizing: 'border-box', background: BG }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ font: `500 12px ${FONT}`, color: TEXT2, display: 'block', marginBottom: 6 }}>Fat (g)</label>
+                  <input type="number" value={mealForm.fat} onChange={e => setMealForm({...mealForm, fat: e.target.value})} placeholder="0"
+                    style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: `1px solid ${BORDER}`, font: `400 15px ${MONO}`, color: TEXT, outline: 'none', boxSizing: 'border-box', background: BG }} />
+                </div>
+              </div>
+            </div>
+            {/* Today's logged meals */}
+            {mealLog.filter(m => m.date === today()).length > 0 && (
+              <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${BORDER}` }}>
+                <div style={{ font: `500 12px ${FONT}`, color: TEXT3, marginBottom: 8 }}>Today's Meals</div>
+                {mealLog.filter(m => m.date === today()).map(m => (
+                  <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', font: `400 13px ${FONT}`, color: TEXT2 }}>
+                    <span>{m.name}</span>
+                    <span style={{ font: `500 12px ${MONO}`, color: TEXT }}>{m.calories} cal</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <PillButton onClick={saveMeal} style={{ marginTop: 20 }}>Save Meal</PillButton>
+          </div>
+        </div>
+      )}
 
       {/* Bottom Tab Bar */}
       <div style={{

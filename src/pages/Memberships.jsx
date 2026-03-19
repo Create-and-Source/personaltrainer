@@ -84,9 +84,15 @@ export default function Memberships() {
     return true;
   });
 
+  const patients = getPatients();
   const activeMemberships = memberships.filter(m => m.status === 'active').length;
   const mrr = memberships.filter(m => m.status === 'active').reduce((sum, m) => sum + (TIERS[m.tier]?.price || 0), 0);
-  const tierBreakdown = { '10-Session Pack': memberships.filter(m => m.tier === '10-Session Pack').length, 'Unlimited Monthly': memberships.filter(m => m.tier === 'Unlimited Monthly').length, 'Premium Monthly': memberships.filter(m => m.tier === 'Premium Monthly').length };
+  // Count clients per tier from patient records (membershipTier field)
+  const tierBreakdown = {
+    '10-Session Pack': patients.filter(p => p.membershipTier === '10-Session Pack').length,
+    'Unlimited Monthly': patients.filter(p => p.membershipTier === 'Unlimited Monthly').length,
+    'Premium Monthly': patients.filter(p => p.membershipTier === 'Premium Monthly').length,
+  };
   const activePackages = packages.filter(p => p.status === 'active').length;
 
   const deductUnit = (memId, serviceName) => { setMemberships(getMemberships().map(m => m.id === memId ? { ...m, wallet: m.wallet.map(w => w.service === serviceName ? { ...w, remaining: Math.max(0, w.remaining - 1) } : w) } : m)); setTick(t => t + 1); };
@@ -125,7 +131,21 @@ export default function Memberships() {
                   </div>
                 ))}
               </div>
-              <button onClick={() => { setTab('memberships'); setFilter(name); }} style={{ marginTop: 24, width: '100%', padding: '12px 20px', borderRadius: 12, border: 'none', cursor: 'pointer', fontFamily: s.FONT, fontSize: 13, fontWeight: 600, background: `${tier.color}14`, color: tier.color, transition: 'all 0.3s ease' }}>View {name} Clients</button>
+              {/* Client names on this tier */}
+              {patients.filter(p => p.membershipTier === name).length > 0 && (
+                <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${s.borderLight}` }}>
+                  <div style={{ fontFamily: s.MONO, fontSize: 9, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 1.5, color: s.text3, marginBottom: 8 }}>Clients on this tier</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {patients.filter(p => p.membershipTier === name).map(p => (
+                      <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: tier.color, opacity: 0.5, flexShrink: 0 }} />
+                        <span style={{ fontFamily: s.FONT, fontSize: 13, color: s.text2 }}>{p.firstName} {p.lastName}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <button onClick={() => { setTab('memberships'); setFilter(name); }} style={{ marginTop: 16, width: '100%', padding: '12px 20px', borderRadius: 12, border: 'none', cursor: 'pointer', fontFamily: s.FONT, fontSize: 13, fontWeight: 600, background: `${tier.color}14`, color: tier.color, transition: 'all 0.3s ease' }}>View {name} Clients</button>
             </div>
           </div>
         ))}
