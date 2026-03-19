@@ -1,6 +1,6 @@
 // Client Portal — Premium iOS-native fitness app experience
 // 5-tab structure: Home, Train, Mind, Progress, Profile
-import { useState, useEffect, useRef, useCallback, createContext, useContext } from 'react';
+import React, { useState, useEffect, useRef, useCallback, createContext, useContext } from 'react';
 import {
   getPatients, getAppointments, getServices,
   getClassPackages, subscribe,
@@ -457,13 +457,35 @@ const BarChart = ({ width = 300, height = 130 }) => {
    MAIN PORTAL COMPONENT
    ══════════════════════════════════════ */
 
+class PortalErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error) { return { error }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: 40, textAlign: 'center', fontFamily: "'Figtree', sans-serif" }}>
+          <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Something went wrong</div>
+          <div style={{ fontSize: 13, color: '#888', marginBottom: 16 }}>{this.state.error?.message}</div>
+          <button onClick={() => { localStorage.clear(); window.location.reload(); }}
+            style={{ padding: '10px 24px', borderRadius: 100, border: 'none', background: '#C9A96E', color: '#fff', cursor: 'pointer', fontSize: 14 }}>
+            Reset & Reload
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function Portal() {
   const appStyles = useAppStyles();
   const tokens = buildTokens(appStyles);
   return (
-    <PortalTokens.Provider value={tokens}>
-      <PortalInner />
-    </PortalTokens.Provider>
+    <PortalErrorBoundary>
+      <PortalTokens.Provider value={tokens}>
+        <PortalInner />
+      </PortalTokens.Provider>
+    </PortalErrorBoundary>
   );
 }
 
