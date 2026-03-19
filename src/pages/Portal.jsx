@@ -481,8 +481,8 @@ function PortalInner() {
   const topClients = patients.slice(0, 8);
   const [selectedClientId, setSelectedClientId] = useState(topClients[0]?.id || null);
   const [showClientDropdown, setShowClientDropdown] = useState(false);
-  const client = patients.find(p => p.id === selectedClientId) || topClients[0];
-  const clientName = client ? `${client.firstName} ${client.lastName}` : 'Client';
+  const client = patients.find(p => p.id === selectedClientId) || topClients[0] || { id: 'none', firstName: 'You', lastName: '' };
+  const clientName = `${client.firstName} ${client.lastName}`.trim() || 'Client';
 
   // Navigation
   const [activeTab, setActiveTab] = useState('home');
