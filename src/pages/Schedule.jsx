@@ -156,11 +156,11 @@ export default function Schedule() {
     return (
       <div onClick={() => openEdit(appt)} style={{
         padding: compact ? '6px 8px' : '10px 14px', borderRadius: 8, cursor: 'pointer',
-        background: 'rgba(255,255,255,0.5)', backdropFilter: 'blur(8px)', borderLeft: `3px solid ${statusColor(appt.status)}`,
+        background: s.dark ? '#252529' : 'rgba(255,255,255,0.5)', backdropFilter: s.dark ? 'none' : 'blur(8px)', borderLeft: `3px solid ${statusColor(appt.status)}`,
         marginBottom: 4, transition: 'all 0.15s',
       }}
-      onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
-      onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.5)'}
+      onMouseEnter={e => e.currentTarget.style.background = s.dark ? '#2A2A2E' : 'rgba(0,0,0,0.04)'}
+      onMouseLeave={e => e.currentTarget.style.background = s.dark ? '#252529' : 'rgba(255,255,255,0.5)'}
       >
         <div style={{ font: `500 ${compact ? 11 : 13}px ${s.FONT}`, color: s.text }}>{appt.patientName}</div>
         <div style={{ font: `400 ${compact ? 10 : 12}px ${s.FONT}`, color: s.text2 }}>
@@ -191,10 +191,10 @@ export default function Schedule() {
           <button onClick={() => setCurrentDate(new Date().toISOString().slice(0, 10))} style={{ ...s.pillGhost, padding: '6px 12px', fontSize: 11 }}>Today</button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div className="schedule-view-toggle" style={{ display: 'flex', gap: 0, background: 'rgba(0,0,0,0.04)', borderRadius: 8, overflow: 'hidden' }}>
+          <div className="schedule-view-toggle" style={{ display: 'flex', gap: 0, background: s.dark ? '#252529' : 'rgba(0,0,0,0.04)', borderRadius: 8, overflow: 'hidden' }}>
             {['day', 'week', 'grid', 'list'].map(v => (
               <button key={v} onClick={() => setView(v)} className={v === 'grid' ? 'schedule-grid-btn' : ''} style={{
-                padding: '7px 16px', background: view === v ? '#fff' : 'transparent', border: 'none',
+                padding: '7px 16px', background: view === v ? s.cardSolid : 'transparent', border: 'none',
                 font: `500 12px ${s.FONT}`, color: view === v ? s.text : s.text3, cursor: 'pointer',
                 borderRadius: view === v ? 8 : 0, boxShadow: view === v ? s.shadow : 'none',
                 textTransform: 'capitalize',
@@ -210,8 +210,8 @@ export default function Schedule() {
           {hours.map(h => {
             const hourAppts = dayAppts.filter(a => parseInt(a.time.split(':')[0]) === h);
             return (
-              <div key={h} style={{ display: 'flex', borderBottom: '1px solid rgba(0,0,0,0.03)', minHeight: 72 }}>
-                <div className="schedule-time-col" style={{ width: 80, padding: '12px 16px', font: `400 12px ${s.MONO}`, color: s.text3, borderRight: '1px solid rgba(0,0,0,0.03)', flexShrink: 0 }}>
+              <div key={h} style={{ display: 'flex', borderBottom: `1px solid ${s.borderLight}`, minHeight: 72 }}>
+                <div className="schedule-time-col" style={{ width: 80, padding: '12px 16px', font: `400 12px ${s.MONO}`, color: s.text3, borderRight: `1px solid ${s.borderLight}`, flexShrink: 0 }}>
                   {h > 12 ? h - 12 : h}:00 {h >= 12 ? 'PM' : 'AM'}
                 </div>
                 <div style={{ flex: 1, padding: '8px 12px', cursor: 'pointer' }} onClick={() => openNew(currentDate, `${String(h).padStart(2, '0')}:00`)}>
@@ -231,9 +231,9 @@ export default function Schedule() {
               const isToday = day === new Date().toISOString().slice(0, 10);
               const dayA = filteredAppointments.filter(a => a.date === day).sort((a, b) => a.time.localeCompare(b.time));
               return (
-                <div key={day} style={{ borderRight: '1px solid rgba(0,0,0,0.04)', minHeight: 300 }}>
+                <div key={day} style={{ borderRight: `1px solid ${s.borderLight}`, minHeight: 300 }}>
                   <div style={{
-                    padding: '12px 10px', borderBottom: '1px solid rgba(0,0,0,0.04)', textAlign: 'center',
+                    padding: '12px 10px', borderBottom: `1px solid ${s.borderLight}`, textAlign: 'center',
                     background: isToday ? s.accentLight : 'transparent',
                   }}>
                     <div style={{ font: `400 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase' }}>
@@ -261,7 +261,7 @@ export default function Schedule() {
         <div style={s.tableWrap}>
           <table className="schedule-list-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #E5E5E5' }}>
+              <tr style={{ borderBottom: `1px solid ${s.borderLight}` }}>
                 {['Time', 'Client', 'Session', 'Trainer', 'Status', 'Actions'].map(h => (
                   <th key={h} className={(h === 'Trainer' || h === 'Actions') ? 'schedule-hide-mobile' : ''} style={{ padding: '12px 16px', font: `500 11px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: s.text3, textAlign: 'left' }}>{h}</th>
                 ))}
@@ -272,7 +272,7 @@ export default function Schedule() {
                 const svc = services.find(sv => sv.id === a.serviceId);
                 const prov = providers.find(p => p.id === a.providerId);
                 return (
-                  <tr key={a.id} style={{ borderBottom: '1px solid rgba(0,0,0,0.03)' }}>
+                  <tr key={a.id} style={{ borderBottom: `1px solid ${s.borderLight}` }}>
                     <td style={{ padding: '14px 16px', font: `500 13px ${s.MONO}`, color: s.text }}>{a.time}</td>
                     <td style={{ padding: '14px 16px', font: `500 13px ${s.FONT}`, color: s.text }}>{a.patientName}</td>
                     <td style={{ padding: '14px 16px', font: `400 13px ${s.FONT}`, color: s.text2 }}>{svc?.name || '—'}</td>
@@ -337,14 +337,14 @@ export default function Schedule() {
           <div className="schedule-grid-wrap" style={{ ...s.tableWrap, overflowX: 'auto' }}>
             <div style={{ minWidth: 900 }}>
               {/* Header row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '80px repeat(7, 1fr)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '80px repeat(7, 1fr)', borderBottom: `1px solid ${s.borderLight}` }}>
                 <div style={{ padding: '14px 10px', font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1 }}>Time</div>
                 {gridWeekDays.map((day, i) => {
                   const isToday = day === new Date().toISOString().slice(0, 10);
                   const dateNum = new Date(day + 'T12:00:00').getDate();
                   return (
                     <div key={day} style={{
-                      padding: '10px 8px', textAlign: 'center', borderLeft: '1px solid rgba(0,0,0,0.04)',
+                      padding: '10px 8px', textAlign: 'center', borderLeft: `1px solid ${s.borderLight}`,
                       background: isToday ? s.accentLight : 'transparent',
                     }}>
                       <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1 }}>{dayNames[i]}</div>
@@ -359,8 +359,8 @@ export default function Schedule() {
                 const slotClasses = lookup[slot] || {};
                 const hasAny = Object.keys(slotClasses).length > 0;
                 return (
-                  <div key={slot} style={{ display: 'grid', gridTemplateColumns: '80px repeat(7, 1fr)', borderBottom: '1px solid rgba(0,0,0,0.03)', minHeight: hasAny ? 'auto' : 36 }}>
-                    <div style={{ padding: '10px 10px', font: `400 11px ${s.MONO}`, color: s.text3, borderRight: '1px solid rgba(0,0,0,0.04)', display: 'flex', alignItems: 'flex-start' }}>
+                  <div key={slot} style={{ display: 'grid', gridTemplateColumns: '80px repeat(7, 1fr)', borderBottom: `1px solid ${s.borderLight}`, minHeight: hasAny ? 'auto' : 36 }}>
+                    <div style={{ padding: '10px 10px', font: `400 11px ${s.MONO}`, color: s.text3, borderRight: `1px solid ${s.borderLight}`, display: 'flex', alignItems: 'flex-start' }}>
                       {formatGridTime(slot)}
                     </div>
                     {gridWeekDays.map(day => {
@@ -368,7 +368,7 @@ export default function Schedule() {
                       const isToday = day === new Date().toISOString().slice(0, 10);
                       return (
                         <div key={day} style={{
-                          padding: '4px 4px', borderLeft: '1px solid rgba(0,0,0,0.04)',
+                          padding: '4px 4px', borderLeft: `1px solid ${s.borderLight}`,
                           background: isToday ? 'rgba(0,0,0,0.01)' : 'transparent',
                           minHeight: 36,
                         }}>
@@ -426,7 +426,7 @@ export default function Schedule() {
       {/* Class Detail Popover */}
       {gridDetail && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }} onClick={() => setGridDetail(null)}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 28, maxWidth: 420, width: '90%', boxShadow: s.shadowLg }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: s.cardSolid, borderRadius: 16, padding: 28, maxWidth: 420, width: '90%', boxShadow: s.shadowLg }} onClick={e => e.stopPropagation()}>
             {(() => {
               const cls = gridDetail;
               const cc = categoryColor(cls.category);
@@ -443,19 +443,19 @@ export default function Schedule() {
                     </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-                    <div style={{ background: 'rgba(0,0,0,0.02)', borderRadius: 10, padding: '10px 14px' }}>
+                    <div style={{ background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)', borderRadius: 10, padding: '10px 14px' }}>
                       <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Trainer</div>
                       <div style={{ font: `500 13px ${s.FONT}`, color: s.text }}>{cls.instructor}</div>
                     </div>
-                    <div style={{ background: 'rgba(0,0,0,0.02)', borderRadius: 10, padding: '10px 14px' }}>
+                    <div style={{ background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)', borderRadius: 10, padding: '10px 14px' }}>
                       <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Time</div>
                       <div style={{ font: `500 13px ${s.FONT}`, color: s.text }}>{formatGridTime(cls.time)} ({cls.duration}min)</div>
                     </div>
-                    <div style={{ background: 'rgba(0,0,0,0.02)', borderRadius: 10, padding: '10px 14px' }}>
+                    <div style={{ background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)', borderRadius: 10, padding: '10px 14px' }}>
                       <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Date</div>
                       <div style={{ font: `500 13px ${s.FONT}`, color: s.text }}>{new Date(cls.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</div>
                     </div>
-                    <div style={{ background: 'rgba(0,0,0,0.02)', borderRadius: 10, padding: '10px 14px' }}>
+                    <div style={{ background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)', borderRadius: 10, padding: '10px 14px' }}>
                       <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Spots</div>
                       <div style={{ font: `500 13px ${s.FONT}`, color: spotsLeft <= 3 ? '#DC2626' : s.text }}>{enrolled}/{capacity} enrolled ({spotsLeft} left)</div>
                     </div>
@@ -471,7 +471,7 @@ export default function Schedule() {
                     ))}
                   </div>
                   {/* Capacity bar */}
-                  <div style={{ background: 'rgba(0,0,0,0.04)', borderRadius: 100, height: 6, marginBottom: 20, overflow: 'hidden' }}>
+                  <div style={{ background: s.dark ? '#252529' : 'rgba(0,0,0,0.04)', borderRadius: 100, height: 6, marginBottom: 20, overflow: 'hidden' }}>
                     <div style={{ width: `${Math.min(100, (enrolled / capacity) * 100)}%`, height: '100%', background: spotsLeft <= 3 ? '#DC2626' : cc.border, borderRadius: 100, transition: 'width 0.3s ease' }} />
                   </div>
                   <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
@@ -539,7 +539,7 @@ export default function Schedule() {
       {/* Booking Modal */}
       {showForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }} onClick={() => setShowForm(false)}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 32, maxWidth: 520, width: '90%', boxShadow: s.shadowLg, maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: s.cardSolid, borderRadius: 16, padding: 32, maxWidth: 520, width: '90%', boxShadow: s.shadowLg, maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
             <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 24 }}>{editAppt ? 'Edit Session' : 'Book Session'}</h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>

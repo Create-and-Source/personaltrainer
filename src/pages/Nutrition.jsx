@@ -469,7 +469,7 @@ function FoodSearchModal({ open, onClose, onAdd, mealName, onSwitchToBarcode }) 
     }}>
       <div onClick={e => e.stopPropagation()} style={{
         width: '90%', maxWidth: 580, maxHeight: '80vh',
-        background: '#fff', borderRadius: 20, overflow: 'hidden',
+        background: s.cardSolid, borderRadius: 20, overflow: 'hidden',
         boxShadow: '0 24px 80px rgba(0,0,0,0.2)',
         display: 'flex', flexDirection: 'column',
       }}>
@@ -708,7 +708,7 @@ function BarcodeScannerModal({ open, onClose, onAdd, mealName }) {
     }}>
       <div onClick={e => e.stopPropagation()} style={{
         width: '90%', maxWidth: 520, maxHeight: '85vh',
-        background: '#fff', borderRadius: 20, overflow: 'hidden',
+        background: s.cardSolid, borderRadius: 20, overflow: 'hidden',
         boxShadow: '0 24px 80px rgba(0,0,0,0.2)',
         display: 'flex', flexDirection: 'column',
       }}>

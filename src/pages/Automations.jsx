@@ -111,7 +111,7 @@ function Toggle({ on, onToggle, accent }) {
       boxShadow: on ? `0 2px 8px ${accent}40` : 'none',
     }} className="auto-toggle-track">
       <div className="auto-toggle-thumb" style={{
-        width: 18, height: 18, borderRadius: '50%', background: '#fff',
+        width: 18, height: 18, borderRadius: '50%', background: s.cardSolid,
         position: 'absolute', top: 3,
         transform: on ? 'translateX(23px)' : 'translateX(3px)',
         boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
@@ -299,7 +299,7 @@ export default function Automations() {
         }} onClick={() => setShowModal(false)}>
           <div onClick={e => e.stopPropagation()} style={{
             width: '100%', maxWidth: 520,
-            background: '#fff', borderRadius: 20,
+            background: s.cardSolid, borderRadius: 20,
             boxShadow: '0 24px 80px rgba(0,0,0,0.2)',
             overflow: 'hidden',
             animation: 'autoFadeInUp 0.35s cubic-bezier(0.16,1,0.3,1)',
@@ -321,7 +321,7 @@ export default function Automations() {
               </div>
               <button onClick={() => setShowModal(false)} style={{
                 width: 32, height: 32, borderRadius: 8, border: 'none',
-                background: '#F3F4F6', cursor: 'pointer', display: 'flex',
+                background: s.dark ? '#252529' : '#F3F4F6', cursor: 'pointer', display: 'flex',
                 alignItems: 'center', justifyContent: 'center', color: '#666',
               }}>
                 {ICONS.x}

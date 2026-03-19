@@ -495,7 +495,7 @@ export default function Inbox() {
               {c.platform === 'tiktok' && <span style={{ padding: '1px 5px', borderRadius: 4, background: '#FFF0F5', color: '#FE2C55', font: `500 8px ${s.FONT}` }}>TT</span>}
               {c.platform === 'instagram' && <span style={{ padding: '1px 5px', borderRadius: 4, background: '#FEF3F8', color: '#E1306C', font: `500 8px ${s.FONT}` }}>IG</span>}
               {assigned && (
-                <span style={{ padding: '1px 6px', borderRadius: 4, background: '#F0F0F0', font: `500 9px ${s.FONT}`, color: s.text2 }}>
+                <span style={{ padding: '1px 6px', borderRadius: 4, background: s.dark ? '#252529' : '#F0F0F0', font: `500 9px ${s.FONT}`, color: s.text2 }}>
                   {assignedProv?.name?.split(' ')[0] || 'Assigned'}
                 </span>
               )}
@@ -508,7 +508,7 @@ export default function Inbox() {
 
   // ── Section header in conversation list ──
   const renderSectionHeader = (label, count) => (
-    <div style={{ padding: '10px 16px 6px', font: `600 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1.5, background: '#FAFAFA', borderBottom: '1px solid #F0F0F0' }}>
+    <div style={{ padding: '10px 16px 6px', font: `600 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1.5, background: s.dark ? '#252529' : '#FAFAFA', borderBottom: `1px solid ${s.borderLight}` }}>
       {label} ({count})
     </div>
   );
@@ -523,7 +523,7 @@ export default function Inbox() {
           <span style={{ padding: '2px 8px', borderRadius: 100, background: '#ECFDF5', color: '#059669', font: `600 10px ${s.FONT}` }}>Live</span>
         </div>
         <button onClick={() => setMetricsCollapsed(!metricsCollapsed)} style={{
-          background: 'none', border: '1px solid #E5E5E5', borderRadius: 6, padding: '3px 10px',
+          background: 'none', border: `1px solid ${s.borderLight}`, borderRadius: 6, padding: '3px 10px',
           cursor: 'pointer', font: `400 10px ${s.FONT}`, color: s.text3, transition: 'all 0.2s',
         }}>
           {metricsCollapsed ? 'Show Metrics' : 'Hide'}
@@ -676,7 +676,7 @@ export default function Inbox() {
       </div>
 
       {/* Tab toggle: Inbox | Leaderboard */}
-      <div style={{ display: 'flex', gap: 0, marginBottom: 16, borderRadius: 10, overflow: 'hidden', border: '1px solid #E5E5E5', width: 'fit-content' }}>
+      <div style={{ display: 'flex', gap: 0, marginBottom: 16, borderRadius: 10, overflow: 'hidden', border: `1px solid ${s.borderLight}`, width: 'fit-content' }}>
         <button onClick={() => setActiveTab('inbox')} style={{
           padding: '8px 24px', border: 'none', cursor: 'pointer',
           font: `500 13px ${s.FONT}`,
@@ -685,7 +685,7 @@ export default function Inbox() {
           transition: 'all 0.2s',
         }}>Inbox</button>
         <button onClick={() => setActiveTab('leaderboard')} style={{
-          padding: '8px 24px', border: 'none', cursor: 'pointer', borderLeft: '1px solid #E5E5E5',
+          padding: '8px 24px', border: 'none', cursor: 'pointer', borderLeft: `1px solid ${s.borderLight}`,
           font: `500 13px ${s.FONT}`,
           background: activeTab === 'leaderboard' ? s.accent : '#FAFAFA',
           color: activeTab === 'leaderboard' ? s.accentText : s.text2,
@@ -715,9 +715,9 @@ export default function Inbox() {
 
           <div className="inbox-grid" style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 0, height: 'calc(100vh - 340px)', minHeight: 400, ...s.cardStyle, overflow: 'hidden' }}>
             {/* Left: Conversation List */}
-            <div className={`inbox-list-panel${active ? ' inbox-has-active' : ''}`} style={{ borderRight: '1px solid #E5E5E5', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div className={`inbox-list-panel${active ? ' inbox-has-active' : ''}`} style={{ borderRight: `1px solid ${s.borderLight}`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               {/* Search + Filter */}
-              <div style={{ padding: '12px', borderBottom: '1px solid #F0F0F0' }}>
+              <div style={{ padding: '12px', borderBottom: `1px solid ${s.borderLight}` }}>
                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search conversations..." style={{ ...s.input, padding: '8px 12px', fontSize: 12, marginBottom: 8 }} />
                 <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                   {[
@@ -729,7 +729,7 @@ export default function Inbox() {
                       ...s.pill, padding: '4px 10px', fontSize: 10,
                       background: filter === id ? s.accent : 'transparent',
                       color: filter === id ? s.accentText : s.text3,
-                      border: filter === id ? `1px solid ${s.accent}` : '1px solid #E5E5E5',
+                      border: filter === id ? `1px solid ${s.accent}` : `1px solid ${s.borderLight}`,
                     }}>{label}</button>
                   ))}
                   {providers.map(p => (
@@ -737,7 +737,7 @@ export default function Inbox() {
                       ...s.pill, padding: '4px 10px', fontSize: 10,
                       background: filter === p.id ? s.accent : 'transparent',
                       color: filter === p.id ? s.accentText : s.text3,
-                      border: filter === p.id ? `1px solid ${s.accent}` : '1px solid #E5E5E5',
+                      border: filter === p.id ? `1px solid ${s.accent}` : `1px solid ${s.borderLight}`,
                     }}>{p.name.split(' ')[0]}</button>
                   ))}
                 </div>
@@ -771,7 +771,7 @@ export default function Inbox() {
             {active ? (
               <div className="inbox-thread-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
                 {/* Thread Header */}
-                <div style={{ padding: '14px 20px', borderBottom: '1px solid #F0F0F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ padding: '14px 20px', borderBottom: `1px solid ${s.borderLight}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <button className="inbox-back-btn" onClick={() => setActiveId(null)} style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', color: s.text2, font: `500 13px ${s.FONT}`, padding: '4px 0', marginRight: 4 }}>← Back</button>
                     <div style={{ width: 36, height: 36, borderRadius: '50%', background: s.accentLight, display: 'flex', alignItems: 'center', justifyContent: 'center', font: `500 12px ${s.FONT}`, color: s.accent }}>{active.avatar}</div>
@@ -840,14 +840,14 @@ export default function Inbox() {
                 <div style={{ padding: '8px 20px 0', display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                   {QUICK_REPLIES.map((qr, i) => (
                     <button key={i} onClick={() => setReply(qr)} style={{
-                      ...s.pill, padding: '4px 10px', fontSize: 10, background: '#F8F8F8',
-                      color: s.text2, border: '1px solid #F0F0F0',
+                      ...s.pill, padding: '4px 10px', fontSize: 10, background: s.dark ? '#252529' : '#F8F8F8',
+                      color: s.text2, border: `1px solid ${s.borderLight}`,
                     }}>{qr.slice(0, 40)}{qr.length > 40 ? '...' : ''}</button>
                   ))}
                 </div>
 
                 {/* Reply Input */}
-                <div style={{ padding: '12px 20px', borderTop: '1px solid #F0F0F0', display: 'flex', gap: 10, alignItems: 'flex-end' }}>
+                <div style={{ padding: '12px 20px', borderTop: `1px solid ${s.borderLight}`, display: 'flex', gap: 10, alignItems: 'flex-end' }}>
                   <textarea value={reply} onChange={e => setReply(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply(); } }} rows={2} style={{ ...s.input, flex: 1, resize: 'none', fontSize: 13 }} placeholder={`Reply as ${currentProvName}...`} />
                   <button onClick={sendReply} disabled={!reply.trim()} style={{ ...s.pillAccent, padding: '10px 20px', opacity: reply.trim() ? 1 : 0.4 }}>Send</button>
                 </div>
@@ -874,14 +874,14 @@ export default function Inbox() {
           </div>
 
           {/* Period toggle */}
-          <div style={{ display: 'flex', gap: 0, marginBottom: 20, borderRadius: 8, overflow: 'hidden', border: '1px solid #E5E5E5', width: 'fit-content' }}>
+          <div style={{ display: 'flex', gap: 0, marginBottom: 20, borderRadius: 8, overflow: 'hidden', border: `1px solid ${s.borderLight}`, width: 'fit-content' }}>
             <button onClick={() => setLeaderboardPeriod('week')} style={{
               padding: '7px 20px', border: 'none', cursor: 'pointer', font: `500 12px ${s.FONT}`,
               background: leaderboardPeriod === 'week' ? s.accent : '#FAFAFA',
               color: leaderboardPeriod === 'week' ? s.accentText : s.text2,
             }}>This Week</button>
             <button onClick={() => setLeaderboardPeriod('alltime')} style={{
-              padding: '7px 20px', border: 'none', cursor: 'pointer', borderLeft: '1px solid #E5E5E5', font: `500 12px ${s.FONT}`,
+              padding: '7px 20px', border: 'none', cursor: 'pointer', borderLeft: `1px solid ${s.borderLight}`, font: `500 12px ${s.FONT}`,
               background: leaderboardPeriod === 'alltime' ? s.accent : '#FAFAFA',
               color: leaderboardPeriod === 'alltime' ? s.accentText : s.text2,
             }}>All Time</button>
@@ -918,7 +918,7 @@ export default function Inbox() {
                   <div style={{ marginBottom: 16 }}>
                     <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Response Score</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ flex: 1, height: 6, borderRadius: 3, background: '#F0F0F0', overflow: 'hidden' }}>
+                      <div style={{ flex: 1, height: 6, borderRadius: 3, background: s.dark ? '#252529' : '#F0F0F0', overflow: 'hidden' }}>
                         <div style={{ width: `${staff.responseScore}%`, height: '100%', borderRadius: 3, background: scoreColor, transition: 'width 0.5s ease' }} />
                       </div>
                       <span style={{ font: `700 16px ${s.FONT}`, color: scoreColor, minWidth: 32, textAlign: 'right' }}>{staff.responseScore}</span>

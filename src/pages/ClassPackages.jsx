@@ -154,10 +154,10 @@ export default function ClassPackages() {
             <option value="completed">Completed</option>
           </select>
         </div>
-        <div style={{ display: 'flex', gap: 0, background: 'rgba(0,0,0,0.04)', borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', gap: 0, background: s.dark ? '#252529' : 'rgba(0,0,0,0.04)', borderRadius: 10, overflow: 'hidden' }}>
           {[['plans', 'Programs'], ['timeline', 'Timeline']].map(([v, l]) => (
             <button key={v} onClick={() => setView(v)} style={{
-              padding: '8px 18px', background: view === v ? 'rgba(255,255,255,0.8)' : 'transparent', border: 'none',
+              padding: '8px 18px', background: view === v ? s.cardSolid : 'transparent', border: 'none',
               font: `500 12px ${s.FONT}`, color: view === v ? s.text : s.text3, cursor: 'pointer',
               borderRadius: view === v ? 10 : 0, boxShadow: view === v ? s.shadow : 'none',
               backdropFilter: view === v ? 'blur(8px)' : 'none',
@@ -232,7 +232,7 @@ export default function ClassPackages() {
                       const isPast = ses.date && ses.date < today;
                       return (
                         <div key={idx} style={{
-                          padding: '14px 24px', borderBottom: '1px solid rgba(0,0,0,0.03)',
+                          padding: '14px 24px', borderBottom: `1px solid ${s.borderLight}`,
                           display: 'flex', alignItems: 'center', gap: 14,
                           background: isToday ? s.accentLight : 'transparent',
                         }}>
@@ -357,7 +357,7 @@ export default function ClassPackages() {
       {/* Form Modal */}
       {showForm && (
         <div className="cp-modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }} onClick={() => setShowForm(false)}>
-          <div className="cp-modal" style={{ background: '#fff', borderRadius: 20, padding: 32, maxWidth: 600, width: '90%', boxShadow: s.shadowLg, maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+          <div className="cp-modal" style={{ background: s.cardSolid, borderRadius: 20, padding: 32, maxWidth: 600, width: '90%', boxShadow: s.shadowLg, maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
             <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 24 }}>{editPlan ? 'Edit Training Program' : 'New Training Program'}</h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
@@ -377,7 +377,7 @@ export default function ClassPackages() {
             {/* Classes */}
             <div style={{ font: `600 14px ${s.FONT}`, color: s.text, marginBottom: 12 }}>Sessions ({form.sessions.length})</div>
             {form.sessions.map((ses, idx) => (
-              <div key={idx} style={{ padding: '10px 14px', background: 'rgba(0,0,0,0.02)', borderRadius: 10, marginBottom: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={idx} style={{ padding: '10px 14px', background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)', borderRadius: 10, marginBottom: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <div style={{ font: `500 13px ${s.FONT}`, color: s.text }}>{ses.name}</div>
                   <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>{ses.date || 'TBD'}{ses.notes ? ` — ${ses.notes}` : ''}</div>
@@ -386,7 +386,7 @@ export default function ClassPackages() {
               </div>
             ))}
 
-            <div style={{ padding: 14, background: 'rgba(0,0,0,0.02)', borderRadius: 12, border: '1px dashed rgba(0,0,0,0.08)', marginTop: 8 }}>
+            <div style={{ padding: 14, background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)', borderRadius: 12, border: `1px dashed ${s.borderLight}`, marginTop: 8 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <div>
                   <label style={{ ...s.label, fontSize: 10 }}>Service</label>

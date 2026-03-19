@@ -70,7 +70,7 @@ export default function Retention() {
               ...s.pill, padding: '7px 14px', fontSize: 12,
               background: filter === id ? s.accent : 'transparent',
               color: filter === id ? s.accentText : s.text2,
-              border: filter === id ? `1px solid ${s.accent}` : '1px solid #E5E5E5',
+              border: filter === id ? `1px solid ${s.accent}` : `1px solid ${s.borderLight}`,
             }}>{label}</button>
           ))}
         </div>
@@ -88,7 +88,7 @@ export default function Retention() {
             }}>
               <div style={{
                 width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-                background: alert.priority === 'high' ? '#FEF2F2' : '#F8F8F8',
+                background: alert.priority === 'high' ? (s.dark ? '#3B1111' : '#FEF2F2') : (s.dark ? '#252529' : '#F8F8F8'),
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 font: `500 14px ${s.FONT}`, color: alert.priority === 'high' ? s.danger : s.text2,
               }}>

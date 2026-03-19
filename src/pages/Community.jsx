@@ -229,13 +229,13 @@ export default function Community() {
       {/* Tabs */}
       <div style={{
         display: 'flex', gap: 4, marginBottom: 28,
-        background: 'rgba(0,0,0,0.04)', borderRadius: 12, padding: 4, width: 'fit-content',
+        background: s.dark ? '#252529' : 'rgba(0,0,0,0.04)', borderRadius: 12, padding: 4, width: 'fit-content',
       }}>
         {tabs.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
             padding: '10px 22px', borderRadius: 10, border: 'none', cursor: 'pointer',
             font: "500 13px 'Inter', sans-serif",
-            background: activeTab === tab.id ? '#fff' : 'transparent',
+            background: activeTab === tab.id ? s.cardSolid : 'transparent',
             color: activeTab === tab.id ? s.text : s.text3,
             boxShadow: activeTab === tab.id ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
             transition: 'all 0.2s ease',

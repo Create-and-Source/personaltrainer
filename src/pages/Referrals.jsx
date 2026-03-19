@@ -168,8 +168,8 @@ export default function Referrals() {
         <div style={{ font: `600 15px ${s.FONT}`, color: s.text, marginBottom: 14 }}>Top Referrers</div>
         <div style={{ display: 'flex', gap: 16, overflowX: 'auto' }}>
           {leaderboard.map((ref, i) => (
-            <div key={ref.id} style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 200, padding: '10px 14px', background: i === 0 ? s.accentLight : '#F8F8F8', borderRadius: 10 }}>
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: i === 0 ? s.accent : '#E5E5E5', color: i === 0 ? s.accentText : s.text2, display: 'flex', alignItems: 'center', justifyContent: 'center', font: `600 13px ${s.FONT}`, flexShrink: 0 }}>
+            <div key={ref.id} style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 200, padding: '10px 14px', background: i === 0 ? s.accentLight : (s.dark ? '#252529' : '#F8F8F8'), borderRadius: 10 }}>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: i === 0 ? s.accent : (s.dark ? '#333' : '#E5E5E5'), color: i === 0 ? s.accentText : s.text2, display: 'flex', alignItems: 'center', justifyContent: 'center', font: `600 13px ${s.FONT}`, flexShrink: 0 }}>
                 {i + 1}
               </div>
               <div>
@@ -191,7 +191,7 @@ export default function Referrals() {
               ...s.pill, padding: '7px 14px', fontSize: 12,
               background: filter === id ? s.accent : 'transparent',
               color: filter === id ? s.accentText : s.text2,
-              border: filter === id ? `1px solid ${s.accent}` : '1px solid #E5E5E5',
+              border: filter === id ? `1px solid ${s.accent}` : `1px solid ${s.borderLight}`,
             }}>{label}</button>
           ))}
         </div>
@@ -201,7 +201,7 @@ export default function Referrals() {
       <div className="referrals-table-wrap" style={s.tableWrap}>
         <table style={{ width: '100%', borderCollapse: 'collapse', font: `400 13px ${s.FONT}` }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #E5E5E5' }}>
+            <tr style={{ borderBottom: `1px solid ${s.borderLight}` }}>
               {['Referrer', 'Code', 'Friend', 'Referred', 'Booked', 'Status', 'Credits', ''].map(h => (
                 <th key={h} style={{ padding: '12px 16px', textAlign: 'left', font: `500 10px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: s.text3 }}>{h}</th>
               ))}
@@ -209,10 +209,10 @@ export default function Referrals() {
           </thead>
           <tbody>
             {filtered.map(ref => (
-              <tr key={ref.id} style={{ borderBottom: '1px solid #F0F0F0' }}>
+              <tr key={ref.id} style={{ borderBottom: `1px solid ${s.borderLight}` }}>
                 <td style={{ padding: '12px 16px', font: `500 13px ${s.FONT}`, color: s.text }}>{ref.referrerName}</td>
                 <td style={{ padding: '12px 16px' }}>
-                  <span style={{ font: `400 12px ${s.MONO}`, color: s.text2, background: '#F5F5F5', padding: '3px 8px', borderRadius: 6 }}>{ref.code}</span>
+                  <span style={{ font: `400 12px ${s.MONO}`, color: s.text2, background: s.dark ? '#252529' : '#F5F5F5', padding: '3px 8px', borderRadius: 6 }}>{ref.code}</span>
                 </td>
                 <td style={{ padding: '12px 16px', color: s.text }}>{ref.friendName}</td>
                 <td style={{ padding: '12px 16px', color: s.text2, font: `400 12px ${s.FONT}` }}>
@@ -263,7 +263,7 @@ export default function Referrals() {
               {filteredPatients.map(p => {
                 const code = `REF-${p.firstName.toUpperCase()}-${p.id.split('-')[1]}`;
                 return (
-                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 10, border: '1px solid #E5E5E5', cursor: 'pointer' }}>
+                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 10, border: `1px solid ${s.borderLight}`, cursor: 'pointer' }}>
                     <div>
                       <div style={{ font: `500 13px ${s.FONT}`, color: s.text }}>{p.firstName} {p.lastName}</div>
                       <div style={{ font: `400 11px ${s.MONO}`, color: s.text3 }}>{code}</div>

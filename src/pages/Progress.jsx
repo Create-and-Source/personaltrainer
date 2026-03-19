@@ -307,7 +307,7 @@ function Modal({ show, onClose, title, children, s }) {
       animation: 'progFadeInUp 0.2s ease',
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        background: '#fff', borderRadius: 20, padding: 32, width: '90%', maxWidth: 480,
+        background: s.cardSolid, borderRadius: 20, padding: 32, width: '90%', maxWidth: 480,
         boxShadow: '0 24px 80px rgba(0,0,0,0.18)', maxHeight: '85vh', overflowY: 'auto',
         animation: 'progScaleIn 0.3s cubic-bezier(0.16,1,0.3,1)',
       }}>

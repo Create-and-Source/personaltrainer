@@ -1,6 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTheme, useStyles, PRESETS } from '../theme';
+
+const SunIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+  </svg>
+);
+
+const MoonIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+  </svg>
+);
 import { getSettings } from '../data/store';
 import HelpChat from './HelpChat';
 import CommandPalette from './CommandPalette';
@@ -67,7 +79,7 @@ const ICONS = {
 };
 
 function ThemePicker({ show, onClose }) {
-  const { theme, setTheme, setCustomColor } = useTheme();
+  const { theme, setTheme, setCustomColor, darkMode } = useTheme();
   const s = useStyles();
   if (!show) return null;
 
@@ -75,31 +87,31 @@ function ThemePicker({ show, onClose }) {
     <div style={{ position: 'fixed', inset: 0, zIndex: 999 }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{
         position: 'absolute', bottom: 60, left: 16, width: 260,
-        background: '#fff', border: '1px solid #e5e5e5', borderRadius: 14,
-        boxShadow: '0 12px 40px rgba(0,0,0,0.15)', padding: 20,
+        background: s.cardSolid, border: `1px solid ${s.borderLight}`, borderRadius: 14,
+        boxShadow: s.shadowLg, padding: 20,
         animation: 'fadeIn 0.2s ease',
       }}>
-        <div style={{ font: "600 13px 'Inter', sans-serif", color: '#111', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ font: "600 13px 'Inter', sans-serif", color: s.text, marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           Brand Color
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}>{ICONS.x}</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: s.text3 }}>{ICONS.x}</button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 14 }}>
           {PRESETS.map(p => (
             <button key={p.id} onClick={() => setTheme(p)} style={{
-              width: '100%', aspectRatio: '1', borderRadius: 10, border: theme.id === p.id ? '2.5px solid #111' : '2px solid #e5e5e5',
+              width: '100%', aspectRatio: '1', borderRadius: 10, border: theme.id === p.id ? `2.5px solid ${s.text}` : `2px solid ${s.borderLight}`,
               background: p.accent, cursor: 'pointer', transition: 'all 0.15s',
-              outline: theme.id === p.id ? '2px solid #fff' : 'none',
+              outline: theme.id === p.id ? `2px solid ${s.cardSolid}` : 'none',
               outlineOffset: '-4px',
             }} title={p.name} />
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <label style={{ font: "500 12px 'Inter', sans-serif", color: '#666' }}>Custom</label>
+          <label style={{ font: "500 12px 'Inter', sans-serif", color: s.text2 }}>Custom</label>
           <input type="color" value={theme.accent} onChange={e => setCustomColor(e.target.value)} style={{
-            width: 32, height: 32, border: '1px solid #e5e5e5', borderRadius: 8,
+            width: 32, height: 32, border: `1px solid ${s.borderLight}`, borderRadius: 8,
             cursor: 'pointer', padding: 2,
           }} />
-          <span style={{ font: "400 11px 'JetBrains Mono', monospace", color: '#999' }}>{theme.accent}</span>
+          <span style={{ font: "400 11px 'JetBrains Mono', monospace", color: s.text3 }}>{theme.accent}</span>
         </div>
       </div>
     </div>
@@ -111,7 +123,7 @@ export default function Layout({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showTheme, setShowTheme] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
-  const { theme } = useTheme();
+  const { theme, darkMode, toggleDarkMode } = useTheme();
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth <= 860);
 
   useEffect(() => {
@@ -127,6 +139,12 @@ export default function Layout({ children }) {
 
   // Scroll to top on route change
   useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
+
+  // Set body background based on dark mode
+  useEffect(() => {
+    document.body.style.background = s.bg;
+    document.documentElement.style.background = s.bg;
+  }, [darkMode, s.bg]);
 
   // Global Cmd+K / Ctrl+K listener
   useEffect(() => {
@@ -233,8 +251,17 @@ export default function Layout({ children }) {
         ))}
       </nav>
 
-      {/* Theme picker button */}
+      {/* Theme picker + dark mode buttons */}
       <div style={{ padding: '12px', borderTop: `1px solid ${sidebarBorder}` }}>
+        <button onClick={toggleDarkMode} style={{
+          display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+          padding: collapsed ? '10px 0' : '10px 16px', justifyContent: collapsed ? 'center' : 'flex-start',
+          background: 'transparent', border: 'none', borderRadius: 8, cursor: 'pointer',
+          font: "400 13px 'Inter', sans-serif", color: sidebarMuted, transition: 'all 0.15s',
+        }}>
+          <span style={{ display: 'flex', flexShrink: 0 }}>{darkMode ? <SunIcon /> : <MoonIcon />}</span>
+          {!collapsed && (darkMode ? 'Light Mode' : 'Dark Mode')}
+        </button>
         <button onClick={() => setShowTheme(true)} style={{
           display: 'flex', alignItems: 'center', gap: 10, width: '100%',
           padding: collapsed ? '10px 0' : '10px 16px', justifyContent: collapsed ? 'center' : 'flex-start',
@@ -270,7 +297,7 @@ export default function Layout({ children }) {
   // (More drawer removed — all nav goes through 4 bottom tabs + settings gear in topbar)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F5F3F0', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: s.bg, position: 'relative' }}>
 
       {/* Desktop sidebar */}
       <div className="sidebar-desktop" style={{ display: 'block' }}>
@@ -289,9 +316,9 @@ export default function Layout({ children }) {
         {/* Desktop Topbar — glassmorphism */}
         <div style={{
           position: 'sticky', top: 0, zIndex: 50,
-          background: 'rgba(245,243,240,0.6)',
+          background: darkMode ? 'rgba(13,13,15,0.85)' : 'rgba(245,243,240,0.6)',
           backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(0,0,0,0.04)',
+          borderBottom: `1px solid ${s.borderLight}`,
           padding: '0 32px', height: 56,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }} className="layout-topbar desktop-topbar">
@@ -306,34 +333,34 @@ export default function Layout({ children }) {
             <button onClick={() => setCmdOpen(true)} style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '6px 12px 6px 10px', borderRadius: 100,
-              border: '1px solid rgba(0,0,0,0.08)',
-              background: 'rgba(255,255,255,0.5)',
-              font: "400 12px 'Inter', sans-serif", color: '#AAA',
-              cursor: 'pointer', backdropFilter: 'blur(8px)',
+              border: `1px solid ${s.borderLight}`,
+              background: darkMode ? '#252529' : 'rgba(255,255,255,0.5)',
+              font: "400 12px 'Inter', sans-serif", color: s.text3,
+              cursor: 'pointer', backdropFilter: darkMode ? 'none' : 'blur(8px)',
               transition: 'all 0.2s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.8)'; e.currentTarget.style.color = '#666'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.5)'; e.currentTarget.style.color = '#AAA'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = darkMode ? '#2A2A2E' : 'rgba(255,255,255,0.8)'; e.currentTarget.style.color = s.text2; }}
+            onMouseLeave={e => { e.currentTarget.style.background = darkMode ? '#252529' : 'rgba(255,255,255,0.5)'; e.currentTarget.style.color = s.text3; }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <span className="cmd-k-label" style={{ font: "400 11px 'JetBrains Mono', monospace", color: '#CCC' }}>
+              <span className="cmd-k-label" style={{ font: "400 11px 'JetBrains Mono', monospace", color: s.text3 }}>
                 {typeof navigator !== 'undefined' && navigator.platform?.includes('Mac') ? '\u2318K' : 'Ctrl K'}
               </span>
             </button>
-            <div className="topbar-divider" style={{ width: 1, height: 20, background: 'rgba(0,0,0,0.08)' }} />
-            <span className="topbar-date" style={{ font: "400 12px 'JetBrains Mono', monospace", color: '#AAA', letterSpacing: 0.5 }}>
+            <div className="topbar-divider" style={{ width: 1, height: 20, background: s.borderLight }} />
+            <span className="topbar-date" style={{ font: "400 12px 'JetBrains Mono', monospace", color: s.text3, letterSpacing: 0.5 }}>
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
             </span>
-            <div className="topbar-divider" style={{ width: 1, height: 20, background: 'rgba(0,0,0,0.08)' }} />
+            <div className="topbar-divider" style={{ width: 1, height: 20, background: s.borderLight }} />
             {!isEmbed && <NotificationBell />}
-            {!isEmbed && <div className="topbar-divider" style={{ width: 1, height: 20, background: 'rgba(0,0,0,0.08)' }} />}
+            {!isEmbed && <div className="topbar-divider" style={{ width: 1, height: 20, background: s.borderLight }} />}
             {!isEmbed && <button onClick={() => window.location.href = '/'} style={{
-              padding: '6px 14px', borderRadius: 100, border: '1px solid rgba(0,0,0,0.08)',
-              background: 'rgba(255,255,255,0.5)', font: "400 11px 'Inter', sans-serif", color: '#AAA',
-              cursor: 'pointer', backdropFilter: 'blur(8px)', transition: 'all 0.2s',
+              padding: '6px 14px', borderRadius: 100, border: `1px solid ${s.borderLight}`,
+              background: darkMode ? '#252529' : 'rgba(255,255,255,0.5)', font: "400 11px 'Inter', sans-serif", color: s.text3,
+              cursor: 'pointer', backdropFilter: darkMode ? 'none' : 'blur(8px)', transition: 'all 0.2s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#666'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#AAA'; }}
+            onMouseEnter={e => { e.currentTarget.style.color = s.text2; }}
+            onMouseLeave={e => { e.currentTarget.style.color = s.text3; }}
             >← Home</button>}
           </div>
         </div>
@@ -341,36 +368,42 @@ export default function Layout({ children }) {
         {/* Mobile Topbar — dark native app feel */}
         <div className="mobile-topbar" style={{
           display: 'none', position: 'sticky', top: 0, zIndex: 50,
-          background: '#0D0D0F',
-          borderBottom: '1px solid #2A2A2E',
+          background: s.bg,
+          borderBottom: `1px solid ${s.borderLight}`,
           padding: '0 16px', height: 52,
           alignItems: 'center', justifyContent: 'space-between',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{
-              width: 30, height: 30, borderRadius: 8, background: '#4ADE80',
+              width: 30, height: 30, borderRadius: 8, background: s.accent,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#0D0D0F', font: "700 12px 'Inter', sans-serif", flexShrink: 0,
+              color: s.accentText, font: "700 12px 'Inter', sans-serif", flexShrink: 0,
             }}>
               {(settings.businessName || 'F')[0]}
             </div>
-            <span style={{ font: "700 15px 'Inter', sans-serif", color: '#F5F5F7', letterSpacing: '1px', textTransform: 'uppercase' }}>
+            <span style={{ font: "700 15px 'Inter', sans-serif", color: s.text, letterSpacing: '1px', textTransform: 'uppercase' }}>
               {settings.businessName || 'FORGE'}
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <NavLink to="/admin/settings" style={{
               width: 34, height: 34, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'transparent', color: '#6B6B73', textDecoration: 'none',
+              background: 'transparent', color: s.text3, textDecoration: 'none',
             }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
             </NavLink>
+            <button onClick={toggleDarkMode} style={{
+              width: 34, height: 34, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'transparent', border: 'none', cursor: 'pointer', color: s.text3,
+            }}>
+              {darkMode ? <SunIcon /> : <MoonIcon />}
+            </button>
             {!isEmbed && <NotificationBell />}
           </div>
         </div>
 
         {/* Page content */}
-        <div className={`layout-content${isMobile ? ' mobile-dark-wrapper' : ''}`} style={{ padding: '32px 36px', maxWidth: 1400, animation: 'fadeIn 0.4s cubic-bezier(0.16,1,0.3,1)' }}>
+        <div className="layout-content" style={{ padding: '32px 36px', maxWidth: 1400, animation: 'fadeIn 0.4s cubic-bezier(0.16,1,0.3,1)' }}>
           {children}
         </div>
       </div>
@@ -379,9 +412,9 @@ export default function Layout({ children }) {
       <div className="mobile-bottom-tabs" style={{
         display: 'none', position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 150,
         height: 48, paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        background: 'rgba(13,13,15,0.92)',
+        background: darkMode ? 'rgba(13,13,15,0.92)' : 'rgba(245,243,240,0.92)',
         backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-        borderTop: '1px solid #2A2A2E',
+        borderTop: `1px solid ${s.borderLight}`,
         alignItems: 'center', justifyContent: 'space-around',
       }}>
         {BOTTOM_TAB_ITEMS.map(tab => (
@@ -389,7 +422,7 @@ export default function Layout({ children }) {
             style={({ isActive }) => ({
               flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               gap: 3, textDecoration: 'none', padding: '4px 0',
-              color: isActive ? '#4ADE80' : '#6B6B73',
+              color: isActive ? s.accent : s.text3,
               transition: 'color 0.15s ease',
             })}
           >
@@ -417,60 +450,15 @@ export default function Layout({ children }) {
         @media (max-width: 860px) {
           .sidebar-desktop { display: none !important; }
           .mobile-menu-btn { display: none !important; }
-          .layout-main { margin-left: 0 !important; background: #0D0D0F !important; }
+          .layout-main { margin-left: 0 !important; }
           .desktop-topbar { display: none !important; }
           .mobile-topbar { display: flex !important; }
           .mobile-bottom-tabs { display: flex !important; }
-          body, html, #root { background: #0D0D0F !important; }
           .layout-content {
             padding: 20px 16px 68px 16px !important;
             max-width: 100% !important;
             animation-duration: 0.2s !important;
-            background: #0D0D0F !important;
           }
-          .mobile-dark-wrapper {
-            --mobile-bg: #0D0D0F;
-            --mobile-card: #1A1A1E;
-            --mobile-text: #F5F5F7;
-            --mobile-text2: #A0A0A8;
-            --mobile-text3: #6B6B73;
-            --mobile-border: #2A2A2E;
-            --mobile-accent: #4ADE80;
-            color: #F5F5F7 !important;
-          }
-          /* Global dark overrides for pages without custom mobile rendering */
-          .mobile-dark-wrapper h1,
-          .mobile-dark-wrapper h2,
-          .mobile-dark-wrapper h3 { color: #F5F5F7 !important; }
-          .mobile-dark-wrapper p { color: #A0A0A8 !important; }
-          .mobile-dark-wrapper .glass-card {
-            background: #1A1A1E !important;
-            border-color: #2A2A2E !important;
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
-          }
-          .mobile-dark-wrapper .glass-card:hover {
-            box-shadow: 0 4px 16px rgba(0,0,0,0.4) !important;
-          }
-          .mobile-dark-wrapper input,
-          .mobile-dark-wrapper textarea,
-          .mobile-dark-wrapper select {
-            background: #1A1A1E !important;
-            border-color: #2A2A2E !important;
-            color: #F5F5F7 !important;
-          }
-          .mobile-dark-wrapper input::placeholder,
-          .mobile-dark-wrapper textarea::placeholder {
-            color: #6B6B73 !important;
-          }
-          .mobile-dark-wrapper table { color: #F5F5F7 !important; }
-          .mobile-dark-wrapper table th { color: #6B6B73 !important; }
-          .mobile-dark-wrapper table td { color: #A0A0A8 !important; border-color: #2A2A2E !important; }
-          .mobile-dark-wrapper table tbody tr:hover { background: rgba(255,255,255,0.03) !important; }
-          /* Override notification bell for dark topbar */
-          .mobile-topbar .notification-bell,
-          .mobile-topbar button { color: #6B6B73 !important; }
           h1 { font-size: 24px !important; }
           h2 { font-size: 20px !important; }
         }

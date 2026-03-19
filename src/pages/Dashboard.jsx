@@ -146,24 +146,19 @@ function MobileTodayView({ s, nav, settings, patients, appointments, services, p
 
   const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
-  // Dark mobile card style
-  const mobileGlass = {
-    background: '#1A1A1E',
-    border: '1px solid #2A2A2E',
-    borderRadius: 16,
-    boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-  };
+  // Card style from theme
+  const mobileGlass = s.cardStyle;
 
-  // Dark mobile color tokens
+  // Use theme tokens instead of hardcoded dark colors
   const dm = {
-    text: '#F5F5F7',
-    text2: '#A0A0A8',
-    text3: '#6B6B73',
-    accent: '#4ADE80',
-    accentBg: '#252529',
-    card: '#1A1A1E',
-    border: '#2A2A2E',
-    bg: '#0D0D0F',
+    text: s.text,
+    text2: s.text2,
+    text3: s.text3,
+    accent: s.accent,
+    accentBg: s.dark ? '#252529' : s.accentLight,
+    card: s.card,
+    border: s.borderLight,
+    bg: s.bg,
   };
 
   const timeSince = (dateStr) => {
@@ -257,8 +252,8 @@ function MobileTodayView({ s, nav, settings, patients, appointments, services, p
             <button key={item.path} onClick={() => nav(item.path)} style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
               padding: '16px 4px', borderRadius: 16, border: `1px solid ${dm.border}`, cursor: 'pointer',
-              background: dm.card,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+              background: s.card,
+              boxShadow: s.shadow,
             }}>
               <span style={{ fontSize: 24 }}>{item.emoji}</span>
               <span style={{ font: `500 10px ${s.FONT}`, color: dm.text2 }}>{item.label}</span>
@@ -356,11 +351,11 @@ export default function Dashboard() {
 
   // Glass style shorthand
   const glass = {
-    background: 'rgba(255,255,255,0.6)',
-    backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255,255,255,0.65)',
+    background: s.card,
+    backdropFilter: s.dark ? 'none' : 'blur(20px)', WebkitBackdropFilter: s.dark ? 'none' : 'blur(20px)',
+    border: `1px solid ${s.border}`,
     borderRadius: 18,
-    boxShadow: '0 4px 24px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
+    boxShadow: s.shadow,
     transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
   };
 
@@ -385,7 +380,7 @@ export default function Dashboard() {
         ...glass,
         padding: '28px 32px',
         marginBottom: 28,
-        background: `linear-gradient(135deg, rgba(255,255,255,0.75) 0%, ${s.accentLight} 100%)`,
+        background: s.dark ? `linear-gradient(135deg, #1A1A1E 0%, ${s.accentLight} 100%)` : `linear-gradient(135deg, rgba(255,255,255,0.75) 0%, ${s.accentLight} 100%)`,
         borderLeft: `3px solid ${s.accent}`,
         animation: 'dashFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) both',
       }}>
@@ -467,8 +462,8 @@ export default function Dashboard() {
               return (
                 <div key={a.id} className="dash-card-hover" style={{
                   margin: '6px 10px', padding: '14px 16px', borderRadius: 14,
-                  background: isToday ? `${s.accentLight}` : 'rgba(255,255,255,0.4)',
-                  border: isToday ? `1px solid ${s.accent}20` : '1px solid rgba(0,0,0,0.02)',
+                  background: isToday ? s.accentLight : (s.dark ? '#252529' : 'rgba(255,255,255,0.4)'),
+                  border: isToday ? `1px solid ${s.accent}20` : `1px solid ${s.borderLight}`,
                   display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer',
                   animation: `dashFadeInUp 0.4s cubic-bezier(0.16,1,0.3,1) ${500 + idx * 50}ms backwards`,
                   transition: 'all 0.25s cubic-bezier(0.16,1,0.3,1)',
@@ -476,7 +471,7 @@ export default function Dashboard() {
                   {/* Date tile */}
                   <div style={{
                     width: 48, height: 48, borderRadius: 12,
-                    background: isToday ? s.accent : 'rgba(255,255,255,0.8)',
+                    background: isToday ? s.accent : (s.dark ? '#252529' : 'rgba(255,255,255,0.8)'),
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                     boxShadow: isToday ? `0 4px 12px ${s.accent}30` : '0 2px 8px rgba(0,0,0,0.04)',
                   }}>
@@ -563,8 +558,8 @@ export default function Dashboard() {
               ].map(a => (
                 <button key={a.label} className="dash-action-btn" onClick={() => nav(a.path)} style={{
                   padding: '14px 16px',
-                  background: 'rgba(255,255,255,0.5)',
-                  border: '1px solid rgba(0,0,0,0.06)',
+                  background: s.dark ? '#252529' : 'rgba(255,255,255,0.5)',
+                  border: `1px solid ${s.borderLight}`,
                   borderRadius: 12, cursor: 'pointer', textAlign: 'left',
                   font: `500 13px ${s.FONT}`, color: s.text,
                   transition: 'all 0.25s cubic-bezier(0.16,1,0.3,1)',

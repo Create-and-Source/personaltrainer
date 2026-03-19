@@ -109,10 +109,10 @@ export default function Settings() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 0, marginBottom: 28, background: '#F0F0F0', borderRadius: 8, overflow: 'hidden', width: 'fit-content' }}>
+      <div style={{ display: 'flex', gap: 0, marginBottom: 28, background: s.dark ? '#252529' : '#F0F0F0', borderRadius: 8, overflow: 'hidden', width: 'fit-content' }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
-            padding: '9px 20px', background: tab === t.id ? '#fff' : 'transparent', border: 'none',
+            padding: '9px 20px', background: tab === t.id ? s.cardSolid : 'transparent', border: 'none',
             font: `500 13px ${s.FONT}`, color: tab === t.id ? s.text : s.text3, cursor: 'pointer',
             borderRadius: tab === t.id ? 8 : 0, boxShadow: tab === t.id ? s.shadow : 'none',
           }}>{t.label}</button>
@@ -153,7 +153,7 @@ export default function Settings() {
                 { day: 'Saturday', hours: '7:00 AM – 12:00 PM' },
                 { day: 'Sunday', hours: 'Closed' },
               ].map(h => (
-                <div key={h.day} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #F5F5F5' }}>
+                <div key={h.day} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: `1px solid ${s.borderLight}` }}>
                   <span style={{ font: `500 13px ${s.FONT}`, color: s.text }}>{h.day}</span>
                   <span style={{ font: `400 13px ${s.MONO}`, color: h.hours === 'Closed' ? s.text3 : s.text2 }}>{h.hours}</span>
                 </div>
@@ -185,7 +185,7 @@ export default function Settings() {
               {PRESETS.map(p => (
                 <button key={p.id} onClick={() => setTheme(p)} style={{
                   padding: '14px 10px', borderRadius: 12, cursor: 'pointer',
-                  background: '#fff', border: theme.id === p.id ? `2.5px solid ${p.accent}` : '1.5px solid #E5E5E5',
+                  background: s.cardSolid, border: theme.id === p.id ? `2.5px solid ${p.accent}` : '1.5px solid #E5E5E5',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
                 }}>
                   <div style={{ width: 32, height: 32, borderRadius: '50%', background: p.accent }} />
@@ -194,14 +194,14 @@ export default function Settings() {
               ))}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px', background: '#FAFAFA', borderRadius: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px', background: s.dark ? '#252529' : '#FAFAFA', borderRadius: 10 }}>
               <label style={{ font: `500 13px ${s.FONT}`, color: s.text }}>Custom Color</label>
-              <input type="color" value={theme.accent} onChange={e => setCustomColor(e.target.value)} style={{ width: 40, height: 40, border: '1px solid #E5E5E5', borderRadius: 10, cursor: 'pointer', padding: 2 }} />
+              <input type="color" value={theme.accent} onChange={e => setCustomColor(e.target.value)} style={{ width: 40, height: 40, border: `1px solid ${s.borderLight}`, borderRadius: 10, cursor: 'pointer', padding: 2 }} />
               <span style={{ font: `400 12px ${s.MONO}`, color: s.text3 }}>{theme.accent}</span>
             </div>
 
             {/* Preview */}
-            <div style={{ marginTop: 24, padding: 20, background: '#FAFAFA', borderRadius: 12, border: '1px solid #F0F0F0' }}>
+            <div style={{ marginTop: 24, padding: 20, background: s.dark ? '#252529' : '#FAFAFA', borderRadius: 12, border: `1px solid ${s.borderLight}` }}>
               <div style={{ font: `600 13px ${s.FONT}`, color: s.text, marginBottom: 12 }}>Preview</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button style={s.pillAccent}>Primary Button</button>
@@ -317,9 +317,9 @@ export default function Settings() {
               return (
                 <div key={intg.id} style={{
                   ...s.cardStyle, padding: '20px',
-                  background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(255,255,255,0.65)', borderRadius: 16,
-                  boxShadow: '0 4px 24px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
+                  background: s.card, backdropFilter: s.dark ? 'none' : 'blur(20px)', WebkitBackdropFilter: s.dark ? 'none' : 'blur(20px)',
+                  border: `1px solid ${s.border}`, borderRadius: 16,
+                  boxShadow: s.shadow,
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
                     <div style={{
@@ -352,7 +352,7 @@ export default function Settings() {
                       }}
                     >
                       <div style={{
-                        width: 18, height: 18, borderRadius: '50%', background: '#fff',
+                        width: 18, height: 18, borderRadius: '50%', background: s.cardSolid,
                         position: 'absolute', top: 3,
                         left: isOn ? 23 : 3,
                         transition: 'left 0.25s cubic-bezier(0.16,1,0.3,1)',
@@ -377,7 +377,7 @@ export default function Settings() {
           <div style={s.tableWrap}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid #E5E5E5' }}>
+                <tr style={{ borderBottom: `1px solid ${s.borderLight}` }}>
                   {['Service', 'Category', 'Duration', 'Price', 'Actions'].map(h => (
                     <th key={h} style={{ padding: '12px 14px', font: `500 11px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1, color: s.text3, textAlign: 'left' }}>{h}</th>
                   ))}
@@ -385,12 +385,12 @@ export default function Settings() {
               </thead>
               <tbody>
                 {services.map(svc => (
-                  <tr key={svc.id} style={{ borderBottom: '1px solid #F5F5F5' }}>
+                  <tr key={svc.id} style={{ borderBottom: `1px solid ${s.borderLight}` }}>
                     <td style={{ padding: '12px 14px' }}>
                       <div style={{ font: `500 13px ${s.FONT}`, color: s.text }}>{svc.name}</div>
                       {svc.description && <div style={{ font: `400 11px ${s.FONT}`, color: s.text3 }}>{svc.description}</div>}
                     </td>
-                    <td style={{ padding: '12px 14px' }}><span style={{ padding: '3px 10px', borderRadius: 100, background: '#F5F5F5', font: `500 11px ${s.FONT}`, color: s.text2 }}>{svc.category}</span></td>
+                    <td style={{ padding: '12px 14px' }}><span style={{ padding: '3px 10px', borderRadius: 100, background: s.dark ? '#252529' : '#F5F5F5', font: `500 11px ${s.FONT}`, color: s.text2 }}>{svc.category}</span></td>
                     <td style={{ padding: '12px 14px', font: `400 13px ${s.MONO}`, color: s.text2 }}>{svc.duration}min</td>
                     <td style={{ padding: '12px 14px', font: `500 13px ${s.MONO}`, color: s.text }}>${(svc.price / 100).toFixed(0)} {svc.unit}</td>
                     <td style={{ padding: '12px 14px' }}>
@@ -429,7 +429,7 @@ export default function Settings() {
                 {p.specialties && (
                   <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 12 }}>
                     {(Array.isArray(p.specialties) ? p.specialties : [p.specialties]).map(sp => (
-                      <span key={sp} style={{ padding: '2px 8px', borderRadius: 100, background: '#F5F5F5', font: `400 10px ${s.FONT}`, color: s.text2 }}>{sp}</span>
+                      <span key={sp} style={{ padding: '2px 8px', borderRadius: 100, background: s.dark ? '#252529' : '#F5F5F5', font: `400 10px ${s.FONT}`, color: s.text2 }}>{sp}</span>
                     ))}
                   </div>
                 )}
@@ -444,7 +444,7 @@ export default function Settings() {
       {/* Service Form Modal */}
       {showSvcForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }} onClick={() => setShowSvcForm(false)}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 32, maxWidth: 480, width: '90%', boxShadow: s.shadowLg }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: s.cardSolid, borderRadius: 16, padding: 32, maxWidth: 480, width: '90%', boxShadow: s.shadowLg }} onClick={e => e.stopPropagation()}>
             <h2 style={{ font: `600 18px ${s.FONT}`, color: s.text, marginBottom: 20 }}>{editSvc ? 'Edit Service' : 'Add Service'}</h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <div style={{ gridColumn: '1 / -1' }}>
@@ -485,7 +485,7 @@ export default function Settings() {
       {/* Provider Form Modal */}
       {showProvForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }} onClick={() => setShowProvForm(false)}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 32, maxWidth: 480, width: '90%', boxShadow: s.shadowLg }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: s.cardSolid, borderRadius: 16, padding: 32, maxWidth: 480, width: '90%', boxShadow: s.shadowLg }} onClick={e => e.stopPropagation()}>
             <h2 style={{ font: `600 18px ${s.FONT}`, color: s.text, marginBottom: 20 }}>{editProv ? 'Edit Trainer' : 'Add Trainer'}</h2>
             <div style={{ display: 'grid', gap: 14 }}>
               <div>

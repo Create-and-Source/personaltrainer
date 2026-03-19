@@ -216,11 +216,11 @@ export default function Memberships() {
 
   /* -- Style helpers -- */
   const glassCard = {
-    background: 'rgba(255,255,255,0.72)',
-    backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-    border: '1px solid rgba(255,255,255,0.7)',
+    background: s.card,
+    backdropFilter: s.dark ? 'none' : 'blur(24px)', WebkitBackdropFilter: s.dark ? 'none' : 'blur(24px)',
+    border: `1px solid ${s.border}`,
     borderRadius: 20,
-    boxShadow: '0 4px 24px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
+    boxShadow: s.shadow,
     transition: 'all 0.35s cubic-bezier(0.16,1,0.3,1)',
   };
 

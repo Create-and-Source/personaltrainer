@@ -454,7 +454,7 @@ export default function Habits() {
                     </div>
 
                     {/* Progress bar */}
-                    <div style={{ marginTop: 14, height: 6, borderRadius: 3, background: 'rgba(0,0,0,0.04)', overflow: 'hidden' }}>
+                    <div style={{ marginTop: 14, height: 6, borderRadius: 3, background: s.dark ? '#252529' : 'rgba(0,0,0,0.04)', overflow: 'hidden' }}>
                       <div style={{
                         height: '100%', borderRadius: 3,
                         background: isComplete ? `linear-gradient(90deg, ${s.success}, ${s.success}CC)` : `${s.accent}40`,
@@ -542,7 +542,7 @@ export default function Habits() {
                   ))}
                   {/* Completion % row */}
                   <tr>
-                    <td style={{ font: `600 12px ${s.MONO}`, color: s.text3, padding: '10px 10px', borderTop: '1px solid rgba(0,0,0,0.04)' }}>
+                    <td style={{ font: `600 12px ${s.MONO}`, color: s.text3, padding: '10px 10px', borderTop: `1px solid ${s.borderLight}` }}>
                       COMPLETION
                     </td>
                     {last7Days.map(date => {
@@ -551,7 +551,7 @@ export default function Habits() {
                       return (
                         <td key={date} style={{
                           textAlign: 'center', padding: '10px 4px',
-                          borderTop: '1px solid rgba(0,0,0,0.04)',
+                          borderTop: `1px solid ${s.borderLight}`,
                           ...(isToday ? { background: `${s.accent}05` } : {}),
                         }}>
                           <span style={{
@@ -680,7 +680,7 @@ export default function Habits() {
               animation: 'habitFadeInUp 0.2s ease',
             }} onClick={() => setShowModal(false)}>
               <div onClick={e => e.stopPropagation()} style={{
-                background: '#fff', borderRadius: 20, padding: 28, width: '90%', maxWidth: 440,
+                background: s.cardSolid, borderRadius: 20, padding: 28, width: '90%', maxWidth: 440,
                 boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
                 animation: 'habitFadeInUp 0.3s cubic-bezier(0.16,1,0.3,1)',
               }}>

@@ -1311,7 +1311,7 @@ export default function WorkoutBuilder() {
         }}>
           <div className="wb-modal-content" onClick={e => e.stopPropagation()} style={{
             width: '100%', maxWidth: 560,
-            background: '#fff', borderRadius: 20,
+            background: s.cardSolid, borderRadius: 20,
             boxShadow: '0 24px 80px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.06)',
             overflow: 'hidden',
           }}>
@@ -1504,7 +1504,7 @@ export default function WorkoutBuilder() {
         }}>
           <div className="wb-modal-content" onClick={e => e.stopPropagation()} style={{
             width: '100%', maxWidth: 560,
-            background: '#fff', borderRadius: 20,
+            background: s.cardSolid, borderRadius: 20,
             boxShadow: '0 24px 80px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.06)',
             overflow: 'hidden',
           }}>
@@ -1625,7 +1625,7 @@ export default function WorkoutBuilder() {
         }}>
           <div className="wb-modal-content" onClick={e => e.stopPropagation()} style={{
             width: '100%', maxWidth: 820,
-            background: '#fff', borderRadius: 20,
+            background: s.cardSolid, borderRadius: 20,
             boxShadow: '0 24px 80px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.06)',
             overflow: 'hidden',
           }}>
@@ -1828,7 +1828,7 @@ export default function WorkoutBuilder() {
         }}>
           <div className="wb-modal-content" onClick={e => e.stopPropagation()} style={{
             width: '100%', maxWidth: 440,
-            background: '#fff', borderRadius: 20,
+            background: s.cardSolid, borderRadius: 20,
             boxShadow: '0 24px 80px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.06)',
             overflow: 'hidden',
           }}>

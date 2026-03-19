@@ -254,7 +254,7 @@ export default function Challenges() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 28, background: 'rgba(0,0,0,0.03)', borderRadius: 12, padding: 4, width: 'fit-content' }}>
+      <div style={{ display: 'flex', gap: 4, marginBottom: 28, background: s.dark ? '#252529' : 'rgba(0,0,0,0.03)', borderRadius: 12, padding: 4, width: 'fit-content' }}>
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
             padding: '10px 20px', borderRadius: 10, border: 'none', cursor: 'pointer',
@@ -289,7 +289,7 @@ export default function Challenges() {
               }}>
                 {/* Type banner */}
                 <div style={{
-                  padding: '16px 24px', borderBottom: '1px solid rgba(0,0,0,0.04)',
+                  padding: '16px 24px', borderBottom: `1px solid ${s.borderLight}`,
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 }}>
                   <span style={{
@@ -413,7 +413,7 @@ export default function Challenges() {
               }}>
                 {/* Header */}
                 <div style={{
-                  padding: '16px 24px', borderBottom: '1px solid rgba(0,0,0,0.04)',
+                  padding: '16px 24px', borderBottom: `1px solid ${s.borderLight}`,
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 }}>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -567,7 +567,7 @@ export default function Challenges() {
         }} onClick={() => setShowModal(false)}>
           <div onClick={e => e.stopPropagation()} style={{
             width: '100%', maxWidth: 520, maxHeight: '85vh', overflowY: 'auto',
-            background: '#fff', borderRadius: 20, padding: 32,
+            background: s.cardSolid, borderRadius: 20, padding: 32,
             boxShadow: '0 24px 80px rgba(0,0,0,0.2)',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>

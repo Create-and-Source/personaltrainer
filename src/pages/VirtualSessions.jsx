@@ -154,11 +154,11 @@ export default function VirtualSessions() {
           zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center',
         }} onClick={() => setShowClientPicker(false)}>
           <div onClick={e => e.stopPropagation()} style={{
-            background: '#fff', borderRadius: 20, padding: 28, width: 360,
+            background: s.cardSolid, borderRadius: 20, padding: 28, width: 360,
             boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
             animation: 'vsFadeInUp 0.3s ease',
           }}>
-            <h3 style={{ font: "600 17px 'Inter', sans-serif", color: '#111', margin: '0 0 16px' }}>
+            <h3 style={{ font: "600 17px 'Inter', sans-serif", color: s.text, margin: '0 0 16px' }}>
               Select Client
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -168,12 +168,12 @@ export default function VirtualSessions() {
                   showToast(`Connecting to video call with ${name}...`);
                 }} style={{
                   display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px',
-                  background: 'transparent', border: '1px solid rgba(0,0,0,0.06)',
+                  background: 'transparent', border: `1px solid ${s.borderLight}`,
                   borderRadius: 12, cursor: 'pointer', textAlign: 'left',
-                  font: "400 14px 'Inter', sans-serif", color: '#111',
+                  font: "400 14px 'Inter', sans-serif", color: s.text,
                   transition: 'all 0.15s',
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = '#F5F3F0'}
+                onMouseEnter={e => e.currentTarget.style.background = s.dark ? '#252529' : '#F5F3F0'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
                   <Avatar name={name} size={32} />
@@ -191,7 +191,7 @@ export default function VirtualSessions() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
         {/* Upcoming Sessions */}
         <div style={{ ...s.cardStyle, padding: 0, overflow: 'hidden', animation: 'vsFadeInUp 0.5s ease 0.1s both' }}>
-          <div style={{ padding: '20px 24px 14px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+          <div style={{ padding: '20px 24px 14px', borderBottom: `1px solid ${s.borderLight}` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={s.accent} strokeWidth="2" strokeLinecap="round">
                 <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>
@@ -232,7 +232,7 @@ export default function VirtualSessions() {
 
         {/* Session History */}
         <div style={{ ...s.cardStyle, padding: 0, overflow: 'hidden', animation: 'vsFadeInUp 0.5s ease 0.2s both' }}>
-          <div style={{ padding: '20px 24px 14px', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+          <div style={{ padding: '20px 24px 14px', borderBottom: `1px solid ${s.borderLight}` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={s.accent} strokeWidth="2" strokeLinecap="round">
                 <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
