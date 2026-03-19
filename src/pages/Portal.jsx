@@ -138,8 +138,7 @@ function getSeedProgress(clientId) {
     'CLT-1001': { start: 145, end: 138, bfStart: 28, bfEnd: 23 },
     'CLT-1004': { start: 170, end: 175, bfStart: 18, bfEnd: 15 },
   };
-  const se = seeds[clientId];
-  if (!se) return null;
+  const se = seeds[clientId] || { start: 175, end: 170, bfStart: 20, bfEnd: 17 };
   const data = [];
   for (let i = 0; i <= 12; i++) {
     const p = i / 12;
@@ -168,7 +167,14 @@ function getSeedPRs(clientId) {
     { id: 'PR-7', clientId: 'CLT-1004', exercise: 'Lat Pulldown', value: 150, unit: 'lbs', date: d(-15), previousValue: 130 },
   ];
   localStorage.setItem(key, JSON.stringify(allPRs));
-  return allPRs.filter(pr => pr.clientId === clientId);
+  const filtered = allPRs.filter(pr => pr.clientId === clientId);
+  if (filtered.length > 0) return filtered;
+  // Generate fallback PRs for any client not in seed data
+  return [
+    { id: `PR-${clientId}-1`, clientId, exercise: 'Bench Press', value: 185, unit: 'lbs', date: d(-10), previousValue: 170 },
+    { id: `PR-${clientId}-2`, clientId, exercise: 'Squat', value: 245, unit: 'lbs', date: d(-6), previousValue: 225 },
+    { id: `PR-${clientId}-3`, clientId, exercise: 'Deadlift', value: 275, unit: 'lbs', date: d(-3), previousValue: 255 },
+  ];
 }
 
 function getSeedNutrition(clientId) {
@@ -661,7 +667,7 @@ export default function Portal() {
       </Card>
 
       {/* Streak Strip */}
-      <div className="ios-fadeUp ios-d6" style={{ display: 'flex', gap: 10 }}>
+      <div className="ios-fadeUp ios-d6" style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
         <Card style={{ flex: 1, padding: 14, textAlign: 'center' }}>
           <div style={{ font: `700 20px ${FONT}`, color: TEXT }}>🔥 {streakCount}</div>
           <div style={{ font: `400 11px ${FONT}`, color: TEXT3, marginTop: 2 }}>day streak</div>
@@ -674,6 +680,12 @@ export default function Portal() {
           <div style={{ font: `700 20px ${FONT}`, color: TEXT }}>{totalMin}</div>
           <div style={{ font: `400 11px ${FONT}`, color: TEXT3, marginTop: 2 }}>min total</div>
         </Card>
+      </div>
+
+      {/* Quick Actions */}
+      <div style={{ display: 'flex', gap: 10 }}>
+        <PillButton variant="secondary" onClick={() => setActiveTab('train')} style={{ flex: 1 }}>Book Session</PillButton>
+        <PillButton variant="secondary" onClick={() => { setActiveTab('coach'); setCoachSeg('Messages'); }} style={{ flex: 1 }}>Send Message</PillButton>
       </div>
     </div>
   );
@@ -756,8 +768,8 @@ export default function Portal() {
             </div>
             <div style={{ width: 30, height: 30, borderRadius: '50%', position: 'relative' }}>
               <svg width={30} height={30} style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx={15} cy={15} r={12} fill="none" stroke="#EFEBE7" strokeWidth={3} />
-                <circle cx={15} cy={15} r={12} fill="none" stroke={ACCENT} strokeWidth={3}
+                <circle cx={15} cy={15} r={12} fill="none" stroke="#EFEBE7" strokeWidth={2.5} />
+                <circle cx={15} cy={15} r={12} fill="none" stroke={ACCENT} strokeWidth={2.5}
                   strokeDasharray={75.4} strokeDashoffset={75.4 * (1 - nutrition.calories.current / nutrition.calories.target)}
                   strokeLinecap="round" />
               </svg>
@@ -1032,14 +1044,14 @@ export default function Portal() {
           {isTimed && (
             <div style={{ position: 'relative', width: 100, height: 100 }}>
               <svg width={100} height={100} style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx={50} cy={50} r={42} fill="none" stroke="#EFEBE7" strokeWidth={5} />
-                <circle cx={50} cy={50} r={42} fill="none" stroke={ACCENT} strokeWidth={5}
-                  strokeDasharray={264} strokeDashoffset={0}
+                <circle cx={50} cy={50} r={44} fill="none" stroke="#EFEBE7" strokeWidth={3} />
+                <circle cx={50} cy={50} r={44} fill="none" stroke={ACCENT} strokeWidth={3}
+                  strokeDasharray={276.5} strokeDashoffset={0}
                   strokeLinecap="round"
                   style={{ transition: 'stroke-dashoffset 1s linear' }} />
               </svg>
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ font: `700 18px ${MONO}`, color: TEXT }}>{currentExercise.time}</span>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
+                <span style={{ font: `700 20px ${MONO}`, color: TEXT }}>{currentExercise.time}</span>
               </div>
             </div>
           )}
@@ -1277,7 +1289,7 @@ export default function Portal() {
           style={{
             flex: 1, padding: '11px 16px', borderRadius: 22,
             border: `1px solid ${BORDER}`, background: BG,
-            font: `400 14px ${FONT}`, color: TEXT, outline: 'none',
+            font: `400 16px ${FONT}`, fontSize: 16, color: TEXT, outline: 'none',
             resize: 'none', minHeight: 42, maxHeight: 100, boxSizing: 'border-box',
           }}
         />
@@ -1675,11 +1687,11 @@ export default function Portal() {
       {/* Bottom Tab Bar */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
-        height: 52,
+        height: 56,
         background: SURFACE,
         borderTop: `1px solid ${BORDER}`,
         display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        paddingBottom: 'env(safe-area-inset-bottom, 16px)',
         zIndex: 200,
       }}>
         {bottomTabs.map(t => {

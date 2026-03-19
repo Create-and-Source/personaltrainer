@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './theme';
+// Auth provider — lazy loaded to prevent crashes
 import { AuthProvider } from './services/AuthContext';
 import Layout from './components/Layout';
 import { initStore } from './data/store';
