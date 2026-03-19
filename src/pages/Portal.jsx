@@ -1,72 +1,134 @@
-// Client Portal — standalone client-facing app
-import { useState, useEffect, useRef } from 'react';
+// Client Portal — Premium iOS-native fitness app experience
+// 5-tab structure: Home, Train, Coach, Progress, Profile
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   getPatients, getAppointments, getServices,
   getClassPackages, subscribe,
 } from '../data/store';
 
-/* ── Standalone Design Tokens ── */
-const FONT = "'Figtree', -apple-system, BlinkMacSystemFont, sans-serif";
-const HEADING = "'Poppins', 'Figtree', sans-serif";
-const MONO = "'Source Code Pro', 'SF Mono', monospace";
-const ACCENT = '#0E7A82';
-const ACCENT_LIGHT = 'rgba(14,122,130,0.1)';
-const DARK_GRAD = 'linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%)';
-const DARK_BG = '#1A1A2E';
-const CARD_BG = '#FFFFFF';
-const CARD_BORDER = '#F0F0F5';
-const CARD_SHADOW = '0 2px 12px rgba(0,0,0,0.06)';
-const TEXT = '#1A1A2E';
-const TEXT2 = '#6B7280';
-const TEXT3 = '#9CA3AF';
+/* ══════════════════════════════════════
+   DESIGN TOKENS (Perplexity spec)
+   ══════════════════════════════════════ */
+const FONT = "-apple-system, 'Figtree', BlinkMacSystemFont, sans-serif";
+const MONO = "'SF Mono', 'Source Code Pro', monospace";
+const BG = '#F7F3F0';
+const SURFACE = '#FFFFFF';
+const ACCENT = '#62554A';
+const ACCENT_LIGHT = 'rgba(98,85,74,0.08)';
+const BORDER = '#E8E3DD';
+const TEXT = '#111111';
+const TEXT2 = '#666666';
+const TEXT3 = '#AAAAAA';
 const SUCCESS = '#22C55E';
 const WARNING = '#EAB308';
+const CARD_RADIUS = 14;
+const CARD_SHADOW = '0 2px 8px rgba(0,0,0,0.04)';
+const CARD_PAD = 16;
 
 /* ── Helpers ── */
-const fmt = (cents) => `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 0 })}`;
+const today = () => new Date().toISOString().slice(0, 10);
+const weeksAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n * 7); return d.toISOString().slice(0, 10); };
 const fmtDate = (d) => {
   if (!d) return '';
-  const dt = new Date(d + (d.length === 10 ? 'T12:00:00' : ''));
+  const dt = new Date(d.length === 10 ? d + 'T12:00:00' : d);
   return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 const fmtWeekday = (d) => {
   if (!d) return '';
-  const dt = new Date(d + 'T12:00:00');
-  return dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' });
 };
 const fmtTime = (t) => {
   if (!t) return '';
   const [h, m] = t.split(':').map(Number);
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${ampm}`;
+  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
 };
-const today = () => new Date().toISOString().slice(0, 10);
-const weeksAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n * 7); return d.toISOString().slice(0, 10); };
+const fmtFullDate = () => {
+  return new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+};
 
 /* ── Keyframe Injection ── */
-const ANIM_ID = 'portal-client-anims-v2';
+const ANIM_ID = 'portal-ios-anims';
 if (typeof document !== 'undefined' && !document.getElementById(ANIM_ID)) {
   const sheet = document.createElement('style');
   sheet.id = ANIM_ID;
   sheet.textContent = `
-    @keyframes ptFadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes ptPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.04); } }
-    .pt-fadeUp { animation: ptFadeUp 0.45s cubic-bezier(0.16,1,0.3,1) both; }
-    .pt-fadeUp-1 { animation-delay: 0.05s; }
-    .pt-fadeUp-2 { animation-delay: 0.1s; }
-    .pt-fadeUp-3 { animation-delay: 0.15s; }
-    .pt-fadeUp-4 { animation-delay: 0.2s; }
-    .pt-fadeUp-5 { animation-delay: 0.25s; }
-    .portal-scroll::-webkit-scrollbar { display:none; }
+    @keyframes ptSlideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes ptFadeIn { from { opacity:0; } to { opacity:1; } }
+    @keyframes ptCountdown { from { stroke-dashoffset: 0; } }
+    @keyframes ptPulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(98,85,74,0.2); } 50% { box-shadow: 0 0 0 8px rgba(98,85,74,0); } }
+    .ios-fadeUp { animation: ptSlideUp 0.4s cubic-bezier(0.16,1,0.3,1) both; }
+    .ios-d1 { animation-delay: 0.03s; }
+    .ios-d2 { animation-delay: 0.06s; }
+    .ios-d3 { animation-delay: 0.09s; }
+    .ios-d4 { animation-delay: 0.12s; }
+    .ios-d5 { animation-delay: 0.15s; }
+    .ios-d6 { animation-delay: 0.18s; }
+    .ios-card { transition: transform 0.15s ease; }
+    .ios-card:active { transform: scale(0.98); }
+    .ios-scroll::-webkit-scrollbar { display: none; }
+    .ios-seg-btn { transition: all 0.2s ease; }
     @media (max-width:640px) {
-      .portal-page { padding-bottom: 80px !important; }
-      .portal-grid-2 { grid-template-columns: 1fr !important; }
+      .ios-page { padding-bottom: 80px !important; }
     }
   `;
   document.head.appendChild(sheet);
 }
 
-/* ── Seed Progress Data ── */
+/* ══════════════════════════════════════
+   SEED DATA
+   ══════════════════════════════════════ */
+
+const SAMPLE_WORKOUT = {
+  title: 'Full Body Strength',
+  duration: 35,
+  difficulty: 'Intermediate',
+  focus: ['Legs', 'Chest', 'Back'],
+  sections: [
+    { name: 'Warm-up', exercises: [
+      { name: 'Jump Rope', sets: null, reps: null, weight: null, time: '3 min', icon: '🏃' },
+      { name: "World's Greatest Stretch", sets: null, reps: null, weight: null, time: '2 min', icon: '🧘' },
+    ]},
+    { name: 'Main', exercises: [
+      { name: 'Barbell Back Squat', sets: 4, reps: 8, weight: '185 lbs', time: null, icon: '🏋️' },
+      { name: 'Dumbbell Bench Press', sets: 3, reps: 10, weight: '50 lbs', time: null, icon: '💪' },
+      { name: 'Bent Over Row', sets: 3, reps: 10, weight: '135 lbs', time: null, icon: '🔥' },
+      { name: 'Romanian Deadlift', sets: 3, reps: 12, weight: '155 lbs', time: null, icon: '🦵' },
+      { name: 'Overhead Press', sets: 3, reps: 8, weight: '95 lbs', time: null, icon: '🙌' },
+    ]},
+    { name: 'Cooldown', exercises: [
+      { name: 'Hamstring Stretch', sets: null, reps: null, weight: null, time: '60s each', icon: '🧘' },
+      { name: 'Chest Opener', sets: null, reps: null, weight: null, time: '60s', icon: '🧘' },
+      { name: "Child's Pose", sets: null, reps: null, weight: null, time: '90s', icon: '🧘' },
+    ]},
+  ],
+};
+
+const SAMPLE_HABITS = [
+  { id: 'water', label: 'Water (8 glasses)', emoji: '💧' },
+  { id: 'sleep', label: 'Sleep 7h+', emoji: '😴' },
+  { id: 'steps', label: '10K Steps', emoji: '🚶' },
+  { id: 'eat', label: 'Eat Clean', emoji: '🥗' },
+];
+
+const SAMPLE_PROGRAMS = [
+  { id: 'prog-1', name: 'Strength Foundations', week: 2, totalWeeks: 6, frequency: '4x/week', phases: ['Base', 'Build', 'Peak'], progress: 28 },
+  { id: 'prog-2', name: 'Mobility Reset', week: 1, totalWeeks: 3, frequency: '3x/week', phases: ['Unlock', 'Strengthen'], progress: 12 },
+];
+
+const SAMPLE_LIBRARY = [
+  { id: 'lib-1', title: 'Upper Body Push', duration: 40, tags: ['Chest', 'Shoulders', 'Triceps'], level: 'Intermediate' },
+  { id: 'lib-2', title: 'Lower Body Power', duration: 45, tags: ['Quads', 'Glutes', 'Hamstrings'], level: 'Advanced' },
+  { id: 'lib-3', title: 'Core & Conditioning', duration: 25, tags: ['Core', 'Cardio'], level: 'Beginner' },
+  { id: 'lib-4', title: 'Active Recovery Flow', duration: 30, tags: ['Mobility', 'Flexibility'], level: 'Beginner' },
+];
+
+const AI_CONVERSATION = [
+  { from: 'user', text: 'I want to focus more on my squat this month. Can you adjust my program?' },
+  { from: 'ai', text: "Absolutely! I can increase your squat frequency to 3x/week with varied rep ranges. Here's what I'd suggest:\n\n• Monday: Heavy Squats (4x5)\n• Wednesday: Pause Squats (3x6)\n• Friday: Front Squats (3x8)\n\nThis progressive approach will build both strength and technique.", actions: ['Apply to plan', 'Save as workout', 'Modify'] },
+  { from: 'user', text: 'That looks great. Can you also add some accessory work?' },
+  { from: 'ai', text: "Here's your accessory pairing for each squat day:\n\n• Monday: Bulgarian Split Squats 3x10, Leg Press 3x12\n• Wednesday: Box Step-Ups 3x8, Leg Curl 3x15\n• Friday: Walking Lunges 3x12, Calf Raises 4x15\n\nThis targets all supporting muscle groups while keeping volume manageable.", actions: ['Schedule this', 'Save as workout'] },
+];
+
 function getSeedProgress(clientId) {
   const key = `ms_progress_${clientId}`;
   const existing = localStorage.getItem(key);
@@ -109,51 +171,14 @@ function getSeedPRs(clientId) {
   return allPRs.filter(pr => pr.clientId === clientId);
 }
 
-function getSeedMeasurements(clientId) {
-  const key = `ms_measurements_${clientId}`;
-  const existing = localStorage.getItem(key);
-  if (existing) try { return JSON.parse(existing); } catch {}
-  const seeds = {
-    'CLT-1000': { chest: [42, 43, 43.5], waist: [36, 34.5, 33], hips: [40, 39.5, 39], arms: [15, 15.5, 16] },
-    'CLT-1001': { chest: [36, 35.5, 35], waist: [30, 28.5, 27], hips: [38, 37, 36], arms: [12, 12, 12.5] },
-  };
-  return seeds[clientId] || null;
-}
-
-/* ── Seed Nutrition Data ── */
 function getSeedNutrition(clientId) {
   const seeds = {
-    'CLT-1000': { calories: { target: 2800, current: 2650 }, protein: { target: 200, current: 185 }, carbs: { target: 300, current: 280 }, fat: { target: 90, current: 85 },
-      meals: [
-        { time: '7:00 AM', name: 'Oats + Protein Shake', cal: 520, protein: 45, carbs: 65, fat: 10 },
-        { time: '10:30 AM', name: 'Greek Yogurt + Berries', cal: 280, protein: 25, carbs: 30, fat: 8 },
-        { time: '1:00 PM', name: 'Chicken Rice Bowl', cal: 680, protein: 50, carbs: 75, fat: 18 },
-        { time: '4:00 PM', name: 'Pre-Workout Banana + PB', cal: 320, protein: 10, carbs: 40, fat: 16 },
-        { time: '7:30 PM', name: 'Salmon + Sweet Potato', cal: 620, protein: 42, carbs: 55, fat: 22 },
-        { time: '9:00 PM', name: 'Casein Shake', cal: 230, protein: 30, carbs: 15, fat: 5 },
-      ],
-    },
-    'CLT-1001': { calories: { target: 1800, current: 1720 }, protein: { target: 130, current: 118 }, carbs: { target: 180, current: 170 }, fat: { target: 60, current: 55 },
-      meals: [
-        { time: '8:00 AM', name: 'Egg White Omelet + Toast', cal: 380, protein: 32, carbs: 30, fat: 10 },
-        { time: '12:00 PM', name: 'Turkey Meatball Salad', cal: 450, protein: 38, carbs: 25, fat: 18 },
-        { time: '3:30 PM', name: 'Protein Bar', cal: 220, protein: 20, carbs: 25, fat: 8 },
-        { time: '6:30 PM', name: 'Grilled Chicken + Veggies', cal: 520, protein: 42, carbs: 35, fat: 16 },
-        { time: '8:30 PM', name: 'Cottage Cheese + Almonds', cal: 150, protein: 18, carbs: 8, fat: 6 },
-      ],
-    },
+    'CLT-1000': { calories: { target: 2800, current: 2650 }, protein: { target: 200, current: 185 }, carbs: { target: 300, current: 280 }, fat: { target: 90, current: 85 } },
+    'CLT-1001': { calories: { target: 1800, current: 1720 }, protein: { target: 130, current: 118 }, carbs: { target: 180, current: 170 }, fat: { target: 60, current: 55 } },
   };
-  return seeds[clientId] || {
-    calories: { target: 2200, current: 2050 }, protein: { target: 160, current: 140 }, carbs: { target: 240, current: 210 }, fat: { target: 75, current: 68 },
-    meals: [
-      { time: '7:30 AM', name: 'Breakfast', cal: 450, protein: 30, carbs: 50, fat: 12 },
-      { time: '12:00 PM', name: 'Lunch', cal: 600, protein: 45, carbs: 60, fat: 20 },
-      { time: '6:00 PM', name: 'Dinner', cal: 550, protein: 40, carbs: 50, fat: 18 },
-    ],
-  };
+  return seeds[clientId] || { calories: { target: 2200, current: 2050 }, protein: { target: 160, current: 140 }, carbs: { target: 240, current: 210 }, fat: { target: 75, current: 68 } };
 }
 
-/* ── Chat Data ── */
 function getSeedChat(clientName) {
   return [
     { id: 'cm1', from: 'trainer', text: `Hey ${clientName.split(' ')[0]}! Great session yesterday. How are you feeling today?`, ts: '2026-03-17T09:00:00' },
@@ -164,133 +189,249 @@ function getSeedChat(clientName) {
   ];
 }
 
-/* ── SVG Icons ── */
-const HomeIcon = ({ active }) => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : TEXT3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-    <polyline points="9 22 9 12 15 12 15 22" />
+const BADGES = [
+  { name: 'First Workout', icon: '🎯', earned: true },
+  { name: '7-Day Streak', icon: '🔥', earned: true },
+  { name: '10 Workouts', icon: '💪', earned: true },
+  { name: '30-Day Streak', icon: '⚡', earned: false },
+  { name: 'PR Crusher', icon: '🏆', earned: true },
+  { name: '100 Workouts', icon: '👑', earned: false },
+];
+
+/* ══════════════════════════════════════
+   SVG ICONS (SF-symbol style, 22px)
+   ══════════════════════════════════════ */
+
+const IconHome = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? ACCENT : 'none'} stroke={active ? ACCENT : TEXT3} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 9.5l9-7 9 7v10.5a1.5 1.5 0 0 1-1.5 1.5h-4v-6h-5v6H5.5A1.5 1.5 0 0 1 4 18V9.5" fill={active ? ACCENT : 'none'} opacity={active ? 0.15 : 0} />
+    <path d="M3 9.5l9-7 9 7v10.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18z" />
+    <path d="M9 21v-6h6v6" />
   </svg>
 );
-const DumbbellIcon = ({ active }) => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : TEXT3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6.5 6.5h11M6 12h12M2 9v6M22 9v6M4 8v8M20 8v8" />
+
+const IconTrain = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : TEXT3} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="1" y="7" width="4" height="10" rx="1" />
+    <rect x="19" y="7" width="4" height="10" rx="1" />
+    <line x1="5" y1="12" x2="19" y2="12" />
+    <rect x="7" y="9" width="3" height="6" rx="0.5" />
+    <rect x="14" y="9" width="3" height="6" rx="0.5" />
   </svg>
 );
-const ChartIcon = ({ active }) => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : TEXT3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
-  </svg>
-);
-const AppleIcon = ({ active }) => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : TEXT3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2C8.5 2 6 5 6 9c0 6 6 13 6 13s6-7 6-13c0-4-2.5-7-6-7z" />
-    <path d="M12 2c1 1 2 2 2 4" />
-  </svg>
-);
-const ChatBubbleIcon = ({ active }) => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : TEXT3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+
+const IconCoach = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : TEXT3} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    <circle cx="9" cy="10" r="1" fill={active ? ACCENT : TEXT3} stroke="none" />
+    <circle cx="12" cy="10" r="1" fill={active ? ACCENT : TEXT3} stroke="none" />
+    <circle cx="15" cy="10" r="1" fill={active ? ACCENT : TEXT3} stroke="none" />
   </svg>
 );
-const FireIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="#EAB308" stroke="none">
-    <path d="M12 23c-4.97 0-9-3.58-9-8 0-4 3.5-7.5 4-8 .5 2.5 2 4.5 3 5.5 1-5 4-8 5-9.5.5 2 2 4.5 3 6 1-1.5 2-3 2-5 2 2.5 1 5 1 7 0 4.42-4.03 8-9 8z" />
+
+const IconProgress = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : TEXT3} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
   </svg>
 );
-const TrophyIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EAB308" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6 9H3V5h3M18 9h3V5h-3M12 15v4M8 19h8" />
-    <path d="M6 5a6 6 0 0 0 12 0" />
+
+const IconProfile = ({ active }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : TEXT3} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
   </svg>
 );
-const SendIcon = ({ color }) => (
+
+const IconSend = ({ color }) => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill={color} stroke="none">
     <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
   </svg>
 );
-const ChevronDown = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={TEXT3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="6 9 12 15 18 9" />
+
+const IconChevron = ({ dir = 'right', size = 16, color = TEXT3 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    {dir === 'right' && <polyline points="9 18 15 12 9 6" />}
+    {dir === 'down' && <polyline points="6 9 12 15 18 9" />}
+    {dir === 'left' && <polyline points="15 18 9 12 15 6" />}
   </svg>
 );
 
-/* ── Card Component ── */
-const Card = ({ children, style, className }) => (
-  <div className={className} style={{
-    background: CARD_BG,
-    border: `1px solid ${CARD_BORDER}`,
-    borderRadius: 16,
-    boxShadow: CARD_SHADOW,
-    padding: 20,
-    ...style,
-  }}>
+const IconCheck = ({ checked, size = 22 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="11" fill={checked ? ACCENT : 'none'} stroke={checked ? ACCENT : BORDER} strokeWidth="1.5" />
+    {checked && <polyline points="7 12 10.5 15.5 17 9" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
+  </svg>
+);
+
+const IconClose = ({ size = 24, color = TEXT }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round">
+    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
+const IconPause = ({ size = 24, color = TEXT }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none">
+    <rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" />
+  </svg>
+);
+
+const IconPlay = ({ size = 20, color = '#fff' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none">
+    <polygon points="5 3 19 12 5 21 5 3" />
+  </svg>
+);
+
+/* ══════════════════════════════════════
+   REUSABLE COMPONENTS
+   ══════════════════════════════════════ */
+
+const Card = ({ children, style, onClick, className = '' }) => (
+  <div
+    className={`ios-card ${className}`}
+    onClick={onClick}
+    style={{
+      background: SURFACE,
+      borderRadius: CARD_RADIUS,
+      boxShadow: CARD_SHADOW,
+      padding: CARD_PAD,
+      cursor: onClick ? 'pointer' : 'default',
+      ...style,
+    }}
+  >
     {children}
   </div>
 );
 
-/* ── Macro Ring (SVG donut) ── */
-const MacroRing = ({ label, current, target, color, size = 80 }) => {
-  const pct = Math.min(current / target, 1);
-  const r = (size - 10) / 2;
-  const circ = 2 * Math.PI * r;
-  const offset = circ * (1 - pct);
+const SegmentedControl = ({ options, active, onChange }) => (
+  <div style={{
+    display: 'flex', gap: 0,
+    background: '#EFEBE7',
+    borderRadius: 10, padding: 3,
+  }}>
+    {options.map(opt => (
+      <button
+        key={opt}
+        className="ios-seg-btn"
+        onClick={() => onChange(opt)}
+        style={{
+          flex: 1, padding: '8px 0',
+          borderRadius: 8, border: 'none', cursor: 'pointer',
+          font: `500 13px ${FONT}`,
+          background: active === opt ? SURFACE : 'transparent',
+          color: active === opt ? TEXT : TEXT2,
+          boxShadow: active === opt ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+        }}
+      >
+        {opt}
+      </button>
+    ))}
+  </div>
+);
+
+const PillButton = ({ children, onClick, variant = 'primary', style: extraStyle, disabled }) => {
+  const base = {
+    width: '100%', padding: '15px 24px',
+    borderRadius: CARD_RADIUS, border: 'none', cursor: disabled ? 'default' : 'pointer',
+    font: `600 15px ${FONT}`,
+    transition: 'all 0.2s ease',
+    opacity: disabled ? 0.5 : 1,
+  };
+  const variants = {
+    primary: { ...base, background: ACCENT, color: '#fff' },
+    secondary: { ...base, background: 'transparent', color: ACCENT, border: `1.5px solid ${ACCENT}` },
+    ghost: { ...base, background: ACCENT_LIGHT, color: ACCENT },
+  };
+  return <button onClick={disabled ? undefined : onClick} style={{ ...variants[variant], ...extraStyle }}>{children}</button>;
+};
+
+const SectionLabel = ({ children, style }) => (
+  <div style={{
+    font: `600 13px ${FONT}`, color: TEXT2,
+    textTransform: 'uppercase', letterSpacing: '0.04em',
+    marginBottom: 10, ...style,
+  }}>{children}</div>
+);
+
+const MacroBar = ({ label, current, target, color }) => {
+  const pct = Math.min((current / target) * 100, 100);
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#F0F0F5" strokeWidth={6} />
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={6}
-          strokeDasharray={circ} strokeDashoffset={offset}
-          strokeLinecap="round" style={{ transition: 'stroke-dashoffset 0.8s ease' }} />
-      </svg>
-      <div style={{ marginTop: -size + 8, width: size, textAlign: 'center', paddingTop: size / 2 - 14 }}>
-        <div style={{ font: `700 16px ${MONO}`, color: TEXT }}>{current}</div>
-        <div style={{ font: `400 10px ${FONT}`, color: TEXT3 }}>/ {target}g</div>
+    <div style={{ flex: 1 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+        <span style={{ font: `500 12px ${FONT}`, color: TEXT2 }}>{label}</span>
+        <span style={{ font: `500 12px ${MONO}`, color: TEXT }}>{current}/{target}g</span>
       </div>
-      <div style={{ font: `500 11px ${FONT}`, color: TEXT2, marginTop: size / 2 - 16 }}>{label}</div>
+      <div style={{ height: 6, borderRadius: 3, background: '#EFEBE7', overflow: 'hidden' }}>
+        <div style={{ height: '100%', borderRadius: 3, background: color, width: `${pct}%`, transition: 'width 0.6s ease' }} />
+      </div>
     </div>
   );
 };
 
-/* ── Mini line chart (SVG) ── */
-const MiniChart = ({ data, width = 280, height = 120 }) => {
+/* ── SVG Line Chart ── */
+const LineChart = ({ data, dataKey, width = 300, height = 140, color = ACCENT }) => {
   if (!data || data.length < 2) return null;
-  const vals = data.map(d => d.weight);
+  const vals = data.map(d => d[dataKey]);
   const min = Math.min(...vals) - 2;
   const max = Math.max(...vals) + 2;
   const range = max - min || 1;
-  const px = (i) => (i / (vals.length - 1)) * (width - 20) + 10;
-  const py = (v) => height - 16 - ((v - min) / range) * (height - 32);
+  const padX = 12, padY = 16;
+  const px = (i) => padX + (i / (vals.length - 1)) * (width - padX * 2);
+  const py = (v) => padY + (1 - (v - min) / range) * (height - padY * 2);
   const points = vals.map((v, i) => `${px(i)},${py(v)}`).join(' ');
-  const areaPoints = `${px(0)},${height - 16} ${points} ${px(vals.length - 1)},${height - 16}`;
+  const area = `${px(0)},${height - padY} ${points} ${px(vals.length - 1)},${height - padY}`;
 
   return (
     <svg width={width} height={height} style={{ display: 'block' }}>
       <defs>
-        <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={ACCENT} stopOpacity="0.2" />
-          <stop offset="100%" stopColor={ACCENT} stopOpacity="0" />
+        <linearGradient id={`grad-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.15" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <polygon points={areaPoints} fill="url(#chartGrad)" />
-      <polyline points={points} fill="none" stroke={ACCENT} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      {vals.map((v, i) => (
-        <circle key={i} cx={px(i)} cy={py(v)} r={i === vals.length - 1 ? 5 : 3}
-          fill={i === vals.length - 1 ? ACCENT : '#fff'} stroke={ACCENT} strokeWidth="2" />
+      {/* Grid lines */}
+      {[0.25, 0.5, 0.75].map(p => (
+        <line key={p} x1={padX} y1={padY + p * (height - padY * 2)} x2={width - padX} y2={padY + p * (height - padY * 2)}
+          stroke={BORDER} strokeWidth="0.5" strokeDasharray="4 4" />
       ))}
-      {/* Start and end labels */}
-      <text x={px(0)} y={height - 2} textAnchor="start" style={{ font: `400 9px ${MONO}`, fill: TEXT3 }}>
-        {fmtDate(data[0].date)}
-      </text>
-      <text x={px(vals.length - 1)} y={height - 2} textAnchor="end" style={{ font: `400 9px ${MONO}`, fill: TEXT3 }}>
-        {fmtDate(data[data.length - 1].date)}
-      </text>
+      <polygon points={area} fill={`url(#grad-${dataKey})`} />
+      <polyline points={points} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      {vals.map((v, i) => (
+        <circle key={i} cx={px(i)} cy={py(v)} r={i === vals.length - 1 ? 4.5 : 2.5}
+          fill={i === vals.length - 1 ? color : SURFACE} stroke={color} strokeWidth="1.5" />
+      ))}
+      <text x={padX} y={height - 2} style={{ font: `400 9px ${MONO}`, fill: TEXT3 }}>{fmtDate(data[0].date)}</text>
+      <text x={width - padX} y={height - 2} textAnchor="end" style={{ font: `400 9px ${MONO}`, fill: TEXT3 }}>{fmtDate(data[data.length - 1].date)}</text>
     </svg>
   );
 };
 
-/* ═══════════════════════════════════
+/* ── Bar Chart (workouts per week) ── */
+const BarChart = ({ width = 300, height = 130 }) => {
+  const data = [3, 4, 4, 2, 5, 3, 4];
+  const labels = ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7'];
+  const maxVal = Math.max(...data);
+  const barW = (width - 40) / data.length - 6;
+  return (
+    <svg width={width} height={height} style={{ display: 'block' }}>
+      {data.map((v, i) => {
+        const barH = (v / maxVal) * (height - 40);
+        const x = 20 + i * ((width - 40) / data.length) + 3;
+        const y = height - 24 - barH;
+        return (
+          <g key={i}>
+            <rect x={x} y={y} width={barW} height={barH} rx={4} fill={i === data.length - 1 ? ACCENT : '#DDD8D3'} />
+            <text x={x + barW / 2} y={y - 4} textAnchor="middle" style={{ font: `600 10px ${MONO}`, fill: i === data.length - 1 ? ACCENT : TEXT2 }}>{v}</text>
+            <text x={x + barW / 2} y={height - 8} textAnchor="middle" style={{ font: `400 9px ${FONT}`, fill: TEXT3 }}>{labels[i]}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+};
+
+/* ══════════════════════════════════════
    MAIN PORTAL COMPONENT
-   ═══════════════════════════════════ */
+   ══════════════════════════════════════ */
 
 export default function Portal() {
   const [, setTick] = useState(0);
@@ -308,8 +449,26 @@ export default function Portal() {
   const client = patients.find(p => p.id === selectedClientId) || topClients[0];
   const clientName = client ? `${client.firstName} ${client.lastName}` : 'Client';
 
-  // Bottom tab
+  // Navigation
   const [activeTab, setActiveTab] = useState('home');
+  const [subView, setSubView] = useState(null); // 'workout-detail', 'active-workout', 'workout-complete'
+
+  // Train tab segments
+  const [trainSeg, setTrainSeg] = useState('Calendar');
+  // Coach tab segments
+  const [coachSeg, setCoachSeg] = useState('AI Coach');
+  // Progress tab segments
+  const [progressSeg, setProgressSeg] = useState('Workouts');
+
+  // Habits
+  const [habits, setHabits] = useState({ water: false, sleep: true, steps: false, eat: false });
+
+  // Active workout state
+  const [workoutIndex, setWorkoutIndex] = useState(0);
+  const [workoutTimer, setWorkoutTimer] = useState(0);
+  const [workoutPaused, setWorkoutPaused] = useState(false);
+  const [completedExercises, setCompletedExercises] = useState(new Set());
+  const timerRef = useRef(null);
 
   // Chat state
   const [chatMessages, setChatMessages] = useState(() => client ? getSeedChat(clientName) : []);
@@ -324,32 +483,44 @@ export default function Portal() {
     if (chatEndRef.current) chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
 
-  if (!client) return <div style={{ padding: 40, fontFamily: FONT, color: TEXT3 }}>No clients found. Add clients first.</div>;
+  // Workout timer
+  useEffect(() => {
+    if (subView === 'active-workout' && !workoutPaused) {
+      timerRef.current = setInterval(() => setWorkoutTimer(t => t + 1), 1000);
+    }
+    return () => clearInterval(timerRef.current);
+  }, [subView, workoutPaused]);
+
+  if (!client) return <div style={{ padding: 40, fontFamily: FONT, color: TEXT3 }}>No clients found. Add clients in the admin panel first.</div>;
 
   // Derived data
   const clientAppts = appointments.filter(a => a.patientId === client.id);
   const todayAppts = clientAppts.filter(a => a.date === today());
-  const upcomingAppts = clientAppts.filter(a => a.date >= today() && a.status !== 'completed').sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time)).slice(0, 3);
   const clientPrograms = programs.filter(p => p.patientId === client.id);
   const progressData = getSeedProgress(client.id);
   const prs = getSeedPRs(client.id);
-  const measurements = getSeedMeasurements(client.id);
   const nutrition = getSeedNutrition(client.id);
 
-  // Streak calc
+  // Streak
   const completedDates = [...new Set(clientAppts.filter(a => a.status === 'completed').map(a => a.date))].sort().reverse();
   let streak = 0;
   if (completedDates.length > 0) {
     const d = new Date();
     for (let i = 0; i < 60; i++) {
-      const check = new Date(d);
-      check.setDate(check.getDate() - i);
-      const ds = check.toISOString().slice(0, 10);
-      if (completedDates.includes(ds)) streak++;
+      const check = new Date(d); check.setDate(check.getDate() - i);
+      if (completedDates.includes(check.toISOString().slice(0, 10))) streak++;
       else if (i > 0) break;
     }
   }
-  const streakCount = Math.max(streak, 3); // min display 3
+  const streakCount = Math.max(streak, 12);
+  const weekWorkouts = Math.max(clientAppts.filter(a => a.status === 'completed' && a.date >= weeksAgo(1)).length, 4);
+  const totalMin = weekWorkouts * 45;
+
+  const getServiceName = (svcId) => (services.find(s => s.id === svcId) || {}).name || 'Session';
+
+  const allExercises = SAMPLE_WORKOUT.sections.flatMap(s => s.exercises);
+  const totalExerciseCount = allExercises.length;
+  const totalSets = SAMPLE_WORKOUT.sections.flatMap(s => s.exercises).reduce((sum, e) => sum + (e.sets || 1), 0);
 
   const sendChat = () => {
     if (!chatDraft.trim()) return;
@@ -357,324 +528,709 @@ export default function Portal() {
     setChatDraft('');
   };
 
-  const getServiceName = (svcId) => {
-    const svc = services.find(s => s.id === svcId);
-    return svc ? svc.name : 'Session';
+  const startWorkout = () => {
+    setWorkoutIndex(0);
+    setWorkoutTimer(0);
+    setWorkoutPaused(false);
+    setCompletedExercises(new Set());
+    setSubView('active-workout');
   };
 
-  // ── Tab Content ──
+  const finishWorkout = () => {
+    clearInterval(timerRef.current);
+    setSubView('workout-complete');
+  };
 
+  const fmtTimer = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
+  // ── Week strip for calendar ──
+  const getWeekDays = () => {
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      return {
+        label: d.toLocaleDateString('en-US', { weekday: 'short' }).charAt(0),
+        date: d.getDate(),
+        isToday: d.toISOString().slice(0, 10) === today(),
+        fullDate: d.toISOString().slice(0, 10),
+        hasEvent: clientAppts.some(a => a.date === d.toISOString().slice(0, 10)),
+      };
+    });
+  };
+
+  /* ══════════════════════════════════════
+     TAB 1: HOME
+     ══════════════════════════════════════ */
   const renderHome = () => (
-    <div className="portal-page pt-fadeUp" style={{ padding: '20px 16px 100px' }}>
+    <div className="ios-page" style={{ padding: '24px 16px 100px' }}>
       {/* Greeting */}
-      <div className="pt-fadeUp pt-fadeUp-1" style={{ marginBottom: 24 }}>
-        <h2 style={{ font: `700 24px ${HEADING}`, color: TEXT, margin: '0 0 4px' }}>
-          Hey {client.firstName}
-        </h2>
-        <p style={{ font: `400 14px ${FONT}`, color: TEXT2, margin: 0 }}>
-          {todayAppts.length > 0 ? `You have ${todayAppts.length} session${todayAppts.length > 1 ? 's' : ''} today` : "No sessions today — rest up!"}
-        </p>
+      <div className="ios-fadeUp ios-d1" style={{ marginBottom: 24 }}>
+        <h1 style={{ font: `700 28px ${FONT}`, color: TEXT, margin: '0 0 4px', letterSpacing: '-0.3px' }}>
+          Hi, {client.firstName}
+        </h1>
+        <p style={{ font: `400 15px ${FONT}`, color: TEXT2, margin: 0 }}>{fmtFullDate()}</p>
       </div>
 
-      {/* Streak + Quick Stats */}
-      <div className="pt-fadeUp pt-fadeUp-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
-        <Card style={{ padding: 14, textAlign: 'center' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}><FireIcon /></div>
-          <div style={{ font: `700 20px ${MONO}`, color: TEXT }}>{streakCount}</div>
-          <div style={{ font: `400 10px ${FONT}`, color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Day Streak</div>
-        </Card>
-        <Card style={{ padding: 14, textAlign: 'center' }}>
-          <div style={{ font: `700 20px ${MONO}`, color: TEXT }}>{client.visitCount || 0}</div>
-          <div style={{ font: `400 10px ${FONT}`, color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 6 }}>Sessions</div>
-        </Card>
-        <Card style={{ padding: 14, textAlign: 'center' }}>
-          <div style={{ font: `700 20px ${MONO}`, color: TEXT }}>{prs.length}</div>
-          <div style={{ font: `400 10px ${FONT}`, color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 6 }}>PRs</div>
-        </Card>
-      </div>
+      {/* Today's Plan Hero Card */}
+      <Card className="ios-fadeUp ios-d2" style={{ marginBottom: 12, padding: 20 }} onClick={() => setSubView('workout-detail')}>
+        <SectionLabel style={{ color: ACCENT, marginBottom: 8 }}>Today's Plan</SectionLabel>
+        <div style={{ font: `600 20px ${FONT}`, color: TEXT, marginBottom: 4 }}>{SAMPLE_WORKOUT.title}</div>
+        <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+          <span style={{ font: `400 13px ${FONT}`, color: TEXT2 }}>{SAMPLE_WORKOUT.duration} min</span>
+          <span style={{ font: `400 13px ${FONT}`, color: TEXT2 }}>{SAMPLE_WORKOUT.difficulty}</span>
+          <span style={{ font: `400 13px ${FONT}`, color: TEXT2 }}>{totalExerciseCount} exercises</span>
+        </div>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+          {SAMPLE_WORKOUT.focus.map(f => (
+            <span key={f} style={{
+              padding: '4px 10px', borderRadius: 100,
+              background: ACCENT_LIGHT,
+              font: `500 11px ${FONT}`, color: ACCENT,
+            }}>{f}</span>
+          ))}
+        </div>
+        <PillButton onClick={(e) => { e.stopPropagation(); startWorkout(); }}>Start Workout</PillButton>
+      </Card>
 
-      {/* Today's Workout */}
-      {todayAppts.length > 0 && (
-        <Card className="pt-fadeUp pt-fadeUp-3" style={{ marginBottom: 16 }}>
-          <div style={{ font: `600 12px ${FONT}`, color: ACCENT, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
-            Today's Session
-          </div>
-          {todayAppts.map(appt => (
-            <div key={appt.id} style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '10px 0', borderBottom: `1px solid ${CARD_BORDER}`,
-            }}>
-              <div>
-                <div style={{ font: `600 14px ${FONT}`, color: TEXT }}>{getServiceName(appt.serviceId)}</div>
-                <div style={{ font: `400 12px ${MONO}`, color: TEXT2 }}>{fmtTime(appt.time)} - {appt.duration}min</div>
-              </div>
+      {/* Today's Habits */}
+      <Card className="ios-fadeUp ios-d3" style={{ marginBottom: 12 }}>
+        <SectionLabel>Today's Habits</SectionLabel>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {SAMPLE_HABITS.map(h => (
+            <div
+              key={h.id}
+              onClick={() => setHabits(prev => ({ ...prev, [h.id]: !prev[h.id] }))}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
+                padding: '6px 0',
+              }}
+            >
+              <IconCheck checked={habits[h.id]} />
               <span style={{
-                padding: '4px 12px', borderRadius: 100,
-                background: appt.status === 'confirmed' ? `${SUCCESS}18` : `${WARNING}18`,
-                color: appt.status === 'confirmed' ? SUCCESS : WARNING,
-                font: `500 11px ${FONT}`, textTransform: 'capitalize',
-              }}>{appt.status}</span>
+                font: `400 15px ${FONT}`,
+                color: habits[h.id] ? TEXT : TEXT2,
+                textDecoration: habits[h.id] ? 'line-through' : 'none',
+              }}>
+                {h.emoji} {h.label}
+              </span>
             </div>
           ))}
-        </Card>
-      )}
-
-      {/* Upcoming Sessions */}
-      {upcomingAppts.length > 0 && (
-        <Card className="pt-fadeUp pt-fadeUp-4" style={{ marginBottom: 16 }}>
-          <div style={{ font: `600 12px ${FONT}`, color: TEXT2, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
-            Upcoming
-          </div>
-          {upcomingAppts.map(appt => (
-            <div key={appt.id} style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '10px 0', borderBottom: `1px solid ${CARD_BORDER}`,
-            }}>
-              <div>
-                <div style={{ font: `500 13px ${FONT}`, color: TEXT }}>{getServiceName(appt.serviceId)}</div>
-                <div style={{ font: `400 12px ${MONO}`, color: TEXT3 }}>{fmtWeekday(appt.date)} at {fmtTime(appt.time)}</div>
-              </div>
-            </div>
-          ))}
-        </Card>
-      )}
-
-      {/* Trainer Card */}
-      <Card className="pt-fadeUp pt-fadeUp-5" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <div style={{
-          width: 48, height: 48, borderRadius: '50%',
-          background: DARK_GRAD,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#fff', fontWeight: 700, fontSize: 16, fontFamily: FONT,
-        }}>MC</div>
-        <div>
-          <div style={{ font: `600 14px ${FONT}`, color: TEXT }}>Marcus Cole</div>
-          <div style={{ font: `400 12px ${FONT}`, color: TEXT2 }}>Head Trainer / Owner</div>
-          <div style={{ font: `400 11px ${FONT}`, color: ACCENT, marginTop: 2 }}>NASM-CPT, CSCS</div>
         </div>
       </Card>
+
+      {/* Today's Nutrition Summary */}
+      <Card className="ios-fadeUp ios-d4" style={{ marginBottom: 12 }} onClick={() => setActiveTab('progress')}>
+        <SectionLabel>Today's Nutrition</SectionLabel>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 12 }}>
+          <span style={{ font: `700 22px ${MONO}`, color: TEXT }}>{nutrition.calories.current.toLocaleString()}</span>
+          <span style={{ font: `400 13px ${FONT}`, color: TEXT3 }}>/ {nutrition.calories.target.toLocaleString()} cal</span>
+        </div>
+        <div style={{ height: 6, borderRadius: 3, background: '#EFEBE7', overflow: 'hidden', marginBottom: 14 }}>
+          <div style={{ height: '100%', borderRadius: 3, background: ACCENT, width: `${Math.min((nutrition.calories.current / nutrition.calories.target) * 100, 100)}%`, transition: 'width 0.6s ease' }} />
+        </div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <MacroBar label="Protein" current={nutrition.protein.current} target={nutrition.protein.target} color="#E07B5A" />
+          <MacroBar label="Carbs" current={nutrition.carbs.current} target={nutrition.carbs.target} color="#5B9BD5" />
+          <MacroBar label="Fat" current={nutrition.fat.current} target={nutrition.fat.target} color="#D4A843" />
+        </div>
+        <div style={{ marginTop: 14 }}>
+          <PillButton variant="secondary" onClick={(e) => e.stopPropagation()} style={{ font: `500 13px ${FONT}`, padding: '10px 0' }}>Log Meal</PillButton>
+        </div>
+      </Card>
+
+      {/* Messages Preview */}
+      <Card className="ios-fadeUp ios-d5" style={{ marginBottom: 12 }} onClick={() => { setActiveTab('coach'); setCoachSeg('Messages'); }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: '50%', background: ACCENT,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', font: `600 13px ${FONT}`, flexShrink: 0,
+          }}>MC</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ font: `500 14px ${FONT}`, color: TEXT }}>1 new message from Marcus</div>
+            <div style={{ font: `400 13px ${FONT}`, color: TEXT2, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              20-30 min of low-intensity steady state...
+            </div>
+          </div>
+          <IconChevron dir="right" color={TEXT3} />
+        </div>
+      </Card>
+
+      {/* Streak Strip */}
+      <div className="ios-fadeUp ios-d6" style={{ display: 'flex', gap: 10 }}>
+        <Card style={{ flex: 1, padding: 14, textAlign: 'center' }}>
+          <div style={{ font: `700 20px ${FONT}`, color: TEXT }}>🔥 {streakCount}</div>
+          <div style={{ font: `400 11px ${FONT}`, color: TEXT3, marginTop: 2 }}>day streak</div>
+        </Card>
+        <Card style={{ flex: 1, padding: 14, textAlign: 'center' }}>
+          <div style={{ font: `700 20px ${FONT}`, color: TEXT }}>{weekWorkouts}</div>
+          <div style={{ font: `400 11px ${FONT}`, color: TEXT3, marginTop: 2 }}>workouts/wk</div>
+        </Card>
+        <Card style={{ flex: 1, padding: 14, textAlign: 'center' }}>
+          <div style={{ font: `700 20px ${FONT}`, color: TEXT }}>{totalMin}</div>
+          <div style={{ font: `400 11px ${FONT}`, color: TEXT3, marginTop: 2 }}>min total</div>
+        </Card>
+      </div>
     </div>
   );
 
-  const renderWorkouts = () => {
-    const prog = clientPrograms[0];
-    const completedCount = prog ? prog.sessions.filter(s => s.status === 'completed').length : 0;
-    const totalCount = prog ? prog.sessions.length : 0;
-    const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  /* ══════════════════════════════════════
+     TAB 2: TRAIN
+     ══════════════════════════════════════ */
+  const renderTrain = () => (
+    <div className="ios-page" style={{ padding: '24px 16px 100px' }}>
+      <h1 style={{ font: `700 28px ${FONT}`, color: TEXT, margin: '0 0 16px', letterSpacing: '-0.3px' }}>Train</h1>
+      <SegmentedControl options={['Calendar', 'Programs', 'Library']} active={trainSeg} onChange={setTrainSeg} />
+      <div style={{ marginTop: 16 }}>
+        {trainSeg === 'Calendar' && renderTrainCalendar()}
+        {trainSeg === 'Programs' && renderTrainPrograms()}
+        {trainSeg === 'Library' && renderTrainLibrary()}
+      </div>
+    </div>
+  );
 
+  const renderTrainCalendar = () => {
+    const week = getWeekDays();
     return (
-      <div className="portal-page pt-fadeUp" style={{ padding: '20px 16px 100px' }}>
-        <h2 style={{ font: `700 20px ${HEADING}`, color: TEXT, margin: '0 0 16px' }}>Workouts</h2>
-
-        {prog ? (
-          <>
-            {/* Program card */}
-            <Card className="pt-fadeUp pt-fadeUp-1" style={{ marginBottom: 16 }}>
-              <div style={{ font: `600 16px ${HEADING}`, color: TEXT, marginBottom: 4 }}>{prog.name}</div>
-              <div style={{ font: `400 12px ${FONT}`, color: TEXT2, marginBottom: 14 }}>
-                {completedCount} of {totalCount} sessions complete
+      <>
+        {/* Week Strip */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
+          {week.map(d => (
+            <div key={d.date} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+              <span style={{ font: `500 11px ${FONT}`, color: TEXT3 }}>{d.label}</span>
+              <div style={{
+                width: 36, height: 36, borderRadius: '50%',
+                background: d.isToday ? ACCENT : 'transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <span style={{ font: `600 14px ${FONT}`, color: d.isToday ? '#fff' : TEXT }}>{d.date}</span>
               </div>
-              {/* Progress bar */}
-              <div style={{ height: 8, borderRadius: 4, background: '#F0F0F5', overflow: 'hidden', marginBottom: 4 }}>
-                <div style={{ height: '100%', borderRadius: 4, background: ACCENT, width: `${pct}%`, transition: 'width 0.6s ease' }} />
-              </div>
-              <div style={{ font: `500 11px ${MONO}`, color: ACCENT, textAlign: 'right' }}>{pct}%</div>
-            </Card>
-
-            {/* Session list */}
-            <div style={{ font: `600 12px ${FONT}`, color: TEXT2, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
-              Sessions
+              {d.hasEvent && <div style={{ width: 5, height: 5, borderRadius: '50%', background: d.isToday ? '#fff' : ACCENT }} />}
             </div>
-            {prog.sessions.map((session, i) => (
-              <Card key={i} className={`pt-fadeUp pt-fadeUp-${Math.min(i + 2, 5)}`} style={{ marginBottom: 10, padding: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <div style={{ font: `500 14px ${FONT}`, color: TEXT }}>{session.name}</div>
-                    <div style={{ font: `400 12px ${MONO}`, color: TEXT3, marginTop: 2 }}>{fmtWeekday(session.date)}</div>
-                    {session.notes && (
-                      <div style={{ font: `400 12px ${FONT}`, color: TEXT2, marginTop: 6 }}>{session.notes}</div>
-                    )}
+          ))}
+        </div>
+
+        {/* Today's Schedule */}
+        <SectionLabel>Today</SectionLabel>
+
+        {/* Workout card */}
+        <Card className="ios-fadeUp ios-d1" style={{ marginBottom: 10 }} onClick={() => setSubView('workout-detail')}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 10,
+              background: ACCENT_LIGHT,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 18,
+            }}>🏋️</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ font: `500 15px ${FONT}`, color: TEXT }}>{SAMPLE_WORKOUT.title}</div>
+              <div style={{ font: `400 13px ${FONT}`, color: TEXT2 }}>{SAMPLE_WORKOUT.duration} min</div>
+            </div>
+            <div style={{ width: 24, height: 24, borderRadius: '50%', border: `1.5px solid ${BORDER}` }} />
+          </div>
+        </Card>
+
+        {/* Habits card */}
+        <Card className="ios-fadeUp ios-d2" style={{ marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>📋</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ font: `500 15px ${FONT}`, color: TEXT }}>Daily Habits</div>
+              <div style={{ font: `400 13px ${FONT}`, color: TEXT2 }}>{Object.values(habits).filter(Boolean).length}/4 complete</div>
+            </div>
+            <IconCheck checked={Object.values(habits).every(Boolean)} />
+          </div>
+        </Card>
+
+        {/* Nutrition card */}
+        <Card className="ios-fadeUp ios-d3" style={{ marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🥗</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ font: `500 15px ${FONT}`, color: TEXT }}>Nutrition Tracking</div>
+              <div style={{ font: `400 13px ${FONT}`, color: TEXT2 }}>{nutrition.calories.current}/{nutrition.calories.target} cal</div>
+            </div>
+            <div style={{ width: 30, height: 30, borderRadius: '50%', position: 'relative' }}>
+              <svg width={30} height={30} style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx={15} cy={15} r={12} fill="none" stroke="#EFEBE7" strokeWidth={3} />
+                <circle cx={15} cy={15} r={12} fill="none" stroke={ACCENT} strokeWidth={3}
+                  strokeDasharray={75.4} strokeDashoffset={75.4 * (1 - nutrition.calories.current / nutrition.calories.target)}
+                  strokeLinecap="round" />
+              </svg>
+            </div>
+          </div>
+        </Card>
+
+        {/* Today's Sessions from store */}
+        {todayAppts.length > 0 && (
+          <>
+            <SectionLabel style={{ marginTop: 20 }}>Scheduled Sessions</SectionLabel>
+            {todayAppts.map(appt => (
+              <Card key={appt.id} className="ios-fadeUp" style={{ marginBottom: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 10, background: '#EDE9FE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>📅</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ font: `500 15px ${FONT}`, color: TEXT }}>{getServiceName(appt.serviceId)}</div>
+                    <div style={{ font: `400 13px ${FONT}`, color: TEXT2 }}>{fmtTime(appt.time)} - {appt.duration}min</div>
                   </div>
                   <span style={{
-                    padding: '4px 10px', borderRadius: 100, flexShrink: 0,
-                    background: session.status === 'completed' ? `${SUCCESS}18` :
-                      session.status === 'in-progress' ? `${ACCENT}14` : '#F5F5F5',
-                    color: session.status === 'completed' ? SUCCESS :
-                      session.status === 'in-progress' ? ACCENT : TEXT3,
-                    font: `500 10px ${FONT}`, textTransform: 'capitalize',
-                  }}>{session.status === 'in-progress' ? 'In Progress' : session.status}</span>
+                    padding: '4px 10px', borderRadius: 100,
+                    background: appt.status === 'confirmed' ? '#ECFDF5' : '#FFFBEB',
+                    color: appt.status === 'confirmed' ? SUCCESS : WARNING,
+                    font: `500 11px ${FONT}`, textTransform: 'capitalize',
+                  }}>{appt.status}</span>
                 </div>
               </Card>
             ))}
           </>
-        ) : (
-          <Card>
-            <div style={{ textAlign: 'center', padding: 20, color: TEXT3, fontFamily: FONT }}>
-              No active program. Ask your trainer to set one up!
-            </div>
-          </Card>
         )}
-      </div>
+      </>
     );
   };
 
-  const renderProgress = () => (
-    <div className="portal-page pt-fadeUp" style={{ padding: '20px 16px 100px' }}>
-      <h2 style={{ font: `700 20px ${HEADING}`, color: TEXT, margin: '0 0 16px' }}>Progress</h2>
-
-      {/* Weight Chart */}
-      {progressData && (
-        <Card className="pt-fadeUp pt-fadeUp-1" style={{ marginBottom: 16 }}>
-          <div style={{ font: `600 14px ${FONT}`, color: TEXT, marginBottom: 4 }}>Weight Trend</div>
-          <div style={{ font: `400 12px ${FONT}`, color: TEXT2, marginBottom: 14 }}>
-            {progressData[0].weight} lbs → {progressData[progressData.length - 1].weight} lbs
+  const renderTrainPrograms = () => (
+    <>
+      {SAMPLE_PROGRAMS.map(prog => (
+        <Card key={prog.id} className="ios-fadeUp" style={{ marginBottom: 12 }}>
+          <div style={{ font: `600 17px ${FONT}`, color: TEXT, marginBottom: 4 }}>{prog.name}</div>
+          <div style={{ font: `400 13px ${FONT}`, color: TEXT2, marginBottom: 4 }}>
+            Week {prog.week} of {prog.totalWeeks} — {prog.frequency}
           </div>
-          <div style={{ overflowX: 'auto' }}>
-            <MiniChart data={progressData} width={Math.max(280, (progressData.length - 1) * 24 + 40)} height={130} />
-          </div>
-        </Card>
-      )}
-
-      {/* PRs */}
-      {prs.length > 0 && (
-        <Card className="pt-fadeUp pt-fadeUp-2" style={{ marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <TrophyIcon />
-            <span style={{ font: `600 14px ${FONT}`, color: TEXT }}>Personal Records</span>
-          </div>
-          {prs.map(pr => (
-            <div key={pr.id} style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '10px 0', borderBottom: `1px solid ${CARD_BORDER}`,
-            }}>
-              <div>
-                <div style={{ font: `500 14px ${FONT}`, color: TEXT }}>{pr.exercise}</div>
-                <div style={{ font: `400 11px ${MONO}`, color: TEXT3 }}>{fmtDate(pr.date)}</div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ font: `700 16px ${MONO}`, color: ACCENT }}>{pr.value} {pr.unit}</div>
-                {pr.previousValue && (
-                  <div style={{ font: `400 11px ${MONO}`, color: SUCCESS }}>+{pr.value - pr.previousValue} {pr.unit}</div>
-                )}
-              </div>
-            </div>
-          ))}
-        </Card>
-      )}
-
-      {/* Measurements */}
-      {measurements && (
-        <Card className="pt-fadeUp pt-fadeUp-3">
-          <div style={{ font: `600 14px ${FONT}`, color: TEXT, marginBottom: 12 }}>Measurements</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            {Object.entries(measurements).map(([key, vals]) => (
-              <div key={key} style={{
-                padding: 12, borderRadius: 10,
-                background: '#FAFAFA', border: `1px solid ${CARD_BORDER}`,
-              }}>
-                <div style={{ font: `400 11px ${FONT}`, color: TEXT3, textTransform: 'capitalize', marginBottom: 4 }}>{key}</div>
-                <div style={{ font: `700 16px ${MONO}`, color: TEXT }}>{vals[vals.length - 1]}"</div>
-                {vals.length > 1 && (
-                  <div style={{
-                    font: `400 10px ${MONO}`,
-                    color: vals[vals.length - 1] <= vals[0] ? SUCCESS : TEXT3,
-                  }}>
-                    {vals[vals.length - 1] <= vals[0] ? '' : '+'}{(vals[vals.length - 1] - vals[0]).toFixed(1)}" from start
-                  </div>
-                )}
-              </div>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+            {prog.phases.map(p => (
+              <span key={p} style={{
+                padding: '3px 8px', borderRadius: 6, background: ACCENT_LIGHT,
+                font: `500 11px ${FONT}`, color: ACCENT,
+              }}>{p}</span>
             ))}
           </div>
+          <div style={{ height: 6, borderRadius: 3, background: '#EFEBE7', overflow: 'hidden', marginBottom: 4 }}>
+            <div style={{ height: '100%', borderRadius: 3, background: ACCENT, width: `${prog.progress}%` }} />
+          </div>
+          <div style={{ font: `500 11px ${MONO}`, color: ACCENT, textAlign: 'right' }}>{prog.progress}%</div>
         </Card>
-      )}
+      ))}
 
-      {!progressData && prs.length === 0 && (
-        <Card>
-          <div style={{ textAlign: 'center', padding: 20, color: TEXT3, fontFamily: FONT }}>
-            Progress data will appear after a few sessions.
+      {/* Programs from store */}
+      {clientPrograms.map(prog => (
+        <Card key={prog.id} className="ios-fadeUp" style={{ marginBottom: 12 }}>
+          <div style={{ font: `600 17px ${FONT}`, color: TEXT, marginBottom: 4 }}>{prog.name}</div>
+          <div style={{ font: `400 13px ${FONT}`, color: TEXT2, marginBottom: 8 }}>
+            {prog.sessions ? `${prog.sessions.filter(s => s.status === 'completed').length} of ${prog.sessions.length} sessions` : 'Program'}
+          </div>
+          {prog.sessions && (
+            <div style={{ height: 6, borderRadius: 3, background: '#EFEBE7', overflow: 'hidden' }}>
+              <div style={{ height: '100%', borderRadius: 3, background: ACCENT, width: `${Math.round((prog.sessions.filter(s => s.status === 'completed').length / prog.sessions.length) * 100)}%` }} />
+            </div>
+          )}
+        </Card>
+      ))}
+    </>
+  );
+
+  const renderTrainLibrary = () => (
+    <>
+      {/* Search */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        padding: '10px 14px', borderRadius: 12,
+        background: SURFACE, border: `1px solid ${BORDER}`,
+        marginBottom: 14,
+      }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={TEXT3} strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+        <span style={{ font: `400 14px ${FONT}`, color: TEXT3 }}>Search workouts...</span>
+      </div>
+
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, overflowX: 'auto' }} className="ios-scroll">
+        {['All', 'Beginner', 'Intermediate', 'Advanced'].map(f => (
+          <span key={f} style={{
+            padding: '6px 14px', borderRadius: 100, whiteSpace: 'nowrap',
+            background: f === 'All' ? ACCENT : SURFACE,
+            color: f === 'All' ? '#fff' : TEXT2,
+            font: `500 12px ${FONT}`,
+            border: f === 'All' ? 'none' : `1px solid ${BORDER}`,
+          }}>{f}</span>
+        ))}
+      </div>
+
+      {SAMPLE_LIBRARY.map(w => (
+        <Card key={w.id} className="ios-fadeUp" style={{ marginBottom: 10 }} onClick={() => setSubView('workout-detail')}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ font: `500 15px ${FONT}`, color: TEXT, marginBottom: 4 }}>{w.title}</div>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                <span style={{ font: `400 12px ${FONT}`, color: TEXT2 }}>{w.duration} min</span>
+                <span style={{ font: `400 12px ${FONT}`, color: TEXT3 }}>{w.level}</span>
+              </div>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                {w.tags.map(t => (
+                  <span key={t} style={{
+                    padding: '2px 8px', borderRadius: 6, background: ACCENT_LIGHT,
+                    font: `400 11px ${FONT}`, color: ACCENT,
+                  }}>{t}</span>
+                ))}
+              </div>
+            </div>
+            <IconChevron dir="right" color={TEXT3} />
           </div>
         </Card>
-      )}
+      ))}
+    </>
+  );
+
+  /* ══════════════════════════════════════
+     WORKOUT DETAIL OVERLAY
+     ══════════════════════════════════════ */
+  const renderWorkoutDetail = () => (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 500,
+      background: BG, overflowY: 'auto',
+    }}>
+      {/* Header */}
+      <div style={{ padding: '20px 16px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <button onClick={() => setSubView(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+          <IconChevron dir="left" size={24} color={ACCENT} />
+        </button>
+        <span style={{ font: `600 15px ${FONT}`, color: TEXT }}>Workout</span>
+        <div style={{ width: 32 }} />
+      </div>
+
+      <div style={{ padding: '20px 16px 120px' }}>
+        {/* Hero */}
+        <div className="ios-fadeUp ios-d1" style={{ marginBottom: 20 }}>
+          <h1 style={{ font: `700 28px ${FONT}`, color: TEXT, margin: '0 0 8px', letterSpacing: '-0.3px' }}>{SAMPLE_WORKOUT.title}</h1>
+          <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+            <span style={{ font: `400 14px ${FONT}`, color: TEXT2 }}>{SAMPLE_WORKOUT.duration} min</span>
+            <span style={{ font: `400 14px ${FONT}`, color: TEXT2 }}>{SAMPLE_WORKOUT.difficulty}</span>
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {SAMPLE_WORKOUT.focus.map(f => (
+              <span key={f} style={{
+                padding: '5px 12px', borderRadius: 100, background: ACCENT_LIGHT,
+                font: `500 12px ${FONT}`, color: ACCENT,
+              }}>{f}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* Stats Row */}
+        <div className="ios-fadeUp ios-d2" style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
+          <Card style={{ flex: 1, padding: 12, textAlign: 'center' }}>
+            <div style={{ font: `700 20px ${FONT}`, color: TEXT }}>{totalExerciseCount}</div>
+            <div style={{ font: `400 11px ${FONT}`, color: TEXT3 }}>Exercises</div>
+          </Card>
+          <Card style={{ flex: 1, padding: 12, textAlign: 'center' }}>
+            <div style={{ font: `700 20px ${FONT}`, color: TEXT }}>{totalSets}</div>
+            <div style={{ font: `400 11px ${FONT}`, color: TEXT3 }}>Total Sets</div>
+          </Card>
+          <Card style={{ flex: 1, padding: 12, textAlign: 'center' }}>
+            <div style={{ font: `700 20px ${FONT}`, color: TEXT }}>~280</div>
+            <div style={{ font: `400 11px ${FONT}`, color: TEXT3 }}>Est. Cal</div>
+          </Card>
+        </div>
+
+        {/* Exercise List by Section */}
+        {SAMPLE_WORKOUT.sections.map((section, si) => (
+          <div key={si} className="ios-fadeUp" style={{ animationDelay: `${0.08 + si * 0.04}s`, marginBottom: 20 }}>
+            <SectionLabel>{section.name}</SectionLabel>
+            {section.exercises.map((ex, ei) => (
+              <Card key={ei} style={{ marginBottom: 8, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: 10, background: ACCENT_LIGHT,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    font: `400 16px ${FONT}`,
+                  }}>{ex.icon}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ font: `500 14px ${FONT}`, color: TEXT }}>{ex.name}</div>
+                    <div style={{ font: `400 12px ${FONT}`, color: TEXT2, marginTop: 1 }}>
+                      {ex.sets ? `${ex.sets} x ${ex.reps} @ ${ex.weight}` : ex.time}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      {/* Sticky Start Button */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        padding: '12px 16px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 8px))',
+        background: 'linear-gradient(transparent, rgba(247,243,240,0.95) 20%)',
+      }}>
+        <PillButton onClick={startWorkout}>Start Workout</PillButton>
+      </div>
     </div>
   );
 
-  const renderNutrition = () => {
-    const n = nutrition;
-    const calPct = Math.round((n.calories.current / n.calories.target) * 100);
+  /* ══════════════════════════════════════
+     ACTIVE WORKOUT FLOW
+     ══════════════════════════════════════ */
+  const renderActiveWorkout = () => {
+    const currentExercise = allExercises[workoutIndex];
+    if (!currentExercise) return null;
+    const progressPct = ((workoutIndex + 1) / totalExerciseCount) * 100;
+    const isTimed = !currentExercise.sets;
 
     return (
-      <div className="portal-page pt-fadeUp" style={{ padding: '20px 16px 100px' }}>
-        <h2 style={{ font: `700 20px ${HEADING}`, color: TEXT, margin: '0 0 16px' }}>Nutrition</h2>
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 600,
+        background: BG, display: 'flex', flexDirection: 'column',
+      }}>
+        {/* Top bar */}
+        <div style={{ padding: '16px 16px 12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <button onClick={() => { clearInterval(timerRef.current); setSubView(null); }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+              <IconClose size={22} color={TEXT2} />
+            </button>
+            <span style={{ font: `600 13px ${MONO}`, color: ACCENT }}>{fmtTimer(workoutTimer)}</span>
+            <span style={{ font: `500 13px ${FONT}`, color: TEXT2 }}>{workoutIndex + 1}/{totalExerciseCount}</span>
+          </div>
+          {/* Progress bar */}
+          <div style={{ height: 4, borderRadius: 2, background: '#EFEBE7', overflow: 'hidden' }}>
+            <div style={{ height: '100%', borderRadius: 2, background: ACCENT, width: `${progressPct}%`, transition: 'width 0.3s ease' }} />
+          </div>
+        </div>
 
-        {/* Calories header */}
-        <Card className="pt-fadeUp pt-fadeUp-1" style={{ marginBottom: 16, textAlign: 'center' }}>
-          <div style={{ font: `400 12px ${FONT}`, color: TEXT2, marginBottom: 4 }}>Today's Calories</div>
-          <div style={{ font: `700 28px ${MONO}`, color: TEXT }}>{n.calories.current.toLocaleString()}</div>
-          <div style={{ font: `400 12px ${MONO}`, color: TEXT3 }}>of {n.calories.target.toLocaleString()} kcal ({calPct}%)</div>
-          {/* Calorie bar */}
-          <div style={{ height: 6, borderRadius: 3, background: '#F0F0F5', overflow: 'hidden', marginTop: 12 }}>
-            <div style={{ height: '100%', borderRadius: 3, background: ACCENT, width: `${Math.min(calPct, 100)}%` }} />
+        {/* Main content area */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 24px', gap: 24 }}>
+          {/* Exercise icon / video placeholder */}
+          <div style={{
+            width: 140, height: 140, borderRadius: '50%',
+            background: ACCENT_LIGHT,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 56,
+          }}>
+            {currentExercise.icon}
           </div>
-        </Card>
 
-        {/* Macro Rings */}
-        <Card className="pt-fadeUp pt-fadeUp-2" style={{ marginBottom: 16 }}>
-          <div style={{ font: `600 12px ${FONT}`, color: TEXT2, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
-            Macros
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-            <MacroRing label="Protein" current={n.protein.current} target={n.protein.target} color="#EF4444" size={80} />
-            <MacroRing label="Carbs" current={n.carbs.current} target={n.carbs.target} color="#3B82F6" size={80} />
-            <MacroRing label="Fat" current={n.fat.current} target={n.fat.target} color="#EAB308" size={80} />
-          </div>
-        </Card>
-
-        {/* Meal Log */}
-        <Card className="pt-fadeUp pt-fadeUp-3">
-          <div style={{ font: `600 12px ${FONT}`, color: TEXT2, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
-            Meal Log
-          </div>
-          {n.meals.map((meal, i) => (
-            <div key={i} style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '10px 0', borderBottom: i < n.meals.length - 1 ? `1px solid ${CARD_BORDER}` : 'none',
-            }}>
-              <div>
-                <div style={{ font: `500 13px ${FONT}`, color: TEXT }}>{meal.name}</div>
-                <div style={{ font: `400 11px ${MONO}`, color: TEXT3 }}>{meal.time}</div>
+          {/* Exercise name */}
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ font: `700 24px ${FONT}`, color: TEXT, marginBottom: 8, letterSpacing: '-0.3px' }}>
+              {currentExercise.name}
+            </div>
+            {currentExercise.sets ? (
+              <div style={{ font: `400 16px ${FONT}`, color: TEXT2 }}>
+                {currentExercise.sets} sets x {currentExercise.reps} reps @ {currentExercise.weight}
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ font: `500 13px ${MONO}`, color: TEXT }}>{meal.cal} cal</div>
-                <div style={{ font: `400 10px ${MONO}`, color: TEXT3 }}>P:{meal.protein}g C:{meal.carbs}g F:{meal.fat}g</div>
+            ) : (
+              <div style={{ font: `400 16px ${FONT}`, color: TEXT2 }}>
+                {currentExercise.time}
+              </div>
+            )}
+          </div>
+
+          {/* Timed exercise: countdown ring */}
+          {isTimed && (
+            <div style={{ position: 'relative', width: 100, height: 100 }}>
+              <svg width={100} height={100} style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx={50} cy={50} r={42} fill="none" stroke="#EFEBE7" strokeWidth={5} />
+                <circle cx={50} cy={50} r={42} fill="none" stroke={ACCENT} strokeWidth={5}
+                  strokeDasharray={264} strokeDashoffset={0}
+                  strokeLinecap="round"
+                  style={{ transition: 'stroke-dashoffset 1s linear' }} />
+              </svg>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ font: `700 18px ${MONO}`, color: TEXT }}>{currentExercise.time}</span>
               </div>
             </div>
-          ))}
-        </Card>
+          )}
+        </div>
+
+        {/* Bottom controls */}
+        <div style={{ padding: '16px 16px', paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 8px))' }}>
+          <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+            <button
+              onClick={() => setWorkoutIndex(Math.max(0, workoutIndex - 1))}
+              disabled={workoutIndex === 0}
+              style={{
+                flex: 1, padding: '14px 0', borderRadius: CARD_RADIUS, border: `1.5px solid ${BORDER}`,
+                background: SURFACE, font: `500 14px ${FONT}`, color: workoutIndex === 0 ? TEXT3 : TEXT2,
+                cursor: workoutIndex === 0 ? 'default' : 'pointer', opacity: workoutIndex === 0 ? 0.5 : 1,
+              }}
+            >Previous</button>
+            <button
+              onClick={() => setWorkoutPaused(!workoutPaused)}
+              style={{
+                width: 52, height: 52, borderRadius: '50%', border: `1.5px solid ${BORDER}`,
+                background: SURFACE, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              {workoutPaused ? <IconPlay size={18} color={TEXT} /> : <IconPause size={20} color={TEXT} />}
+            </button>
+            <button style={{ display: 'none' }} /> {/* spacer */}
+          </div>
+          <PillButton onClick={() => {
+            const newCompleted = new Set(completedExercises);
+            newCompleted.add(workoutIndex);
+            setCompletedExercises(newCompleted);
+            if (workoutIndex < totalExerciseCount - 1) {
+              setWorkoutIndex(workoutIndex + 1);
+            } else {
+              finishWorkout();
+            }
+          }}>
+            {workoutIndex < totalExerciseCount - 1 ? 'Next Exercise' : 'Finish Workout'}
+          </PillButton>
+        </div>
       </div>
     );
   };
 
-  const renderChat = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 160px)' }}>
-      {/* Chat header */}
+  /* ══════════════════════════════════════
+     WORKOUT COMPLETE SUMMARY
+     ══════════════════════════════════════ */
+  const renderWorkoutComplete = () => (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 600,
+      background: BG, display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', padding: 24,
+    }}>
+      <div className="ios-fadeUp" style={{ textAlign: 'center', maxWidth: 340 }}>
+        <div style={{ fontSize: 60, marginBottom: 16 }}>🎉</div>
+        <h1 style={{ font: `700 28px ${FONT}`, color: TEXT, margin: '0 0 8px' }}>Workout Complete!</h1>
+        <p style={{ font: `400 15px ${FONT}`, color: TEXT2, margin: '0 0 32px' }}>{SAMPLE_WORKOUT.title}</p>
+
+        <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginBottom: 32 }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ font: `700 24px ${FONT}`, color: TEXT }}>{fmtTimer(workoutTimer)}</div>
+            <div style={{ font: `400 12px ${FONT}`, color: TEXT3, marginTop: 4 }}>Duration</div>
+          </div>
+          <div style={{ width: 1, background: BORDER }} />
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ font: `700 24px ${FONT}`, color: TEXT }}>{completedExercises.size}</div>
+            <div style={{ font: `400 12px ${FONT}`, color: TEXT3, marginTop: 4 }}>Exercises</div>
+          </div>
+          <div style={{ width: 1, background: BORDER }} />
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ font: `700 24px ${FONT}`, color: TEXT }}>~280</div>
+            <div style={{ font: `400 12px ${FONT}`, color: TEXT3, marginTop: 4 }}>Calories</div>
+          </div>
+        </div>
+
+        <PillButton onClick={() => { setSubView(null); setActiveTab('coach'); setCoachSeg('Messages'); }} style={{ marginBottom: 12 }}>
+          Leave Feedback for Coach
+        </PillButton>
+        <PillButton variant="ghost" onClick={() => setSubView(null)}>
+          Done
+        </PillButton>
+      </div>
+    </div>
+  );
+
+  /* ══════════════════════════════════════
+     TAB 3: COACH
+     ══════════════════════════════════════ */
+  const renderCoach = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 52px - env(safe-area-inset-bottom, 8px))' }}>
+      {/* Header */}
+      <div style={{ padding: '20px 16px 12px' }}>
+        <h1 style={{ font: `700 28px ${FONT}`, color: TEXT, margin: '0 0 12px', letterSpacing: '-0.3px' }}>Coach</h1>
+        <SegmentedControl options={['AI Coach', 'Messages']} active={coachSeg} onChange={setCoachSeg} />
+      </div>
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        {coachSeg === 'AI Coach' && renderAICoach()}
+        {coachSeg === 'Messages' && renderMessages()}
+      </div>
+    </div>
+  );
+
+  const renderAICoach = () => (
+    <div style={{ padding: '8px 16px 100px' }}>
+      {/* Quick Chips */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }} className="ios-scroll">
+        {['Adjust my program', 'Build a 4-week plan', 'Nutrition help', 'Recovery tips'].map(chip => (
+          <span key={chip} style={{
+            padding: '8px 14px', borderRadius: 100, whiteSpace: 'nowrap',
+            background: SURFACE, border: `1px solid ${BORDER}`,
+            font: `400 13px ${FONT}`, color: TEXT2, cursor: 'pointer',
+          }}>{chip}</span>
+        ))}
+      </div>
+
+      {/* Conversation */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {AI_CONVERSATION.map((msg, i) => (
+          <div key={i}>
+            <div style={{ display: 'flex', justifyContent: msg.from === 'user' ? 'flex-end' : 'flex-start', marginBottom: 4 }}>
+              {msg.from === 'ai' && (
+                <div style={{
+                  width: 28, height: 28, borderRadius: '50%', background: ACCENT,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#fff', font: `700 10px ${FONT}`, marginRight: 8, flexShrink: 0, marginTop: 2,
+                }}>AI</div>
+              )}
+              <div style={{
+                maxWidth: '80%', padding: '12px 16px',
+                borderRadius: msg.from === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                background: msg.from === 'user' ? ACCENT : SURFACE,
+                color: msg.from === 'user' ? '#fff' : TEXT,
+                font: `400 14px ${FONT}`, lineHeight: 1.6,
+                boxShadow: msg.from === 'ai' ? CARD_SHADOW : 'none',
+                whiteSpace: 'pre-line',
+              }}>
+                {msg.text}
+              </div>
+            </div>
+            {/* Action cards */}
+            {msg.actions && (
+              <div style={{ display: 'flex', gap: 8, marginLeft: 36, marginTop: 8, flexWrap: 'wrap' }}>
+                {msg.actions.map(action => (
+                  <span key={action} style={{
+                    padding: '6px 14px', borderRadius: 100,
+                    background: ACCENT_LIGHT, border: `1px solid ${ACCENT}20`,
+                    font: `500 12px ${FONT}`, color: ACCENT, cursor: 'pointer',
+                  }}>{action}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* AI input */}
       <div style={{
-        padding: '14px 16px', background: CARD_BG,
-        borderBottom: `1px solid ${CARD_BORDER}`,
+        marginTop: 20, padding: '10px 14px', borderRadius: 22,
+        background: SURFACE, border: `1px solid ${BORDER}`,
+        display: 'flex', alignItems: 'center', gap: 8,
+      }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={TEXT3} strokeWidth="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /></svg>
+        <span style={{ font: `400 14px ${FONT}`, color: TEXT3, flex: 1 }}>Ask your AI coach anything...</span>
+        <IconSend color={TEXT3} />
+      </div>
+    </div>
+  );
+
+  const renderMessages = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+      {/* Coach header */}
+      <div style={{
+        padding: '12px 16px', background: SURFACE,
+        borderBottom: `1px solid ${BORDER}`,
         display: 'flex', alignItems: 'center', gap: 12,
       }}>
         <div style={{
-          width: 36, height: 36, borderRadius: '50%', background: DARK_GRAD,
+          width: 40, height: 40, borderRadius: '50%', background: ACCENT,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#fff', fontWeight: 600, fontSize: 13, fontFamily: FONT,
+          color: '#fff', font: `600 13px ${FONT}`, flexShrink: 0,
         }}>MC</div>
         <div>
-          <div style={{ font: `600 14px ${FONT}`, color: TEXT }}>Marcus Cole</div>
-          <div style={{ font: `400 11px ${FONT}`, color: SUCCESS }}>Your trainer</div>
+          <div style={{ font: `600 15px ${FONT}`, color: TEXT }}>Marcus Cole</div>
+          <div style={{ font: `400 12px ${FONT}`, color: SUCCESS }}>Online</div>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="portal-scroll" style={{
+      <div className="ios-scroll" style={{
         flex: 1, overflowY: 'auto', padding: '16px 16px 8px',
         display: 'flex', flexDirection: 'column', gap: 6,
       }}>
@@ -692,9 +1248,10 @@ export default function Portal() {
                 <div style={{
                   maxWidth: '78%', padding: '10px 14px',
                   borderRadius: isClient ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                  background: isClient ? ACCENT : '#F0F0F5',
+                  background: isClient ? ACCENT : SURFACE,
                   color: isClient ? '#fff' : TEXT,
                   font: `400 14px ${FONT}`, lineHeight: 1.5, wordBreak: 'break-word',
+                  boxShadow: isClient ? 'none' : CARD_SHADOW,
                 }}>
                   {msg.text}
                 </div>
@@ -707,8 +1264,8 @@ export default function Portal() {
 
       {/* Input */}
       <div style={{
-        padding: '10px 16px 10px', background: CARD_BG,
-        borderTop: `1px solid ${CARD_BORDER}`,
+        padding: '10px 16px', paddingBottom: 'calc(10px + env(safe-area-inset-bottom, 70px))',
+        background: SURFACE, borderTop: `1px solid ${BORDER}`,
         display: 'flex', alignItems: 'flex-end', gap: 10,
       }}>
         <textarea
@@ -719,10 +1276,9 @@ export default function Portal() {
           rows={1}
           style={{
             flex: 1, padding: '11px 16px', borderRadius: 22,
-            border: `1px solid ${CARD_BORDER}`, background: '#FAFAFA',
+            border: `1px solid ${BORDER}`, background: BG,
             font: `400 14px ${FONT}`, color: TEXT, outline: 'none',
-            resize: 'none', minHeight: 42, maxHeight: 100,
-            boxSizing: 'border-box',
+            resize: 'none', minHeight: 42, maxHeight: 100, boxSizing: 'border-box',
           }}
         />
         <button
@@ -730,130 +1286,400 @@ export default function Portal() {
           disabled={!chatDraft.trim()}
           style={{
             width: 42, height: 42, borderRadius: '50%', border: 'none',
-            background: chatDraft.trim() ? ACCENT : '#E8E8EA',
+            background: chatDraft.trim() ? ACCENT : '#E8E3DD',
             cursor: chatDraft.trim() ? 'pointer' : 'default',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}
         >
-          <SendIcon color={chatDraft.trim() ? '#fff' : TEXT3} />
+          <IconSend color={chatDraft.trim() ? '#fff' : TEXT3} />
         </button>
       </div>
     </div>
   );
 
-  // ── Bottom Tabs Config ──
-  const bottomTabs = [
-    { id: 'home', label: 'Home', Icon: HomeIcon },
-    { id: 'workouts', label: 'Workouts', Icon: DumbbellIcon },
-    { id: 'progress', label: 'Progress', Icon: ChartIcon },
-    { id: 'nutrition', label: 'Nutrition', Icon: AppleIcon },
-    { id: 'chat', label: 'Chat', Icon: ChatBubbleIcon },
-  ];
+  /* ══════════════════════════════════════
+     TAB 4: PROGRESS
+     ══════════════════════════════════════ */
+  const renderProgress = () => (
+    <div className="ios-page" style={{ padding: '24px 16px 100px' }}>
+      <h1 style={{ font: `700 28px ${FONT}`, color: TEXT, margin: '0 0 16px', letterSpacing: '-0.3px' }}>Progress</h1>
 
-  return (
-    <div style={{ background: '#F8F8FA', minHeight: '100vh', fontFamily: FONT, position: 'relative' }}>
-      {/* ── Dark Gradient Header ── */}
-      <div style={{
-        background: DARK_GRAD,
-        padding: '20px 16px 18px',
-        position: 'relative',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ font: `400 11px ${FONT}`, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
-              Client Portal
+      {/* Summary Strip */}
+      <div className="ios-fadeUp ios-d1" style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+        <Card style={{ flex: 1, padding: 12, textAlign: 'center' }}>
+          <div style={{ font: `700 18px ${FONT}`, color: TEXT }}>🔥 {streakCount}</div>
+          <div style={{ font: `400 10px ${FONT}`, color: TEXT3 }}>Streak</div>
+        </Card>
+        <Card style={{ flex: 1, padding: 12, textAlign: 'center' }}>
+          <div style={{ font: `700 18px ${FONT}`, color: TEXT }}>{weekWorkouts}</div>
+          <div style={{ font: `400 10px ${FONT}`, color: TEXT3 }}>This Week</div>
+        </Card>
+        <Card style={{ flex: 1, padding: 12, textAlign: 'center' }}>
+          <div style={{ font: `700 18px ${FONT}`, color: TEXT }}>87%</div>
+          <div style={{ font: `400 10px ${FONT}`, color: TEXT3 }}>Compliance</div>
+        </Card>
+      </div>
+
+      {/* Chart Segment */}
+      <div className="ios-fadeUp ios-d2" style={{ marginBottom: 16 }}>
+        <SegmentedControl options={['Workouts', 'Body Stats', 'Compliance']} active={progressSeg} onChange={setProgressSeg} />
+      </div>
+
+      {/* Chart Area */}
+      <Card className="ios-fadeUp ios-d3" style={{ marginBottom: 16 }}>
+        {progressSeg === 'Workouts' && (
+          <>
+            <div style={{ font: `600 15px ${FONT}`, color: TEXT, marginBottom: 4 }}>Workouts Per Week</div>
+            <div style={{ font: `400 13px ${FONT}`, color: TEXT2, marginBottom: 14 }}>Last 7 weeks</div>
+            <div style={{ overflowX: 'auto' }}>
+              <BarChart width={300} height={130} />
             </div>
-            <div style={{ font: `600 18px ${HEADING}`, color: '#fff' }}>FORGE</div>
-          </div>
+          </>
+        )}
+        {progressSeg === 'Body Stats' && progressData && (
+          <>
+            <div style={{ font: `600 15px ${FONT}`, color: TEXT, marginBottom: 4 }}>Weight Trend</div>
+            <div style={{ font: `400 13px ${FONT}`, color: TEXT2, marginBottom: 14 }}>
+              {progressData[0].weight} lbs → {progressData[progressData.length - 1].weight} lbs
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <LineChart data={progressData} dataKey="weight" width={Math.max(300, (progressData.length - 1) * 24 + 40)} height={140} />
+            </div>
+          </>
+        )}
+        {progressSeg === 'Body Stats' && !progressData && (
+          <div style={{ textAlign: 'center', padding: 24, font: `400 14px ${FONT}`, color: TEXT3 }}>No body stats recorded yet.</div>
+        )}
+        {progressSeg === 'Compliance' && (
+          <>
+            <div style={{ font: `600 15px ${FONT}`, color: TEXT, marginBottom: 4 }}>Weekly Compliance</div>
+            <div style={{ font: `400 13px ${FONT}`, color: TEXT2, marginBottom: 14 }}>Workouts + Habits + Nutrition</div>
+            <div style={{ overflowX: 'auto' }}>
+              <LineChart
+                data={[
+                  { date: weeksAgo(6), compliance: 72 },
+                  { date: weeksAgo(5), compliance: 78 },
+                  { date: weeksAgo(4), compliance: 81 },
+                  { date: weeksAgo(3), compliance: 75 },
+                  { date: weeksAgo(2), compliance: 88 },
+                  { date: weeksAgo(1), compliance: 85 },
+                  { date: today(), compliance: 91 },
+                ]}
+                dataKey="compliance" width={300} height={140} color={SUCCESS}
+              />
+            </div>
+          </>
+        )}
+      </Card>
 
-          {/* Client Selector */}
-          <div style={{ position: 'relative' }}>
-            <button
-              onClick={() => setShowClientDropdown(!showClientDropdown)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '8px 14px', borderRadius: 10,
-                background: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.15)',
-                color: '#fff', cursor: 'pointer',
-                font: `500 13px ${FONT}`,
-              }}
-            >
-              <div style={{
-                width: 28, height: 28, borderRadius: '50%',
-                background: `linear-gradient(135deg, ${ACCENT}, #065a60)`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', fontWeight: 600, fontSize: 11, fontFamily: FONT,
-              }}>
-                {client.firstName[0]}{client.lastName[0]}
+      {/* PRs Section */}
+      {prs.length > 0 && (
+        <div className="ios-fadeUp ios-d4">
+          <SectionLabel>Personal Records</SectionLabel>
+          {prs.map(pr => (
+            <Card key={pr.id} style={{ marginBottom: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ font: `500 15px ${FONT}`, color: TEXT }}>{pr.exercise}</div>
+                  <div style={{ font: `400 12px ${FONT}`, color: TEXT3 }}>{fmtDate(pr.date)}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ font: `700 17px ${MONO}`, color: ACCENT }}>{pr.value} {pr.unit}</div>
+                  {pr.previousValue && (
+                    <div style={{ font: `400 11px ${MONO}`, color: SUCCESS }}>+{pr.value - pr.previousValue} {pr.unit}</div>
+                  )}
+                </div>
               </div>
-              {client.firstName}
-              <ChevronDown />
-            </button>
+            </Card>
+          ))}
+        </div>
+      )}
 
-            {showClientDropdown && (
-              <div style={{
-                position: 'absolute', top: '100%', right: 0, marginTop: 6,
-                background: CARD_BG, borderRadius: 12, padding: 6,
-                boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                border: `1px solid ${CARD_BORDER}`,
-                zIndex: 100, minWidth: 200, maxHeight: 300, overflowY: 'auto',
-              }}>
-                {topClients.map(p => (
-                  <button
-                    key={p.id}
-                    onClick={() => { setSelectedClientId(p.id); setShowClientDropdown(false); setActiveTab('home'); }}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 10,
-                      width: '100%', padding: '10px 12px', borderRadius: 8,
-                      border: 'none', cursor: 'pointer',
-                      background: p.id === selectedClientId ? ACCENT_LIGHT : 'transparent',
-                      font: `500 13px ${FONT}`, color: TEXT,
-                      textAlign: 'left',
-                    }}
-                  >
-                    <div style={{
-                      width: 30, height: 30, borderRadius: '50%',
-                      background: `linear-gradient(135deg, ${ACCENT}, #065a60)`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: '#fff', fontWeight: 600, fontSize: 10, fontFamily: FONT, flexShrink: 0,
-                    }}>
-                      {p.firstName[0]}{p.lastName[0]}
-                    </div>
-                    {p.firstName} {p.lastName}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+      {/* Photos Timeline */}
+      <div className="ios-fadeUp ios-d5" style={{ marginTop: 20 }}>
+        <SectionLabel>Progress Photos</SectionLabel>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+          {['Week 1', 'Week 4', 'Week 8', 'Week 12', '', ''].map((label, i) => (
+            <div key={i} style={{
+              aspectRatio: '3/4', borderRadius: 10, overflow: 'hidden',
+              background: label ? '#E8E3DD' : 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: label ? 'none' : `1.5px dashed ${BORDER}`,
+            }}>
+              {label ? (
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ font: `600 11px ${FONT}`, color: TEXT2 }}>{label}</div>
+                  <div style={{ font: `400 10px ${FONT}`, color: TEXT3, marginTop: 2 }}>📷</div>
+                </div>
+              ) : (
+                <span style={{ font: `400 20px ${FONT}`, color: BORDER }}>+</span>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Close dropdown on outside click */}
-      {showClientDropdown && (
-        <div
-          style={{ position: 'fixed', inset: 0, zIndex: 50 }}
-          onClick={() => setShowClientDropdown(false)}
-        />
-      )}
+      {/* Badges */}
+      <div className="ios-fadeUp ios-d6" style={{ marginTop: 20 }}>
+        <SectionLabel>Badges</SectionLabel>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+          {BADGES.map((badge, i) => (
+            <Card key={i} style={{
+              padding: 12, textAlign: 'center',
+              opacity: badge.earned ? 1 : 0.4,
+            }}>
+              <div style={{ fontSize: 24, marginBottom: 4 }}>{badge.icon}</div>
+              <div style={{ font: `500 11px ${FONT}`, color: TEXT }}>{badge.name}</div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 
-      {/* ── Main Content Area ── */}
-      <div style={{ overflowY: 'auto' }}>
-        {activeTab === 'home' && renderHome()}
-        {activeTab === 'workouts' && renderWorkouts()}
-        {activeTab === 'progress' && renderProgress()}
-        {activeTab === 'nutrition' && renderNutrition()}
-        {activeTab === 'chat' && renderChat()}
+  /* ══════════════════════════════════════
+     TAB 5: PROFILE
+     ══════════════════════════════════════ */
+  const renderProfile = () => (
+    <div className="ios-page" style={{ padding: '24px 16px 100px' }}>
+      {/* Avatar + Name */}
+      <div className="ios-fadeUp ios-d1" style={{ textAlign: 'center', marginBottom: 28 }}>
+        <div style={{
+          width: 80, height: 80, borderRadius: '50%', margin: '0 auto 12px',
+          background: ACCENT,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: '#fff', font: `700 26px ${FONT}`,
+        }}>
+          {client.firstName[0]}{client.lastName[0]}
+        </div>
+        <h1 style={{ font: `700 22px ${FONT}`, color: TEXT, margin: '0 0 4px' }}>{clientName}</h1>
+        <p style={{ font: `400 14px ${FONT}`, color: TEXT2, margin: 0 }}>
+          {client.goal || 'Build strength & improve health'}
+        </p>
       </div>
 
-      {/* ── Bottom Tab Bar ── */}
+      {/* Account & Billing */}
+      <SectionLabel className="ios-fadeUp ios-d2">Account & Billing</SectionLabel>
+      <Card className="ios-fadeUp ios-d2" style={{ marginBottom: 20, padding: 0 }}>
+        <ProfileRow label="Current Plan" value="Premium Training" />
+        <ProfileRow label="Next Payment" value="Apr 1, 2026" />
+        <ProfileRow label="Member Since" value={fmtDate(client.createdAt || '2025-09-15')} last />
+      </Card>
+
+      {/* Goals */}
+      <SectionLabel className="ios-fadeUp ios-d3">Goals</SectionLabel>
+      <Card className="ios-fadeUp ios-d3" style={{ marginBottom: 20, padding: 0 }}>
+        <ProfileRow label="Goal Type" value={client.goal || 'Strength & Muscle'} />
+        <ProfileRow label="Target Weight" value="180 lbs" />
+        <ProfileRow label="Training Days" value="4x / week" last />
+      </Card>
+
+      {/* Coach Info */}
+      <SectionLabel className="ios-fadeUp ios-d4">Your Coach</SectionLabel>
+      <Card className="ios-fadeUp ios-d4" style={{ marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: '50%', background: ACCENT,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', font: `600 15px ${FONT}`, flexShrink: 0,
+          }}>MC</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ font: `600 15px ${FONT}`, color: TEXT }}>Marcus Cole</div>
+            <div style={{ font: `400 13px ${FONT}`, color: TEXT2 }}>NASM-CPT, CSCS</div>
+          </div>
+          <button
+            onClick={() => { setActiveTab('coach'); setCoachSeg('Messages'); }}
+            style={{
+              padding: '8px 16px', borderRadius: 100,
+              background: ACCENT_LIGHT, border: 'none',
+              font: `500 12px ${FONT}`, color: ACCENT, cursor: 'pointer',
+            }}
+          >Message</button>
+        </div>
+      </Card>
+
+      {/* Integrations */}
+      <SectionLabel className="ios-fadeUp ios-d5">Integrations</SectionLabel>
+      <Card className="ios-fadeUp ios-d5" style={{ marginBottom: 20, padding: 0 }}>
+        <ProfileToggleRow label="Apple Health" icon="🍎" defaultOn />
+        <ProfileToggleRow label="Fitbit" icon="⌚" last />
+      </Card>
+
+      {/* App Settings */}
+      <SectionLabel className="ios-fadeUp ios-d6">App Settings</SectionLabel>
+      <Card className="ios-fadeUp ios-d6" style={{ marginBottom: 20, padding: 0 }}>
+        <ProfileToggleRow label="Push Notifications" icon="🔔" defaultOn />
+        <ProfileRow label="Units" value="Imperial (lbs)" />
+        <ProfileRow label="Theme" value="Light" last />
+      </Card>
+
+      {/* About */}
+      <SectionLabel>About</SectionLabel>
+      <Card style={{ marginBottom: 20, padding: 0 }}>
+        <ProfileRow label="FORGE Personal Training" value="" />
+        <ProfileRow label="Terms of Service" value="" chevron />
+        <ProfileRow label="Privacy Policy" value="" chevron last />
+      </Card>
+
+      {/* Sign Out */}
+      <button style={{
+        width: '100%', padding: '14px 0', borderRadius: CARD_RADIUS,
+        background: 'transparent', border: `1.5px solid #D4A0A0`,
+        font: `500 14px ${FONT}`, color: '#B85C5C', cursor: 'pointer',
+      }}>Sign Out</button>
+    </div>
+  );
+
+  /* ── Profile Row Components ── */
+  const ProfileRow = ({ label, value, chevron, last }) => (
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      padding: '14px 16px',
+      borderBottom: last ? 'none' : `1px solid ${BORDER}`,
+    }}>
+      <span style={{ font: `400 15px ${FONT}`, color: TEXT }}>{label}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        {value && <span style={{ font: `400 14px ${FONT}`, color: TEXT2 }}>{value}</span>}
+        {chevron && <IconChevron dir="right" size={14} color={TEXT3} />}
+      </div>
+    </div>
+  );
+
+  const ProfileToggleRow = ({ label, icon, defaultOn, last }) => {
+    const [on, setOn] = useState(!!defaultOn);
+    return (
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '14px 16px',
+        borderBottom: last ? 'none' : `1px solid ${BORDER}`,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span>{icon}</span>
+          <span style={{ font: `400 15px ${FONT}`, color: TEXT }}>{label}</span>
+        </div>
+        <button
+          onClick={() => setOn(!on)}
+          style={{
+            width: 48, height: 28, borderRadius: 14, border: 'none',
+            background: on ? ACCENT : '#DDD8D3',
+            position: 'relative', cursor: 'pointer', padding: 0,
+            transition: 'background 0.2s ease',
+          }}
+        >
+          <div style={{
+            width: 22, height: 22, borderRadius: '50%',
+            background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+            position: 'absolute', top: 3,
+            left: on ? 23 : 3,
+            transition: 'left 0.2s ease',
+          }} />
+        </button>
+      </div>
+    );
+  };
+
+  /* ══════════════════════════════════════
+     BOTTOM TAB BAR
+     ══════════════════════════════════════ */
+  const bottomTabs = [
+    { id: 'home', label: 'Home', Icon: IconHome },
+    { id: 'train', label: 'Train', Icon: IconTrain },
+    { id: 'coach', label: 'Coach', Icon: IconCoach },
+    { id: 'progress', label: 'Progress', Icon: IconProgress },
+    { id: 'profile', label: 'Profile', Icon: IconProfile },
+  ];
+
+  /* ══════════════════════════════════════
+     RENDER
+     ══════════════════════════════════════ */
+  return (
+    <div style={{ background: BG, minHeight: '100vh', fontFamily: FONT, position: 'relative' }}>
+      {/* Overlays */}
+      {subView === 'workout-detail' && renderWorkoutDetail()}
+      {subView === 'active-workout' && renderActiveWorkout()}
+      {subView === 'workout-complete' && renderWorkoutComplete()}
+
+      {/* Client Selector Bar */}
+      <div style={{
+        padding: '14px 16px 10px',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        background: BG,
+      }}>
+        <div style={{ font: `600 17px ${FONT}`, color: TEXT, letterSpacing: '-0.2px' }}>FORGE</div>
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setShowClientDropdown(!showClientDropdown)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '6px 12px', borderRadius: 100,
+              background: SURFACE, border: `1px solid ${BORDER}`,
+              cursor: 'pointer', font: `500 13px ${FONT}`, color: TEXT,
+            }}
+          >
+            <div style={{
+              width: 24, height: 24, borderRadius: '50%', background: ACCENT,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#fff', font: `600 9px ${FONT}`,
+            }}>{client.firstName[0]}{client.lastName[0]}</div>
+            {client.firstName}
+            <IconChevron dir="down" size={14} color={TEXT3} />
+          </button>
+
+          {showClientDropdown && (
+            <div style={{
+              position: 'absolute', top: '100%', right: 0, marginTop: 6,
+              background: SURFACE, borderRadius: 14, padding: 6,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+              border: `1px solid ${BORDER}`,
+              zIndex: 100, minWidth: 200, maxHeight: 300, overflowY: 'auto',
+            }}>
+              {topClients.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => { setSelectedClientId(p.id); setShowClientDropdown(false); setActiveTab('home'); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    width: '100%', padding: '10px 12px', borderRadius: 10,
+                    border: 'none', cursor: 'pointer',
+                    background: p.id === selectedClientId ? ACCENT_LIGHT : 'transparent',
+                    font: `500 14px ${FONT}`, color: TEXT, textAlign: 'left',
+                  }}
+                >
+                  <div style={{
+                    width: 28, height: 28, borderRadius: '50%', background: ACCENT,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#fff', font: `600 9px ${FONT}`, flexShrink: 0,
+                  }}>{p.firstName[0]}{p.lastName[0]}</div>
+                  {p.firstName} {p.lastName}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Backdrop for dropdown */}
+      {showClientDropdown && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50 }} onClick={() => setShowClientDropdown(false)} />
+      )}
+
+      {/* Main Content */}
+      <div style={{ overflowY: 'auto' }}>
+        {activeTab === 'home' && renderHome()}
+        {activeTab === 'train' && renderTrain()}
+        {activeTab === 'coach' && renderCoach()}
+        {activeTab === 'progress' && renderProgress()}
+        {activeTab === 'profile' && renderProfile()}
+      </div>
+
+      {/* Bottom Tab Bar */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
-        background: '#fff',
-        borderTop: `1px solid ${CARD_BORDER}`,
-        display: 'flex', justifyContent: 'space-around',
-        padding: '6px 0 env(safe-area-inset-bottom, 8px)',
+        height: 52,
+        background: SURFACE,
+        borderTop: `1px solid ${BORDER}`,
+        display: 'flex', justifyContent: 'space-around', alignItems: 'center',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         zIndex: 200,
       }}>
         {bottomTabs.map(t => {
@@ -861,10 +1687,10 @@ export default function Portal() {
           return (
             <button
               key={t.id}
-              onClick={() => setActiveTab(t.id)}
+              onClick={() => { setActiveTab(t.id); setSubView(null); }}
               style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                padding: '6px 12px', border: 'none', background: 'none', cursor: 'pointer',
+                padding: '6px 0', border: 'none', background: 'none', cursor: 'pointer',
                 minWidth: 56,
               }}
             >
@@ -873,9 +1699,6 @@ export default function Portal() {
                 font: `${active ? 600 : 400} 10px ${FONT}`,
                 color: active ? ACCENT : TEXT3,
               }}>{t.label}</span>
-              {active && (
-                <div style={{ width: 4, height: 4, borderRadius: 2, background: ACCENT, marginTop: 1 }} />
-              )}
             </button>
           );
         })}

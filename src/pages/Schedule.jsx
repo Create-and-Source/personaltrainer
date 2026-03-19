@@ -431,8 +431,9 @@ export default function Schedule() {
               {dayAppts.length === 0 && (
                 <tr>
                   <td colSpan="5" style={{ padding: 48, textAlign: 'center' }}>
-                    <div style={{ font: `400 14px ${s.FONT}`, color: s.text3, marginBottom: 12 }}>No sessions scheduled for this day</div>
-                    <button onClick={() => openNew()} style={s.pillAccent}>Book a Session</button>
+                    <div style={{ fontSize: 32, marginBottom: 12 }}>{'\uD83D\uDCC5'}</div>
+                    <div style={{ font: `500 15px ${s.FONT}`, color: s.text, marginBottom: 4 }}>No sessions today</div>
+                    <button onClick={() => openNew()} style={{ ...s.pillAccent, marginTop: 8 }}>Book a Session</button>
                   </td>
                 </tr>
               )}

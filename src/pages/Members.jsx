@@ -844,11 +844,14 @@ export default function Members() {
       {/* Empty state */}
       {filtered.length === 0 && (
         <div style={{ ...s.cardStyle, padding: 48, textAlign: 'center' }}>
-          <div style={{ font: `400 14px ${s.FONT}`, color: s.text3, marginBottom: 8 }}>
+          <div style={{ fontSize: 32, marginBottom: 12 }}>{search || filter !== 'All' ? '\uD83D\uDD0D' : '\uD83D\uDC4B'}</div>
+          <div style={{ font: `500 15px ${s.FONT}`, color: s.text, marginBottom: 4 }}>
             {search || filter !== 'All' ? 'No clients match your filters' : 'No clients yet'}
           </div>
-          {(search || filter !== 'All') && (
-            <button onClick={() => { setSearch(''); setFilter('All'); }} style={{ ...s.pillGhost, fontSize: 12 }}>Clear Filters</button>
+          {(search || filter !== 'All') ? (
+            <button onClick={() => { setSearch(''); setFilter('All'); }} style={{ ...s.pillGhost, fontSize: 12, marginTop: 8 }}>Clear Filters</button>
+          ) : (
+            <button onClick={() => {}} style={{ ...s.pillAccent, marginTop: 12 }}>Add Your First Client</button>
           )}
         </div>
       )}

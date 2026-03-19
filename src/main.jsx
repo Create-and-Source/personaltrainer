@@ -10,7 +10,7 @@ body {
   font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #FAF8F5;
+  background: #F7F3F0;
   color: #2D2A26;
 }
 input, textarea, select, button { font-family: inherit; }
@@ -55,6 +55,17 @@ input, textarea, select, button { font-family: inherit; }
   transform: translateY(-1px);
 }
 
+
+/* Card press animation */
+.card-press { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.card-press:active { transform: scale(0.98); }
+
+/* Smooth page transitions */
+.page-enter { animation: pageIn 0.25s ease; }
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 /* Table rows */
 table tbody tr {

@@ -96,9 +96,9 @@ export default function Challenges() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
         <div>
           <h1 style={{ fontFamily: s.HEADING, fontSize: 28, fontWeight: 700, color: s.text, margin: 0, letterSpacing: '-0.5px' }}>Challenges</h1>
-          <p style={{ fontFamily: s.FONT, fontSize: 14, color: s.text3, margin: '6px 0 0' }}>Motivate clients with competitions, streaks, and rewards</p>
+          <p style={{ fontFamily: s.FONT, fontSize: 14, color: s.text3, margin: '6px 0 0' }}>Competitions, streaks, and rewards</p>
         </div>
-        <button onClick={() => setShowModal(true)} style={s.pillAccent}>+ Create Challenge</button>
+        <button onClick={() => setShowModal(true)} style={s.pillAccent}>New Challenge</button>
       </div>
 
       {/* Tabs */}
@@ -156,7 +156,7 @@ export default function Challenges() {
                       {ch.participants.slice(0, 5).map((p, i) => (<div key={i} style={{ marginLeft: i > 0 ? -8 : 0, zIndex: 5 - i }}><Avatar name={p.name} size={28} /></div>))}
                       {ch.participants.length > 5 && (<div style={{ width: 28, height: 28, borderRadius: '50%', background: s.borderLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: s.FONT, fontSize: 10, fontWeight: 500, color: s.text3, marginLeft: -8, border: '2px solid rgba(255,255,255,0.8)' }}>+{ch.participants.length - 5}</div>)}
                     </div>
-                    <button style={{ ...s.pillOutline, padding: '7px 16px', fontSize: 12 }}>View Details</button>
+                    <button style={{ ...s.pillOutline, padding: '7px 16px', fontSize: 12 }}>Details</button>
                   </div>
                 </div>
               </div>

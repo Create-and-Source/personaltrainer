@@ -109,7 +109,7 @@ function MobileTodayView({ s, nav, settings, patients, appointments, services })
           fontFamily: s.HEADING, fontSize: 28, fontWeight: 700, color: s.text,
           margin: '0 0 4px', letterSpacing: '-0.5px',
         }}>
-          Hey {settings.founder?.split(' ')[0] || 'Marcus'} {'\u{1F44B}'}
+          Hi, {settings.founder?.split(' ')[0] || 'Marcus'}
         </h1>
         <p style={{ fontFamily: s.FONT, fontSize: 14, fontWeight: 400, color: s.text2, margin: 0 }}>
           {dateStr}
@@ -147,18 +147,12 @@ function MobileTodayView({ s, nav, settings, patients, appointments, services })
                 <div key={a.id} onClick={() => nav('/admin/schedule')} style={{
                   ...s.cardStyle, padding: '18px 18px', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', gap: 14,
+                  borderLeft: `2px solid ${s.accent}`,
                 }}>
-                  {/* Time block */}
-                  <div style={{
-                    width: 54, height: 54, borderRadius: 14, background: s.accentLight,
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0,
-                  }}>
-                    <div style={{ fontFamily: s.MONO, fontSize: 15, fontWeight: 700, color: s.accent, lineHeight: 1.1 }}>
-                      {formatTime(a.time).split(' ')[0]}
-                    </div>
-                    <div style={{ fontFamily: s.MONO, fontSize: 9, fontWeight: 500, color: s.accent, opacity: 0.7 }}>
-                      {formatTime(a.time).split(' ')[1]}
+                  {/* Time label */}
+                  <div style={{ flexShrink: 0, minWidth: 54 }}>
+                    <div style={{ fontFamily: s.MONO, fontSize: 13, fontWeight: 600, color: s.accent, lineHeight: 1.2 }}>
+                      {formatTime(a.time)}
                     </div>
                   </div>
                   {/* Info */}
@@ -195,7 +189,7 @@ function MobileTodayView({ s, nav, settings, patients, appointments, services })
         }}>
           Quick Access
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
           {[
             { label: 'Workouts', path: '/admin/workouts', emoji: '\u{1F4AA}' },
             { label: 'Programs', path: '/admin/classes', emoji: '\u{1F4CB}' },
@@ -213,7 +207,7 @@ function MobileTodayView({ s, nav, settings, patients, appointments, services })
               background: s.surface, cursor: 'pointer',
               boxShadow: s.shadow, transition: 'all 0.15s ease',
             }}>
-              <span style={{ fontSize: 22 }}>{item.emoji}</span>
+              <span style={{ fontSize: 20 }}>{item.emoji}</span>
               <span style={{ fontFamily: s.FONT, fontSize: 10, fontWeight: 500, color: s.text2 }}>
                 {item.label}
               </span>
@@ -222,42 +216,6 @@ function MobileTodayView({ s, nav, settings, patients, appointments, services })
         </div>
       </div>
 
-      {/* Needs Attention */}
-      {needsAttention.length > 0 && (
-        <div style={{ marginBottom: 28 }}>
-          <div style={{
-            fontFamily: s.MONO, fontSize: 11, fontWeight: 500,
-            textTransform: 'uppercase', letterSpacing: '0.06em',
-            color: s.text3, marginBottom: 12,
-          }}>
-            Needs Attention &middot; {needsAttention.length}
-          </div>
-          <div style={{
-            display: 'flex', gap: 14, overflowX: 'auto',
-            WebkitOverflowScrolling: 'touch', paddingBottom: 8,
-          }}>
-            {needsAttention.slice(0, 10).map(p => (
-              <div key={p.id} onClick={() => nav(`/admin/members?client=${p.id}`)} style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-                cursor: 'pointer', flexShrink: 0, minWidth: 60,
-              }}>
-                <div style={{
-                  width: 48, height: 48, borderRadius: '50%',
-                  background: getAvatarGradient(`${p.firstName} ${p.lastName}`),
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: s.FONT, fontSize: 14, fontWeight: 600, color: '#FFFFFF',
-                  border: `2px solid ${s.danger}30`,
-                }}>
-                  {p.firstName?.[0]}{p.lastName?.[0]}
-                </div>
-                <span style={{ fontFamily: s.FONT, fontSize: 11, fontWeight: 500, color: s.text2, textAlign: 'center' }}>
-                  {p.firstName}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -364,7 +322,7 @@ export default function Dashboard() {
           fontFamily: s.HEADING, fontSize: 28, fontWeight: 600, color: s.text,
           margin: '0 0 4px', letterSpacing: '-0.3px',
         }}>
-          Hey {settings.founder?.split(' ')[0] || 'Marcus'}
+          Hi, {settings.founder?.split(' ')[0] || 'Marcus'}
         </h1>
         <p style={{ fontFamily: s.FONT, fontSize: 14, fontWeight: 400, color: s.text2, margin: 0 }}>
           {dateStr}

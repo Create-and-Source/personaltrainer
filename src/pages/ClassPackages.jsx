@@ -108,9 +108,9 @@ export default function ClassPackages() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ fontFamily: s.HEADING, fontSize: 28, fontWeight: 600, color: s.text, marginBottom: 6, letterSpacing: '-0.3px' }}>Training Programs</h1>
-          <p style={{ fontFamily: s.FONT, fontSize: 14, color: s.text3 }}>Multi-session client programs -- track every step of the journey</p>
+          <p style={{ fontFamily: s.FONT, fontSize: 14, color: s.text3 }}>Multi-session client programs</p>
         </div>
-        <button onClick={openNew} style={s.pillAccent}>+ New Program</button>
+        <button onClick={openNew} style={s.pillAccent}>Create Program</button>
       </div>
 
       {/* KPIs */}
@@ -259,8 +259,11 @@ export default function ClassPackages() {
           })}
           {filtered.length === 0 && (
             <div style={{ ...s.cardStyle, padding: 48, textAlign: 'center' }}>
-              <div style={{ fontFamily: s.FONT, fontSize: 14, color: s.text3, marginBottom: 12 }}>No programs match your filters</div>
-              <button onClick={openNew} style={s.pillAccent}>Create Program</button>
+              <div style={{ fontSize: 32, marginBottom: 12 }}>{'\uD83D\uDCCB'}</div>
+              <div style={{ fontFamily: s.FONT, fontSize: 15, fontWeight: 500, color: s.text, marginBottom: 4 }}>
+                {search || statusFilter !== 'all' ? 'No programs match your filters' : 'No programs yet'}
+              </div>
+              <button onClick={openNew} style={{ ...s.pillAccent, marginTop: 8 }}>Create Program</button>
             </div>
           )}
         </div>
@@ -311,7 +314,10 @@ export default function ClassPackages() {
               );
             })}
             {upcomingSessions.length === 0 && (
-              <div style={{ padding: 32, textAlign: 'center', fontFamily: s.FONT, fontSize: 13, color: s.text3 }}>No upcoming sessions</div>
+              <div style={{ padding: 48, textAlign: 'center' }}>
+                <div style={{ fontSize: 32, marginBottom: 12 }}>{'\uD83D\uDCC5'}</div>
+                <div style={{ fontFamily: s.FONT, fontSize: 15, fontWeight: 500, color: s.text }}>No upcoming sessions</div>
+              </div>
             )}
           </div>
         </div>

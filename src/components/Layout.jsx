@@ -189,7 +189,7 @@ export default function Layout({ children }) {
 
   // Determine sidebar accent visibility against dark bg
   const sidebarAccent = theme.accent;
-  const sidebarActiveBg = theme.id === 'warm' ? 'rgba(98,85,74,0.15)' : 'rgba(14,122,130,0.15)';
+  const sidebarActiveBg = theme.id === 'warm' ? 'rgba(98,85,74,0.08)' : 'rgba(14,122,130,0.08)';
 
   /* ═══════════════════════════════════════════
      DESKTOP LAYOUT
@@ -234,7 +234,7 @@ export default function Layout({ children }) {
                 <div style={{
                   fontFamily: s.MONO, fontSize: 10, fontWeight: 500,
                   textTransform: 'uppercase', letterSpacing: '0.08em',
-                  color: SIDEBAR_MUTED, padding: '0 16px 8px',
+                  color: SIDEBAR_MUTED, opacity: 0.4, padding: '0 16px 8px',
                 }}>
                   {section.section}
                 </div>
@@ -279,7 +279,7 @@ export default function Layout({ children }) {
                 }}>
                   <span style={{
                     width: 14, height: 14, borderRadius: 4,
-                    background: t.dark ? '#1A1A1E' : '#FAF8F5',
+                    background: t.dark ? '#1A1A1E' : '#F7F3F0',
                     border: `2px solid ${t.accent}`,
                     flexShrink: 0,
                   }} />
@@ -378,18 +378,6 @@ export default function Layout({ children }) {
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button onClick={() => setTheme(theme.id === 'bold' ? 'warm' : 'bold')} style={{
-            width: 32, height: 32, borderRadius: 8, border: `1px solid ${s.border}`,
-            background: s.surface, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'all 0.2s ease',
-          }}>
-            <div style={{
-              width: 14, height: 14, borderRadius: 4,
-              background: theme.id === 'bold' ? '#FAF8F5' : '#1A1A1E',
-              border: `2px solid ${theme.id === 'bold' ? '#E8E3DD' : '#2A2A2E'}`,
-            }} />
-          </button>
           <NotificationBell />
         </div>
       </div>
@@ -403,7 +391,9 @@ export default function Layout({ children }) {
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 150,
         height: 48, paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        background: s.surface,
+        background: `${s.surface}E6`,
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
         borderTop: `1px solid ${s.border}`,
         boxShadow: '0 -2px 12px rgba(0,0,0,0.06)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-around',
