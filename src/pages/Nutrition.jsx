@@ -304,10 +304,10 @@ function DonutRing({ value, max, color, label, unit, size = 100 }) {
           style={{ animation: 'nutrRingDraw 1.2s ease forwards', transition: 'stroke-dasharray 0.6s ease' }}
         />
       </svg>
-      <div style={{ marginTop: -size / 2 - 10, position: 'relative', height: 0 }}>
+      <div style={{ marginTop: -(size / 2 + 8), position: 'relative', zIndex: 2 }}>
         <span style={{ fontFamily: s.MONO, fontSize: size > 90 ? 18 : 14, fontWeight: 700, color: s.text }}>{value}</span>
       </div>
-      <div style={{ marginTop: size > 90 ? 24 : 18 }}>
+      <div style={{ marginTop: 4 }}>
         <div style={{ fontFamily: s.FONT, fontSize: 12, fontWeight: 600, color: s.text }}>{label}</div>
         <div style={{ fontFamily: s.MONO, fontSize: 11, color: s.text3 }}>{value} / {max}{unit}</div>
       </div>
