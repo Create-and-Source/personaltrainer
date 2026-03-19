@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './theme';
+import { AuthProvider } from './services/AuthContext';
 import Layout from './components/Layout';
 import { initStore } from './data/store';
 
@@ -36,6 +37,7 @@ function Loader() {
 export default function App() {
   return (
     <ThemeProvider>
+      <AuthProvider>
       <Suspense fallback={<Loader />}>
         <Routes>
           {/* Public pages — no sidebar */}
@@ -71,6 +73,7 @@ export default function App() {
           } />
         </Routes>
       </Suspense>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

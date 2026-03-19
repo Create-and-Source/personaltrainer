@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTheme, useStyles, THEMES } from '../theme';
 import { getSettings } from '../data/store';
+import { useAuth } from '../services/AuthContext';
 import NotificationBell from './NotificationBell';
 
 /* ── Nav Structure ── */
@@ -165,6 +166,7 @@ export default function Layout({ children }) {
   const s = useStyles();
   const location = useLocation();
   const settings = getSettings();
+  const { user, signOut } = useAuth();
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth <= 860);
 
   useEffect(() => {
@@ -285,6 +287,25 @@ export default function Layout({ children }) {
                 </button>
               ))}
             </div>
+
+            {/* Sign Out */}
+            {user && (
+              <button onClick={signOut} style={{
+                width: '100%', marginTop: 12, padding: '9px 12px', borderRadius: 8,
+                cursor: 'pointer', fontFamily: s.FONT, fontSize: 12, fontWeight: 500,
+                transition: 'all 0.2s ease',
+                background: 'transparent', border: `1px solid ${SIDEBAR_BORDER}`,
+                color: SIDEBAR_MUTED, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#FFFFFF'; e.currentTarget.style.borderColor = '#E53935'; e.currentTarget.style.background = 'rgba(229,57,53,0.1)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = SIDEBAR_MUTED; e.currentTarget.style.borderColor = SIDEBAR_BORDER; e.currentTarget.style.background = 'transparent'; }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Sign Out
+              </button>
+            )}
           </div>
         </aside>
 
