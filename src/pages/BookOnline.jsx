@@ -35,7 +35,7 @@ export default function BookOnline() {
   const providers = getProviders();
   const settings = getSettings();
   const appointments = getAppointments();
-  const businessName = settings.businessName || 'FORGE Performance Training';
+  const businessName = settings.businessName || 'Stoa';
 
   const days = useMemo(() => {
     const arr = []; const now = new Date();

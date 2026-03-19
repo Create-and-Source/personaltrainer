@@ -90,7 +90,7 @@ export function updateSettings(updates) { set('ms_settings', { ...getSettings(),
 
 // ── Init seed data ──
 export function initStore() {
-  const alreadyInit = localStorage.getItem('pt_initialized_v5');
+  const alreadyInit = localStorage.getItem('pt_initialized_v6');
 
   // Clear old legacy data if present
   if (!alreadyInit) {
@@ -259,31 +259,31 @@ export function initStore() {
 
   // Settings
   set('ms_settings', {
-    businessName: 'FORGE Performance Training',
-    tagline: 'Train Hard. Train Smart. Get Results.',
-    email: 'hello@forgetraining.com',
+    businessName: 'Stoa',
+    tagline: 'Your whole wellness life. One app.',
+    email: 'hello@getstoa.io',
     phone: '(480) 555-0100',
     founded: '2020',
     founder: 'Marcus Cole',
   });
 
-  localStorage.setItem('pt_initialized_v5', 'true');
+  localStorage.setItem('pt_initialized_v6', 'true');
 }
 
 // Seeds data for keys that are empty — runs every load to fill gaps
 function seedIfEmpty(d, today) {
   if (!localStorage.getItem('ms_settings')) {
-    set('ms_settings', { businessName: 'FORGE Performance Training', tagline: 'Train Hard. Train Smart. Get Results.', email: 'hello@forgetraining.com', phone: '(480) 555-0100', founded: '2020', founder: 'Marcus Cole' });
+    set('ms_settings', { businessName: 'Stoa', tagline: 'Your whole wellness life. One app.', email: 'hello@getstoa.io', phone: '(480) 555-0100', founded: '2020', founder: 'Marcus Cole' });
   }
   if (get('ms_emails', []).length > 0 && get('ms_texts', []).length > 0 && get('ms_social_posts', []).length > 0 && get('ms_checkins', []).length > 0) return;
 
   // Seed Sent Emails
   if (get('ms_emails', []).length === 0) set('ms_emails', [
-    { id: 'EM-1', subject: 'March Newsletter — New Training Programs Dropping', body: 'Hey team, here is what is new this month at FORGE Performance Training...', audience: 'All Clients', status: 'Sent', recipientCount: 5, sentDate: d(-3) + 'T10:00:00Z' },
-    { id: 'EM-2', subject: 'Bring a Friend Week — Free Guest Pass', body: 'Bring a friend to any session this week — on us. Let them experience the FORGE difference...', audience: 'Clients', status: 'Sent', recipientCount: 5, sentDate: d(-7) + 'T14:00:00Z' },
+    { id: 'EM-1', subject: 'March Newsletter — New Training Programs Dropping', body: 'Hey team, here is what is new this month at Stoa...', audience: 'All Clients', status: 'Sent', recipientCount: 5, sentDate: d(-3) + 'T10:00:00Z' },
+    { id: 'EM-2', subject: 'Bring a Friend Week — Free Guest Pass', body: 'Bring a friend to any session this week — on us. Let them experience the Stoa difference...', audience: 'Clients', status: 'Sent', recipientCount: 5, sentDate: d(-7) + 'T14:00:00Z' },
     { id: 'EM-3', subject: 'Your Session is Tomorrow!', body: 'Hi [Client], reminder about your upcoming training session with [Trainer]...', audience: 'Upcoming Sessions', status: 'Sent', recipientCount: 4, sentDate: d(-1) + 'T09:00:00Z' },
     { id: 'EM-4', subject: 'Spring Shred Promo — 6-Week Challenge', body: 'New 6-week challenge starting next Monday. Training + nutrition coaching included. Limited spots!', audience: 'All Clients', status: 'Sent', recipientCount: 5, sentDate: d(-14) + 'T11:00:00Z' },
-    { id: 'EM-5', subject: 'Welcome to FORGE!', body: 'Welcome to the FORGE family. Here is what to expect at your first session and how to prep...', audience: 'New Clients', status: 'Sent', recipientCount: 1, sentDate: d(-21) + 'T16:00:00Z' },
+    { id: 'EM-5', subject: 'Welcome to Stoa!', body: 'Welcome to the Stoa family. Here is what to expect at your first session and how to prep...', audience: 'New Clients', status: 'Sent', recipientCount: 1, sentDate: d(-21) + 'T16:00:00Z' },
   ]);
 
   // Seed Sent Text Messages
@@ -291,17 +291,17 @@ function seedIfEmpty(d, today) {
     { id: 'TXT-1', message: 'Hey! Reminder: your training session is tomorrow at 7am with Marcus. Reply C to confirm or R to reschedule.', audience: 'upcoming', recipientCount: 4, template: 'reminder', status: 'Sent', sentDate: d(-1) + 'T08:00:00Z' },
     { id: 'TXT-2', message: 'Great work crushing that HIIT session yesterday! Remember to stretch and refuel with protein within 30 min. Reply with any questions.', audience: 'all', recipientCount: 5, template: 'followup', status: 'Sent', sentDate: d(-2) + 'T10:00:00Z' },
     { id: 'TXT-3', message: 'New 6-Week Shred program launching Monday! Limited spots. First session FREE for current clients. Reply BOOK to reserve.', audience: 'all', recipientCount: 5, template: 'promo', status: 'Sent', sentDate: d(-5) + 'T12:00:00Z' },
-    { id: 'TXT-4', message: 'Thanks for training with us! Love your FORGE experience? Leave us a quick Google review: [link]', audience: 'all', recipientCount: 5, template: 'review', status: 'Sent', sentDate: d(-3) + 'T15:00:00Z' },
+    { id: 'TXT-4', message: 'Thanks for training with us! Love your Stoa experience? Leave us a quick Google review: [link]', audience: 'all', recipientCount: 5, template: 'review', status: 'Sent', sentDate: d(-3) + 'T15:00:00Z' },
     { id: 'TXT-5', message: 'Spring Shred starts next week! 6 weeks of training + nutrition coaching. Reply BOOK to lock in your spot.', audience: 'all', recipientCount: 5, template: 'promo', status: 'Sent', sentDate: d(-10) + 'T11:00:00Z' },
   ]);
 
   // Seed Social Media Posts
   if (get('ms_social_posts', []).length === 0) set('ms_social_posts', [
-    { id: 'SP-1', contentType: 'class', platforms: ['instagram', 'facebook'], posts: [{ platform: 'instagram', text: 'Your only limit is you.\n\n6am HIIT | 7am Strength | 12pm Boot Camp\nEvery single day.\n\nBook your session — link in bio\n\n#FORGETraining #PersonalTrainer #ScottsdaleFitness #TrainHard' }, { platform: 'facebook', text: 'Training sessions running all day at FORGE. All levels welcome — your intro session is just $49.' }], status: 'published', publishedAt: d(-2) + 'T10:00:00Z', createdAt: d(-2) + 'T09:00:00Z' },
-    { id: 'SP-2', contentType: 'transformation', platforms: ['instagram'], posts: [{ platform: 'instagram', text: '12 weeks. Consistent training. Real results.\n\nOur client James came in with zero gym experience.\nNow he is deadlifting 315 and feeling unstoppable.\n\n#TransformationTuesday #FORGETraining #StrengthTraining #Results' }], status: 'published', publishedAt: d(-5) + 'T14:00:00Z', createdAt: d(-5) + 'T13:00:00Z' },
-    { id: 'SP-3', contentType: 'promo', platforms: ['instagram', 'facebook', 'tiktok'], posts: [{ platform: 'instagram', text: 'SPRING SHRED STARTS NOW\n\n6-Week program | Nutrition + Training\nBring a friend FREE\n\nLink in bio\n\n#FORGETraining #SpringShred #PersonalTraining' }, { platform: 'facebook', text: 'Spring Shred program starting Monday — 6 weeks of training + nutrition coaching. Bring a friend free!' }, { platform: 'tiktok', text: 'POV: You just finished a FORGE boot camp and your legs are shaking but you feel ALIVE' }], status: 'scheduled', scheduledAt: d(2) + 'T10:00:00Z', createdAt: d(-1) + 'T16:00:00Z' },
-    { id: 'SP-4', contentType: 'education', platforms: ['instagram', 'linkedin'], posts: [{ platform: 'instagram', text: 'TRAINER TIP\n\nYou don\'t need to train 7 days a week.\n3-4 quality sessions with progressive overload will outperform 7 junk sessions every time.\n\nRecovery is where growth happens.\n\n#FitnessTips #FORGETraining #TrainSmart' }, { platform: 'linkedin', text: 'Why corporate wellness programs should include personal training: reduced sick days, improved productivity, and healthier teams. FORGE offers corporate training packages.' }], status: 'draft', createdAt: d(0) + 'T08:00:00Z' },
-    { id: 'SP-5', contentType: 'team', platforms: ['instagram'], posts: [{ platform: 'instagram', text: 'Meet Marcus Cole\n\nOur head trainer and FORGE founder brings 12+ years of training experience, CSCS certification, and a passion for helping people transform.\n\n#MeetTheTeam #FORGETraining #PersonalTrainer #Scottsdale' }], status: 'published', publishedAt: d(-8) + 'T11:00:00Z', createdAt: d(-8) + 'T10:00:00Z' },
+    { id: 'SP-1', contentType: 'class', platforms: ['instagram', 'facebook'], posts: [{ platform: 'instagram', text: 'Your only limit is you.\n\n6am HIIT | 7am Strength | 12pm Boot Camp\nEvery single day.\n\nBook your session — link in bio\n\n#GetStoa #PersonalTrainer #ScottsdaleFitness #TrainHard' }, { platform: 'facebook', text: 'Training sessions running all day at Stoa. All levels welcome — your intro session is just $49.' }], status: 'published', publishedAt: d(-2) + 'T10:00:00Z', createdAt: d(-2) + 'T09:00:00Z' },
+    { id: 'SP-2', contentType: 'transformation', platforms: ['instagram'], posts: [{ platform: 'instagram', text: '12 weeks. Consistent training. Real results.\n\nOur client James came in with zero gym experience.\nNow he is deadlifting 315 and feeling unstoppable.\n\n#TransformationTuesday #GetStoa #StrengthTraining #Results' }], status: 'published', publishedAt: d(-5) + 'T14:00:00Z', createdAt: d(-5) + 'T13:00:00Z' },
+    { id: 'SP-3', contentType: 'promo', platforms: ['instagram', 'facebook', 'tiktok'], posts: [{ platform: 'instagram', text: 'SPRING SHRED STARTS NOW\n\n6-Week program | Nutrition + Training\nBring a friend FREE\n\nLink in bio\n\n#GetStoa #SpringShred #PersonalTraining' }, { platform: 'facebook', text: 'Spring Shred program starting Monday — 6 weeks of training + nutrition coaching. Bring a friend free!' }, { platform: 'tiktok', text: 'POV: You just finished a Stoa boot camp and your legs are shaking but you feel ALIVE' }], status: 'scheduled', scheduledAt: d(2) + 'T10:00:00Z', createdAt: d(-1) + 'T16:00:00Z' },
+    { id: 'SP-4', contentType: 'education', platforms: ['instagram', 'linkedin'], posts: [{ platform: 'instagram', text: 'TRAINER TIP\n\nYou don\'t need to train 7 days a week.\n3-4 quality sessions with progressive overload will outperform 7 junk sessions every time.\n\nRecovery is where growth happens.\n\n#FitnessTips #GetStoa #TrainSmart' }, { platform: 'linkedin', text: 'Why corporate wellness programs should include personal training: reduced sick days, improved productivity, and healthier teams. Stoa offers corporate training packages.' }], status: 'draft', createdAt: d(0) + 'T08:00:00Z' },
+    { id: 'SP-5', contentType: 'team', platforms: ['instagram'], posts: [{ platform: 'instagram', text: 'Meet Marcus Cole\n\nOur head trainer and Stoa founder brings 12+ years of training experience, CSCS certification, and a passion for helping people transform.\n\n#MeetTheTeam #GetStoa #PersonalTrainer #Scottsdale' }], status: 'published', publishedAt: d(-8) + 'T11:00:00Z', createdAt: d(-8) + 'T10:00:00Z' },
   ]);
 
   // Seed Check-Ins (for today's sessions)

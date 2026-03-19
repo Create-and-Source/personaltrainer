@@ -6,12 +6,13 @@ import { useAuth } from '../services/AuthContext';
 import NotificationBell from './NotificationBell';
 
 /* ── Nav Structure ── */
+// Core sections always visible; collapsible sections hidden by default
 const NAV_ITEMS = [
-  { section: 'Overview', items: [
+  { section: 'Overview', collapsible: false, items: [
     { path: '/admin', label: 'Dashboard', icon: 'grid' },
     { path: '/admin/virtual', label: 'Virtual Sessions', icon: 'video' },
   ]},
-  { section: 'Clients', items: [
+  { section: 'Clients', collapsible: false, items: [
     { path: '/admin/members', label: 'Clients', icon: 'users' },
     { path: '/admin/schedule', label: 'Schedule', icon: 'calendar' },
     { path: '/admin/classes', label: 'Training Programs', icon: 'clipboard' },
@@ -20,21 +21,19 @@ const NAV_ITEMS = [
     { path: '/admin/nutrition', label: 'Nutrition', icon: 'leaf' },
     { path: '/admin/habits', label: 'Habits', icon: 'heart' },
   ]},
-  { section: 'Billing', items: [
+  { section: 'Billing', collapsible: false, items: [
     { path: '/admin/memberships', label: 'Memberships', icon: 'credit' },
-    { path: '/admin/referrals', label: 'Referrals', icon: 'share' },
+    { path: '/admin/inbox', label: 'Messages', icon: 'message' },
   ]},
-  { section: 'Client Success', items: [
+  { section: 'Growth Tools', collapsible: true, items: [
+    { path: '/admin/referrals', label: 'Referrals', icon: 'share' },
     { path: '/admin/retention', label: 'Retention', icon: 'target' },
     { path: '/admin/reviews', label: 'Reviews', icon: 'star' },
     { path: '/admin/challenges', label: 'Challenges', icon: 'trophy' },
     { path: '/admin/community', label: 'Community', icon: 'users' },
-  ]},
-  { section: 'Marketing', items: [
-    { path: '/admin/inbox', label: 'Messages', icon: 'message' },
     { path: '/admin/automations', label: 'Automations', icon: 'zap' },
   ]},
-  { section: 'System', items: [
+  { section: 'System', collapsible: false, items: [
     { path: '/admin/settings', label: 'Settings', icon: 'settings' },
   ]},
 ];
@@ -154,11 +153,11 @@ const ICONS = {
   ),
 };
 
-/* ── Sidebar constants ── */
-const SIDEBAR_BG = '#1A1714';
-const SIDEBAR_BORDER = '#2A2520';
-const SIDEBAR_MUTED = '#8A8078';
-const SIDEBAR_TEXT = '#E8E0D8';
+/* ── Sidebar constants — SKIMS dark ── */
+const SIDEBAR_BG = '#0D0D0D';
+const SIDEBAR_BORDER = '#1E1E1E';
+const SIDEBAR_MUTED = '#7A756F';
+const SIDEBAR_TEXT = '#F5F2EF';
 const SIDEBAR_WIDTH = 240;
 
 export default function Layout({ children }) {
@@ -168,6 +167,22 @@ export default function Layout({ children }) {
   const settings = getSettings();
   const { user, signOut } = useAuth();
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth <= 860);
+
+  // Auto-expand collapsible sections when a child route is active
+  const [expandedSections, setExpandedSections] = useState(() => {
+    const expanded = {};
+    NAV_ITEMS.forEach(section => {
+      if (section.collapsible) {
+        const hasActive = section.items.some(item => location.pathname === item.path);
+        expanded[section.section] = hasActive;
+      }
+    });
+    return expanded;
+  });
+
+  const toggleSection = (sectionName) => {
+    setExpandedSections(prev => ({ ...prev, [sectionName]: !prev[sectionName] }));
+  };
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 860px)');
@@ -185,11 +200,11 @@ export default function Layout({ children }) {
     document.documentElement.style.background = s.bg;
   }, [s.bg]);
 
-  const businessName = settings.businessName || 'FORGE';
+  const businessName = settings.businessName || 'Stoa';
 
   // Determine sidebar accent visibility against dark bg
   const sidebarAccent = theme.accent;
-  const sidebarActiveBg = theme.id === 'warm' ? 'rgba(98,85,74,0.08)' : 'rgba(14,122,130,0.08)';
+  const sidebarActiveBg = 'rgba(201,169,110,0.08)';
 
   /* ═══════════════════════════════════════════
      DESKTOP LAYOUT
@@ -229,32 +244,67 @@ export default function Layout({ children }) {
 
           {/* Nav sections */}
           <nav style={{ flex: 1, overflowY: 'auto', padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {NAV_ITEMS.map(section => (
-              <div key={section.section} style={{ marginBottom: 12 }}>
-                <div style={{
-                  fontFamily: s.MONO, fontSize: 10, fontWeight: 500,
-                  textTransform: 'uppercase', letterSpacing: '0.08em',
-                  color: SIDEBAR_MUTED, opacity: 0.4, padding: '0 16px 8px',
-                }}>
-                  {section.section}
+            {NAV_ITEMS.map(section => {
+              const isCollapsed = section.collapsible && !expandedSections[section.section];
+              const hasActive = section.items.some(item => location.pathname === item.path);
+              return (
+                <div key={section.section} style={{ marginBottom: 12 }}>
+                  {section.collapsible ? (
+                    <button onClick={() => toggleSection(section.section)} style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      width: '100%', padding: '0 16px 8px', border: 'none', background: 'none',
+                      cursor: 'pointer', fontFamily: s.MONO, fontSize: 10, fontWeight: 500,
+                      textTransform: 'uppercase', letterSpacing: '0.08em',
+                      color: hasActive ? SIDEBAR_TEXT : SIDEBAR_MUTED, opacity: hasActive ? 0.7 : 0.4,
+                      transition: 'all 0.15s ease',
+                    }}>
+                      <span>{section.section}</span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        strokeWidth="2" strokeLinecap="round"
+                        style={{ transform: isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.2s ease' }}>
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+                    </button>
+                  ) : (
+                    <div style={{
+                      fontFamily: s.MONO, fontSize: 10, fontWeight: 500,
+                      textTransform: 'uppercase', letterSpacing: '0.08em',
+                      color: SIDEBAR_MUTED, opacity: 0.4, padding: '0 16px 8px',
+                    }}>
+                      {section.section}
+                    </div>
+                  )}
+                  {!isCollapsed && section.items.map(item => (
+                    <NavLink key={item.path} to={item.path} end={item.path === '/admin'}
+                      style={({ isActive }) => ({
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '9px 16px', borderRadius: 10,
+                        textDecoration: 'none', transition: 'all 0.15s ease',
+                        fontFamily: s.FONT, fontSize: 13, fontWeight: isActive ? 500 : 400,
+                        color: isActive ? '#FFFFFF' : SIDEBAR_MUTED,
+                        background: isActive ? sidebarActiveBg : 'transparent',
+                      })}
+                      onMouseEnter={e => {
+                        if (!e.currentTarget.classList.contains('active')) {
+                          e.currentTarget.style.color = SIDEBAR_TEXT;
+                          e.currentTarget.style.background = `${SIDEBAR_BORDER}60`;
+                        }
+                      }}
+                      onMouseLeave={e => {
+                        const isActive = location.pathname === item.path || (item.path === '/admin' && location.pathname === '/admin');
+                        if (!isActive) {
+                          e.currentTarget.style.color = SIDEBAR_MUTED;
+                          e.currentTarget.style.background = 'transparent';
+                        }
+                      }}
+                    >
+                      <span style={{ display: 'flex', flexShrink: 0, opacity: 0.85 }}>{ICONS[item.icon]}</span>
+                      <span>{item.label}</span>
+                    </NavLink>
+                  ))}
                 </div>
-                {section.items.map(item => (
-                  <NavLink key={item.path} to={item.path} end={item.path === '/admin'}
-                    style={({ isActive }) => ({
-                      display: 'flex', alignItems: 'center', gap: 12,
-                      padding: '9px 16px', borderRadius: 10,
-                      textDecoration: 'none', transition: 'all 0.15s ease',
-                      fontFamily: s.FONT, fontSize: 13, fontWeight: isActive ? 500 : 400,
-                      color: isActive ? '#FFFFFF' : SIDEBAR_MUTED,
-                      background: isActive ? sidebarActiveBg : 'transparent',
-                    })}
-                  >
-                    <span style={{ display: 'flex', flexShrink: 0, opacity: 0.85 }}>{ICONS[item.icon]}</span>
-                    <span>{item.label}</span>
-                  </NavLink>
-                ))}
-              </div>
-            ))}
+              );
+            })}
           </nav>
 
           {/* Theme toggle at bottom */}

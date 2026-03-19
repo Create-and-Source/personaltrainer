@@ -1,29 +1,40 @@
 // Client Portal — Premium iOS-native fitness app experience
-// 5-tab structure: Home, Train, Coach, Progress, Profile
-import { useState, useEffect, useRef, useCallback } from 'react';
+// 5-tab structure: Home, Train, Mind, Progress, Profile
+import { useState, useEffect, useRef, useCallback, createContext, useContext } from 'react';
 import {
   getPatients, getAppointments, getServices,
   getClassPackages, subscribe,
 } from '../data/store';
+import { useStyles as useAppStyles } from '../theme';
 
 /* ══════════════════════════════════════
-   DESIGN TOKENS (Perplexity spec)
+   DESIGN TOKENS — bridged from theme system
    ══════════════════════════════════════ */
+const PortalTokens = createContext(null);
+function useTokens() { return useContext(PortalTokens); }
+function buildTokens(s) {
+  return {
+    FONT: s.FONT,
+    MONO: s.MONO,
+    BG: s.bg,
+    SURFACE: s.surface,
+    ACCENT: s.accent,
+    ACCENT_LIGHT: s.accentLight,
+    BORDER: s.border,
+    TEXT: s.text,
+    TEXT2: s.text2,
+    TEXT3: s.text3,
+    SUCCESS: s.success,
+    WARNING: s.warning,
+    CARD_RADIUS: 14,
+    CARD_SHADOW: s.shadow,
+    CARD_PAD: 16,
+    dark: s.dark,
+  };
+}
+// Legacy module-level fallbacks for seed data helpers (non-UI code)
 const FONT = "-apple-system, 'Figtree', BlinkMacSystemFont, sans-serif";
 const MONO = "'SF Mono', 'Source Code Pro', monospace";
-const BG = '#F7F3F0';
-const SURFACE = '#FFFFFF';
-const ACCENT = '#62554A';
-const ACCENT_LIGHT = 'rgba(98,85,74,0.08)';
-const BORDER = '#E8E3DD';
-const TEXT = '#111111';
-const TEXT2 = '#666666';
-const TEXT3 = '#AAAAAA';
-const SUCCESS = '#22C55E';
-const WARNING = '#EAB308';
-const CARD_RADIUS = 14;
-const CARD_SHADOW = '0 2px 8px rgba(0,0,0,0.04)';
-const CARD_PAD = 16;
 
 /* ── Helpers ── */
 const today = () => new Date().toISOString().slice(0, 10);
@@ -56,6 +67,10 @@ if (typeof document !== 'undefined' && !document.getElementById(ANIM_ID)) {
     @keyframes ptFadeIn { from { opacity:0; } to { opacity:1; } }
     @keyframes ptCountdown { from { stroke-dashoffset: 0; } }
     @keyframes ptPulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(98,85,74,0.2); } 50% { box-shadow: 0 0 0 8px rgba(98,85,74,0); } }
+    @keyframes ptBreathe { 0% { transform: scale(0.6); opacity: 0.4; } 25% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1); opacity: 0.9; } 75% { transform: scale(0.6); opacity: 0.4; } 100% { transform: scale(0.6); opacity: 0.4; } }
+    .mind-breathe { animation: ptBreathe 16s ease-in-out infinite; }
+    .mind-breathe-active { animation: ptBreathe 16s ease-in-out infinite; }
+    .mind-breathe-paused { animation: none; }
     .ios-fadeUp { animation: ptSlideUp 0.4s cubic-bezier(0.16,1,0.3,1) both; }
     .ios-d1 { animation-delay: 0.03s; }
     .ios-d2 { animation-delay: 0.06s; }
@@ -85,29 +100,29 @@ const SAMPLE_WORKOUT = {
   focus: ['Legs', 'Chest', 'Back'],
   sections: [
     { name: 'Warm-up', exercises: [
-      { name: 'Jump Rope', sets: null, reps: null, weight: null, time: '3 min', icon: '🏃' },
-      { name: "World's Greatest Stretch", sets: null, reps: null, weight: null, time: '2 min', icon: '🧘' },
+      { name: 'Jump Rope', sets: null, reps: null, weight: null, time: '3 min', icon: null },
+      { name: "World's Greatest Stretch", sets: null, reps: null, weight: null, time: '2 min', icon: null },
     ]},
     { name: 'Main', exercises: [
-      { name: 'Barbell Back Squat', sets: 4, reps: 8, weight: '185 lbs', time: null, icon: '🏋️' },
-      { name: 'Dumbbell Bench Press', sets: 3, reps: 10, weight: '50 lbs', time: null, icon: '💪' },
-      { name: 'Bent Over Row', sets: 3, reps: 10, weight: '135 lbs', time: null, icon: '🔥' },
-      { name: 'Romanian Deadlift', sets: 3, reps: 12, weight: '155 lbs', time: null, icon: '🦵' },
-      { name: 'Overhead Press', sets: 3, reps: 8, weight: '95 lbs', time: null, icon: '🙌' },
+      { name: 'Barbell Back Squat', sets: 4, reps: 8, weight: '185 lbs', time: null, icon: null },
+      { name: 'Dumbbell Bench Press', sets: 3, reps: 10, weight: '50 lbs', time: null, icon: null },
+      { name: 'Bent Over Row', sets: 3, reps: 10, weight: '135 lbs', time: null, icon: null },
+      { name: 'Romanian Deadlift', sets: 3, reps: 12, weight: '155 lbs', time: null, icon: null },
+      { name: 'Overhead Press', sets: 3, reps: 8, weight: '95 lbs', time: null, icon: null },
     ]},
     { name: 'Cooldown', exercises: [
-      { name: 'Hamstring Stretch', sets: null, reps: null, weight: null, time: '60s each', icon: '🧘' },
-      { name: 'Chest Opener', sets: null, reps: null, weight: null, time: '60s', icon: '🧘' },
-      { name: "Child's Pose", sets: null, reps: null, weight: null, time: '90s', icon: '🧘' },
+      { name: 'Hamstring Stretch', sets: null, reps: null, weight: null, time: '60s each', icon: null },
+      { name: 'Chest Opener', sets: null, reps: null, weight: null, time: '60s', icon: null },
+      { name: "Child's Pose", sets: null, reps: null, weight: null, time: '90s', icon: null },
     ]},
   ],
 };
 
 const SAMPLE_HABITS = [
-  { id: 'water', label: 'Water (8 glasses)', emoji: '💧' },
-  { id: 'sleep', label: 'Sleep 7h+', emoji: '😴' },
-  { id: 'steps', label: '10K Steps', emoji: '🚶' },
-  { id: 'eat', label: 'Eat Clean', emoji: '🥗' },
+  { id: 'water', label: 'Water (8 glasses)' },
+  { id: 'sleep', label: 'Sleep 7h+' },
+  { id: 'steps', label: '10K Steps' },
+  { id: 'eat', label: 'Eat Clean' },
 ];
 
 const SAMPLE_PROGRAMS = [
@@ -196,12 +211,12 @@ function getSeedChat(clientName) {
 }
 
 const BADGES = [
-  { name: 'First Workout', icon: '🎯', earned: true },
-  { name: '7-Day Streak', icon: '🔥', earned: true },
-  { name: '10 Workouts', icon: '💪', earned: true },
-  { name: '30-Day Streak', icon: '⚡', earned: false },
-  { name: 'PR Crusher', icon: '🏆', earned: true },
-  { name: '100 Workouts', icon: '👑', earned: false },
+  { name: 'First Workout', earned: true },
+  { name: '7-Day Streak', earned: true },
+  { name: '10 Workouts', earned: true },
+  { name: '30-Day Streak', earned: false },
+  { name: 'PR Crusher', earned: true },
+  { name: '100 Workouts', earned: false },
 ];
 
 /* ══════════════════════════════════════
@@ -226,12 +241,15 @@ const IconTrain = ({ active }) => (
   </svg>
 );
 
-const IconCoach = ({ active }) => (
+const IconMind = ({ active }) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? ACCENT : TEXT3} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    <circle cx="9" cy="10" r="1" fill={active ? ACCENT : TEXT3} stroke="none" />
-    <circle cx="12" cy="10" r="1" fill={active ? ACCENT : TEXT3} stroke="none" />
-    <circle cx="15" cy="10" r="1" fill={active ? ACCENT : TEXT3} stroke="none" />
+    <path d="M12 2C8.5 2 5 4.5 5 8c0 2.5 1.5 4 3 5s2 2.5 2 4h4c0-1.5.5-3 2-4s3-2.5 3-5c0-3.5-3.5-6-7-6z" fill={active ? ACCENT : 'none'} opacity={active ? 0.15 : 0} />
+    <ellipse cx="12" cy="19" rx="3" ry="1.5" />
+    <path d="M9 17c-3-1-5-3.5-5-6.5C4 6 8 3 12 3s8 3 8 7.5c0 3-2 5.5-5 6.5" />
+    <path d="M12 3v8" />
+    <path d="M8.5 7.5C9.5 8.5 10.5 9 12 9" />
+    <path d="M15.5 7.5C14.5 8.5 13.5 9 12 9" />
+    <path d="M10 21h4" />
   </svg>
 );
 
@@ -440,6 +458,17 @@ const BarChart = ({ width = 300, height = 130 }) => {
    ══════════════════════════════════════ */
 
 export default function Portal() {
+  const appStyles = useAppStyles();
+  const tokens = buildTokens(appStyles);
+  return (
+    <PortalTokens.Provider value={tokens}>
+      <PortalInner />
+    </PortalTokens.Provider>
+  );
+}
+
+function PortalInner() {
+  const { FONT, MONO, BG, SURFACE, ACCENT, ACCENT_LIGHT, BORDER, TEXT, TEXT2, TEXT3, SUCCESS, WARNING, CARD_RADIUS, CARD_SHADOW, CARD_PAD, dark } = useTokens();
   const [, setTick] = useState(0);
   useEffect(() => subscribe(() => setTick(t => t + 1)), []);
 
@@ -465,6 +494,10 @@ export default function Portal() {
   const [trainSeg, setTrainSeg] = useState('Calendar');
   // Coach tab segments
   const [coachSeg, setCoachSeg] = useState('AI Coach');
+  // Mind tab state
+  const [breathingActive, setBreathingActive] = useState(false);
+  const [breathingPhase, setBreathingPhase] = useState(0); // 0=in, 1=hold, 2=out, 3=hold
+  const breathingTimer = useRef(null);
   // Progress tab segments
   const [progressSeg, setProgressSeg] = useState('Workouts');
 
@@ -574,20 +607,20 @@ export default function Portal() {
       focus: ['Chest', 'Shoulders', 'Triceps'],
       sections: [
         { name: 'Warm-up', exercises: [
-          { name: 'Arm Circles', sets: null, reps: null, weight: null, time: '2 min', icon: '🔄' },
-          { name: 'Band Pull-Aparts', sets: null, reps: null, weight: null, time: '2 min', icon: '💪' },
+          { name: 'Arm Circles', sets: null, reps: null, weight: null, time: '2 min', icon: null },
+          { name: 'Band Pull-Aparts', sets: null, reps: null, weight: null, time: '2 min', icon: null },
         ]},
         { name: 'Main', exercises: [
-          { name: 'Incline Dumbbell Press', sets: 4, reps: 10, weight: '45 lbs', time: null, icon: '🏋️' },
-          { name: 'Flat Barbell Bench', sets: 4, reps: 8, weight: '165 lbs', time: null, icon: '💪' },
-          { name: 'Overhead Press', sets: 3, reps: 10, weight: '85 lbs', time: null, icon: '🙌' },
-          { name: 'Cable Flyes', sets: 3, reps: 12, weight: '25 lbs', time: null, icon: '🔥' },
-          { name: 'Lateral Raises', sets: 3, reps: 15, weight: '20 lbs', time: null, icon: '💪' },
-          { name: 'Tricep Pushdowns', sets: 3, reps: 12, weight: '40 lbs', time: null, icon: '🔥' },
+          { name: 'Incline Dumbbell Press', sets: 4, reps: 10, weight: '45 lbs', time: null, icon: null },
+          { name: 'Flat Barbell Bench', sets: 4, reps: 8, weight: '165 lbs', time: null, icon: null },
+          { name: 'Overhead Press', sets: 3, reps: 10, weight: '85 lbs', time: null, icon: null },
+          { name: 'Cable Flyes', sets: 3, reps: 12, weight: '25 lbs', time: null, icon: null },
+          { name: 'Lateral Raises', sets: 3, reps: 15, weight: '20 lbs', time: null, icon: null },
+          { name: 'Tricep Pushdowns', sets: 3, reps: 12, weight: '40 lbs', time: null, icon: null },
         ]},
         { name: 'Cooldown', exercises: [
-          { name: 'Chest Stretch', sets: null, reps: null, weight: null, time: '60s each', icon: '🧘' },
-          { name: 'Shoulder Stretch', sets: null, reps: null, weight: null, time: '60s each', icon: '🧘' },
+          { name: 'Chest Stretch', sets: null, reps: null, weight: null, time: '60s each', icon: null },
+          { name: 'Shoulder Stretch', sets: null, reps: null, weight: null, time: '60s each', icon: null },
         ]},
       ],
     },
@@ -596,19 +629,19 @@ export default function Portal() {
       focus: ['Quads', 'Glutes', 'Hamstrings'],
       sections: [
         { name: 'Warm-up', exercises: [
-          { name: 'Leg Swings', sets: null, reps: null, weight: null, time: '2 min', icon: '🦵' },
-          { name: 'Bodyweight Squats', sets: null, reps: null, weight: null, time: '2 min', icon: '🏋️' },
+          { name: 'Leg Swings', sets: null, reps: null, weight: null, time: '2 min', icon: null },
+          { name: 'Bodyweight Squats', sets: null, reps: null, weight: null, time: '2 min', icon: null },
         ]},
         { name: 'Main', exercises: [
-          { name: 'Barbell Back Squat', sets: 5, reps: 5, weight: '225 lbs', time: null, icon: '🏋️' },
-          { name: 'Romanian Deadlift', sets: 4, reps: 8, weight: '185 lbs', time: null, icon: '🦵' },
-          { name: 'Bulgarian Split Squats', sets: 3, reps: 10, weight: '50 lbs', time: null, icon: '💪' },
-          { name: 'Leg Press', sets: 3, reps: 12, weight: '360 lbs', time: null, icon: '🔥' },
-          { name: 'Hamstring Curls', sets: 3, reps: 12, weight: '90 lbs', time: null, icon: '🦵' },
+          { name: 'Barbell Back Squat', sets: 5, reps: 5, weight: '225 lbs', time: null, icon: null },
+          { name: 'Romanian Deadlift', sets: 4, reps: 8, weight: '185 lbs', time: null, icon: null },
+          { name: 'Bulgarian Split Squats', sets: 3, reps: 10, weight: '50 lbs', time: null, icon: null },
+          { name: 'Leg Press', sets: 3, reps: 12, weight: '360 lbs', time: null, icon: null },
+          { name: 'Hamstring Curls', sets: 3, reps: 12, weight: '90 lbs', time: null, icon: null },
         ]},
         { name: 'Cooldown', exercises: [
-          { name: 'Quad Stretch', sets: null, reps: null, weight: null, time: '60s each', icon: '🧘' },
-          { name: 'Hamstring Stretch', sets: null, reps: null, weight: null, time: '60s each', icon: '🧘' },
+          { name: 'Quad Stretch', sets: null, reps: null, weight: null, time: '60s each', icon: null },
+          { name: 'Hamstring Stretch', sets: null, reps: null, weight: null, time: '60s each', icon: null },
         ]},
       ],
     },
@@ -617,17 +650,17 @@ export default function Portal() {
       focus: ['Core', 'Cardio'],
       sections: [
         { name: 'Warm-up', exercises: [
-          { name: 'Jumping Jacks', sets: null, reps: null, weight: null, time: '2 min', icon: '🏃' },
+          { name: 'Jumping Jacks', sets: null, reps: null, weight: null, time: '2 min', icon: null },
         ]},
         { name: 'Main', exercises: [
-          { name: 'Plank', sets: 3, reps: null, weight: null, time: '45s', icon: '💪' },
-          { name: 'Mountain Climbers', sets: 3, reps: 20, weight: null, time: null, icon: '🏃' },
-          { name: 'Russian Twists', sets: 3, reps: 20, weight: '15 lbs', time: null, icon: '🔥' },
-          { name: 'Bicycle Crunches', sets: 3, reps: 20, weight: null, time: null, icon: '💪' },
-          { name: 'Dead Bug', sets: 3, reps: 12, weight: null, time: null, icon: '🧘' },
+          { name: 'Plank', sets: 3, reps: null, weight: null, time: '45s', icon: null },
+          { name: 'Mountain Climbers', sets: 3, reps: 20, weight: null, time: null, icon: null },
+          { name: 'Russian Twists', sets: 3, reps: 20, weight: '15 lbs', time: null, icon: null },
+          { name: 'Bicycle Crunches', sets: 3, reps: 20, weight: null, time: null, icon: null },
+          { name: 'Dead Bug', sets: 3, reps: 12, weight: null, time: null, icon: null },
         ]},
         { name: 'Cooldown', exercises: [
-          { name: "Child's Pose", sets: null, reps: null, weight: null, time: '90s', icon: '🧘' },
+          { name: "Child's Pose", sets: null, reps: null, weight: null, time: '90s', icon: null },
         ]},
       ],
     },
@@ -636,12 +669,12 @@ export default function Portal() {
       focus: ['Mobility', 'Flexibility'],
       sections: [
         { name: 'Flow', exercises: [
-          { name: 'Cat-Cow', sets: null, reps: null, weight: null, time: '3 min', icon: '🧘' },
-          { name: "World's Greatest Stretch", sets: null, reps: null, weight: null, time: '3 min', icon: '🧘' },
-          { name: 'Pigeon Pose', sets: null, reps: null, weight: null, time: '2 min each', icon: '🧘' },
-          { name: 'Thoracic Rotation', sets: null, reps: null, weight: null, time: '2 min each', icon: '🔄' },
-          { name: 'Hip 90/90', sets: null, reps: null, weight: null, time: '2 min each', icon: '🦵' },
-          { name: 'Foam Roll - Full Body', sets: null, reps: null, weight: null, time: '10 min', icon: '🧘' },
+          { name: 'Cat-Cow', sets: null, reps: null, weight: null, time: '3 min', icon: null },
+          { name: "World's Greatest Stretch", sets: null, reps: null, weight: null, time: '3 min', icon: null },
+          { name: 'Pigeon Pose', sets: null, reps: null, weight: null, time: '2 min each', icon: null },
+          { name: 'Thoracic Rotation', sets: null, reps: null, weight: null, time: '2 min each', icon: null },
+          { name: 'Hip 90/90', sets: null, reps: null, weight: null, time: '2 min each', icon: null },
+          { name: 'Foam Roll - Full Body', sets: null, reps: null, weight: null, time: '10 min', icon: null },
         ]},
       ],
     },
@@ -692,122 +725,205 @@ export default function Portal() {
   /* ══════════════════════════════════════
      TAB 1: HOME
      ══════════════════════════════════════ */
+  const SERIF = "'Playfair Display', Georgia, serif";
+
+  // Editorial image cards — warm gradient placeholders (replace with real photos later)
+  const IMG_MOVEMENT = 'linear-gradient(160deg, #C4A882 0%, #8B7355 50%, #6B5B45 100%)';
+  const IMG_NOURISH  = 'linear-gradient(160deg, #7A8C6A 0%, #5C6B4A 50%, #4A5838 100%)';
+  const IMG_CONNECT  = 'linear-gradient(160deg, #B8A090 0%, #8C7768 50%, #6B5B50 100%)';
+  const IMG_MIND     = 'linear-gradient(160deg, #A0906E 0%, #7A6B50 50%, #5C4E38 100%)';
+
   const renderHome = () => (
-    <div className="ios-page" style={{ padding: '24px 16px 100px' }}>
-      {/* Greeting */}
-      <div className="ios-fadeUp ios-d1" style={{ marginBottom: 24 }}>
-        <h1 style={{ font: `700 28px ${FONT}`, color: TEXT, margin: '0 0 4px', letterSpacing: '-0.3px' }}>
-          Hi, {client.firstName}
+    <div className="ios-page" style={{ padding: '0 0 100px' }}>
+
+      {/* Editorial Header */}
+      <div className="ios-fadeUp" style={{ padding: '28px 20px 20px' }}>
+        <p style={{ font: `400 13px ${FONT}`, color: TEXT3, margin: '0 0 4px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          {fmtFullDate()}
+        </p>
+        <h1 style={{ font: `500 32px ${SERIF}`, color: TEXT, margin: 0, letterSpacing: '-0.3px', lineHeight: 1.15 }}>
+          Welcome back,<br />{client.firstName}
         </h1>
-        <p style={{ font: `400 15px ${FONT}`, color: TEXT2, margin: 0 }}>{fmtFullDate()}</p>
       </div>
 
-      {/* Today's Plan Hero Card */}
-      <Card className="ios-fadeUp ios-d2" style={{ marginBottom: 12, padding: 20 }} onClick={() => openWorkoutDetail(SAMPLE_WORKOUT)}>
-        <SectionLabel style={{ color: ACCENT, marginBottom: 8 }}>Today's Plan</SectionLabel>
-        <div style={{ font: `600 20px ${FONT}`, color: TEXT, marginBottom: 4 }}>{SAMPLE_WORKOUT.title}</div>
-        <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-          <span style={{ font: `400 13px ${FONT}`, color: TEXT2 }}>{SAMPLE_WORKOUT.duration} min</span>
-          <span style={{ font: `400 13px ${FONT}`, color: TEXT2 }}>{SAMPLE_WORKOUT.difficulty}</span>
-          <span style={{ font: `400 13px ${FONT}`, color: TEXT2 }}>{totalExerciseCount} exercises</span>
+      {/* Daily Affirmation */}
+      <div className="ios-fadeUp ios-d1" style={{ padding: '0 20px', marginBottom: 24 }}>
+        <div style={{
+          padding: '20px 24px', borderRadius: 16,
+          background: `linear-gradient(135deg, ${ACCENT}08, ${ACCENT}04)`,
+          border: `1px solid ${ACCENT}15`,
+        }}>
+          <p style={{ font: `italic 400 16px ${SERIF}`, color: TEXT, margin: 0, lineHeight: 1.6 }}>
+            "I am becoming the person I was always meant to be."
+          </p>
+          <p style={{ font: `400 11px ${FONT}`, color: TEXT3, margin: '10px 0 0', letterSpacing: '0.04em' }}>
+            Today's intention
+          </p>
         </div>
-        <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-          {SAMPLE_WORKOUT.focus.map(f => (
-            <span key={f} style={{
-              padding: '4px 10px', borderRadius: 100,
-              background: ACCENT_LIGHT,
-              font: `500 11px ${FONT}`, color: ACCENT,
-            }}>{f}</span>
-          ))}
-        </div>
-        <PillButton onClick={(e) => { e.stopPropagation(); startWorkout(); }}>Start Workout</PillButton>
-      </Card>
+      </div>
 
-      {/* Today's Habits */}
-      <Card className="ios-fadeUp ios-d3" style={{ marginBottom: 12 }}>
-        <SectionLabel>Today's Habits</SectionLabel>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {SAMPLE_HABITS.map(h => (
+      {/* Hero Pillars — Movement, Nourishment, Connection (full-bleed photo cards) */}
+      <div className="ios-fadeUp ios-d2" style={{ padding: '0 20px', marginBottom: 28 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+          {/* Movement */}
+          <div onClick={() => setActiveTab('train')} className="ios-card" style={{
+            height: 180, borderRadius: 18, overflow: 'hidden', position: 'relative', cursor: 'pointer',
+            background: IMG_MOVEMENT,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.4) 100%)' }} />
+            <div style={{ position: 'absolute', bottom: 20, left: 24 }}>
+              <div style={{ font: `500 24px ${SERIF}`, color: '#FFFFFF', letterSpacing: '-0.2px' }}>Movement</div>
+              <div style={{ font: `400 13px ${FONT}`, color: 'rgba(255,255,255,0.75)', marginTop: 4 }}>
+                {SAMPLE_WORKOUT.title} &middot; {SAMPLE_WORKOUT.duration} min
+              </div>
+            </div>
+          </div>
+
+          {/* Two-up: Nourishment + Connection */}
+          <div style={{ display: 'flex', gap: 12 }}>
+            <div onClick={() => setActiveTab('progress')} className="ios-card" style={{
+              flex: 1, height: 160, borderRadius: 18, overflow: 'hidden', position: 'relative', cursor: 'pointer',
+              background: IMG_NOURISH,
+              boxShadow: '0 6px 24px rgba(0,0,0,0.10)',
+            }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.45) 100%)' }} />
+              <div style={{ position: 'absolute', bottom: 16, left: 18 }}>
+                <div style={{ font: `500 20px ${SERIF}`, color: '#FFFFFF' }}>Nourishment</div>
+                <div style={{ font: `400 12px ${FONT}`, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>
+                  {nutrition.calories.current} / {nutrition.calories.target} cal
+                </div>
+              </div>
+            </div>
+
+            <div onClick={() => setActiveTab('mind')} className="ios-card" style={{
+              flex: 1, height: 160, borderRadius: 18, overflow: 'hidden', position: 'relative', cursor: 'pointer',
+              background: IMG_CONNECT,
+              boxShadow: '0 6px 24px rgba(0,0,0,0.10)',
+            }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.45) 100%)' }} />
+              <div style={{ position: 'absolute', bottom: 16, left: 18 }}>
+                <div style={{ font: `500 20px ${SERIF}`, color: '#FFFFFF' }}>Stillness</div>
+                <div style={{ font: `400 12px ${FONT}`, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>
+                  Breathe &middot; Journal &middot; Reflect
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Habits — minimal, elegant */}
+      <div className="ios-fadeUp ios-d3" style={{ padding: '0 20px', marginBottom: 28 }}>
+        <div style={{ font: `500 11px ${FONT}`, color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 14 }}>
+          Daily Practice
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          {SAMPLE_HABITS.map((h, i) => (
             <div
               key={h.id}
               onClick={() => setHabits(prev => ({ ...prev, [h.id]: !prev[h.id] }))}
               style={{
-                display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
-                padding: '6px 0',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '16px 0', cursor: 'pointer',
+                borderBottom: i < SAMPLE_HABITS.length - 1 ? `1px solid ${BORDER}` : 'none',
               }}
             >
-              <IconCheck checked={habits[h.id]} />
               <span style={{
                 font: `400 15px ${FONT}`,
-                color: habits[h.id] ? TEXT : TEXT2,
+                color: habits[h.id] ? TEXT3 : TEXT,
                 textDecoration: habits[h.id] ? 'line-through' : 'none',
+                transition: 'all 0.2s ease',
               }}>
-                {h.emoji} {h.label}
+                {h.label}
               </span>
+              <div style={{
+                width: 22, height: 22, borderRadius: 11,
+                border: habits[h.id] ? 'none' : `1.5px solid ${BORDER}`,
+                background: habits[h.id] ? ACCENT : 'transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.2s ease',
+              }}>
+                {habits[h.id] && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+              </div>
             </div>
           ))}
         </div>
-      </Card>
+      </div>
 
-      {/* Today's Nutrition Summary */}
-      <Card className="ios-fadeUp ios-d4" style={{ marginBottom: 12 }} onClick={() => setActiveTab('progress')}>
-        <SectionLabel>Today's Nutrition</SectionLabel>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 12 }}>
-          <span style={{ font: `700 22px ${MONO}`, color: TEXT }}>{nutrition.calories.current.toLocaleString()}</span>
-          <span style={{ font: `400 13px ${FONT}`, color: TEXT3 }}>/ {nutrition.calories.target.toLocaleString()} cal</span>
+      {/* Stats — quiet, understated */}
+      <div className="ios-fadeUp ios-d4" style={{ padding: '0 20px', marginBottom: 28 }}>
+        <div style={{ display: 'flex', gap: 0 }}>
+          {[
+            { value: streakCount, label: 'day streak' },
+            { value: weekWorkouts, label: 'this week' },
+            { value: totalMin, label: 'min total' },
+          ].map((stat, i) => (
+            <div key={i} style={{
+              flex: 1, textAlign: 'center', padding: '20px 0',
+              borderRight: i < 2 ? `1px solid ${BORDER}` : 'none',
+            }}>
+              <div style={{ font: `500 24px ${SERIF}`, color: TEXT }}>{stat.value}</div>
+              <div style={{ font: `400 11px ${FONT}`, color: TEXT3, marginTop: 4, letterSpacing: '0.02em' }}>{stat.label}</div>
+            </div>
+          ))}
         </div>
-        <div style={{ height: 6, borderRadius: 3, background: '#EFEBE7', overflow: 'hidden', marginBottom: 14 }}>
-          <div style={{ height: '100%', borderRadius: 3, background: ACCENT, width: `${Math.min((nutrition.calories.current / nutrition.calories.target) * 100, 100)}%`, transition: 'width 0.6s ease' }} />
-        </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <MacroBar label="Protein" current={nutrition.protein.current} target={nutrition.protein.target} color="#E07B5A" />
-          <MacroBar label="Carbs" current={nutrition.carbs.current} target={nutrition.carbs.target} color="#5B9BD5" />
-          <MacroBar label="Fat" current={nutrition.fat.current} target={nutrition.fat.target} color="#D4A843" />
-        </div>
-        <div style={{ marginTop: 14 }}>
-          <PillButton variant="secondary" onClick={(e) => { e.stopPropagation(); setShowMealModal(true); }} style={{ font: `500 13px ${FONT}`, padding: '10px 0' }}>Log Meal</PillButton>
-        </div>
-      </Card>
+      </div>
 
-      {/* Messages Preview */}
-      <Card className="ios-fadeUp ios-d5" style={{ marginBottom: 12 }} onClick={() => { setActiveTab('coach'); setCoachSeg('Messages'); }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 40, height: 40, borderRadius: '50%', background: ACCENT,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', font: `600 13px ${FONT}`, flexShrink: 0,
-          }}>MC</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ font: `500 14px ${FONT}`, color: TEXT }}>1 new message from Marcus</div>
-            <div style={{ font: `400 13px ${FONT}`, color: TEXT2, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              20-30 min of low-intensity steady state...
+      {/* On-Demand Classes Preview */}
+      <div className="ios-fadeUp ios-d5" style={{ padding: '0 20px', marginBottom: 28 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+          <div style={{ font: `500 11px ${FONT}`, color: TEXT3, textTransform: 'uppercase', letterSpacing: '0.1em' }}>On Demand</div>
+          <span style={{ font: `400 13px ${FONT}`, color: ACCENT, cursor: 'pointer' }}>See all</span>
+        </div>
+        <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4 }} className="ios-scroll">
+          {[
+            { title: 'Morning Flow', type: 'Pilates', mins: 20, bg: IMG_MOVEMENT },
+            { title: 'Sunset Stretch', type: 'Yoga', mins: 15, bg: IMG_MIND },
+            { title: 'Full Body Burn', type: 'HIIT', mins: 30, bg: IMG_NOURISH },
+          ].map((cls, i) => (
+            <div key={i} className="ios-card" style={{
+              minWidth: 150, height: 200, borderRadius: 16, overflow: 'hidden',
+              position: 'relative', cursor: 'pointer', flexShrink: 0,
+              background: cls.bg,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+            }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.5) 100%)' }} />
+              <div style={{ position: 'absolute', bottom: 14, left: 14, right: 14 }}>
+                <div style={{ font: `500 16px ${SERIF}`, color: '#FFFFFF' }}>{cls.title}</div>
+                <div style={{ font: `400 11px ${FONT}`, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>
+                  {cls.type} &middot; {cls.mins} min
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Message from practitioner */}
+      <div className="ios-fadeUp ios-d6" style={{ padding: '0 20px' }}>
+        <div onClick={() => { setActiveTab('mind'); }} style={{
+          padding: '20px', borderRadius: 16, cursor: 'pointer',
+          background: SURFACE, border: `1px solid ${BORDER}`,
+          boxShadow: '0 2px 12px rgba(0,0,0,0.03)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: '50%', background: `linear-gradient(135deg, #C4A882, #8B7355)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#fff', font: `600 12px ${FONT}`, flexShrink: 0,
+            }}>MC</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ font: `500 14px ${FONT}`, color: TEXT }}>Marcus Cole</div>
+              <div style={{ font: `400 13px ${FONT}`, color: TEXT2, marginTop: 2 }}>
+                Great session yesterday. Rest up today.
+              </div>
             </div>
           </div>
-          <IconChevron dir="right" color={TEXT3} />
         </div>
-      </Card>
-
-      {/* Streak Strip */}
-      <div className="ios-fadeUp ios-d6" style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-        <Card style={{ flex: 1, padding: 14, textAlign: 'center' }}>
-          <div style={{ font: `700 20px ${FONT}`, color: TEXT }}>🔥 {streakCount}</div>
-          <div style={{ font: `400 11px ${FONT}`, color: TEXT3, marginTop: 2 }}>day streak</div>
-        </Card>
-        <Card style={{ flex: 1, padding: 14, textAlign: 'center' }}>
-          <div style={{ font: `700 20px ${FONT}`, color: TEXT }}>{weekWorkouts}</div>
-          <div style={{ font: `400 11px ${FONT}`, color: TEXT3, marginTop: 2 }}>workouts/wk</div>
-        </Card>
-        <Card style={{ flex: 1, padding: 14, textAlign: 'center' }}>
-          <div style={{ font: `700 20px ${FONT}`, color: TEXT }}>{totalMin}</div>
-          <div style={{ font: `400 11px ${FONT}`, color: TEXT3, marginTop: 2 }}>min total</div>
-        </Card>
       </div>
 
-      {/* Quick Actions */}
-      <div style={{ display: 'flex', gap: 10 }}>
-        <PillButton variant="secondary" onClick={() => setActiveTab('train')} style={{ flex: 1 }}>Book Session</PillButton>
-        <PillButton variant="secondary" onClick={() => { setActiveTab('coach'); setCoachSeg('Messages'); }} style={{ flex: 1 }}>Send Message</PillButton>
-      </div>
     </div>
   );
 
@@ -1376,8 +1492,214 @@ export default function Portal() {
   );
 
   /* ══════════════════════════════════════
-     TAB 3: COACH
+     TAB 3: MIND
      ══════════════════════════════════════ */
+  const BREATHING_LABELS = ['Breathe In', 'Hold', 'Breathe Out', 'Hold'];
+  const startBreathing = () => {
+    setBreathingActive(true);
+    setBreathingPhase(0);
+    let phase = 0;
+    breathingTimer.current = setInterval(() => {
+      phase = (phase + 1) % 4;
+      setBreathingPhase(phase);
+    }, 4000);
+  };
+  const stopBreathing = () => {
+    setBreathingActive(false);
+    clearInterval(breathingTimer.current);
+    setBreathingPhase(0);
+  };
+
+  const JOURNAL_ENTRIES = [
+    { id: 1, text: 'Felt really grounded after this morning\'s session. The breathwork before lifting made a noticeable difference in my focus.', time: 'Today, 8:42 AM', hearts: 3, type: 'text' },
+    { id: 2, text: 'Post-workout sunset walk. Grateful for the progress this month.', time: 'Yesterday, 6:15 PM', hearts: 5, type: 'photo' },
+    { id: 3, text: 'Voice note: Recovery reflections after a tough week', time: 'Mar 15, 9:30 PM', hearts: 2, type: 'voice' },
+  ];
+
+  const SOUNDSCAPES = [
+    { id: 's1', label: 'Rain' },
+    { id: 's2', label: 'Ocean' },
+    { id: 's3', label: 'Forest' },
+    { id: 's4', label: 'Fire' },
+    { id: 's5', label: 'Night' },
+  ];
+
+  const AUDIO_LIBRARY = [
+    { id: 'a1', title: 'Evening Body Scan', practitioner: 'Sarah', role: 'Hypnotherapist', duration: '12 min' },
+    { id: 'a2', title: 'Morning Meditation', practitioner: 'Sarah', role: 'Hypnotherapist', duration: '8 min' },
+    { id: 'a3', title: 'Sleep Story: Mountain Lake', practitioner: 'Sarah', role: 'Hypnotherapist', duration: '20 min' },
+  ];
+
+  const renderMind = () => (
+    <div style={{ padding: '20px 16px 100px' }}>
+      <h1 className="ios-fadeUp" style={{ font: `700 28px ${FONT}`, color: TEXT, margin: '0 0 20px', letterSpacing: '-0.3px' }}>Mind</h1>
+
+      {/* Breathing Exercise */}
+      <div className="ios-fadeUp ios-d1 ios-card" style={{
+        background: SURFACE, borderRadius: CARD_RADIUS, padding: CARD_PAD + 8,
+        boxShadow: CARD_SHADOW, marginBottom: 16, textAlign: 'center',
+      }}>
+        <div style={{ font: `600 11px ${FONT}`, color: TEXT3, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4 }}>Breathing Exercise</div>
+        <div style={{ font: `600 17px ${FONT}`, color: TEXT, marginBottom: 16 }}>Box Breathing</div>
+
+        {/* Animated circle */}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 140, marginBottom: 12 }}>
+          <div style={{ position: 'relative', width: 120, height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className={breathingActive ? 'mind-breathe-active' : 'mind-breathe-paused'} style={{
+              width: 100, height: 100, borderRadius: '50%',
+              background: `radial-gradient(circle, ${ACCENT}30, ${ACCENT}10)`,
+              border: `2px solid ${ACCENT}40`,
+              position: 'absolute',
+              transform: breathingActive ? undefined : 'scale(0.6)',
+              opacity: breathingActive ? undefined : 0.4,
+              transition: breathingActive ? undefined : 'all 0.4s ease',
+            }} />
+            <div style={{ position: 'relative', zIndex: 1, font: `500 13px ${FONT}`, color: ACCENT }}>
+              {breathingActive ? BREATHING_LABELS[breathingPhase] : 'Ready'}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ font: `400 13px ${FONT}`, color: TEXT3, marginBottom: 16 }}>
+          4s in &middot; 4s hold &middot; 4s out &middot; 4s hold
+        </div>
+
+        <button
+          onClick={breathingActive ? stopBreathing : startBreathing}
+          style={{
+            padding: '10px 32px', borderRadius: 100, border: 'none',
+            background: breathingActive ? `${ACCENT}15` : ACCENT,
+            color: breathingActive ? ACCENT : '#fff',
+            font: `600 14px ${FONT}`, cursor: 'pointer',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          {breathingActive ? 'Stop' : 'Start'}
+        </button>
+      </div>
+
+      {/* SOS Calm Button */}
+      <div className="ios-fadeUp ios-d2" style={{ marginBottom: 20, textAlign: 'center' }}>
+        <button style={{
+          width: '100%', padding: '16px 24px', borderRadius: 100, border: 'none',
+          background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT}CC)`,
+          color: '#fff', font: `600 16px ${FONT}`, cursor: 'pointer',
+          boxShadow: `0 4px 16px ${ACCENT}30`,
+          transition: 'transform 0.15s ease',
+        }}
+          onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
+          onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+        >
+          I Need Calm Now
+        </button>
+      </div>
+
+      {/* Journal Wall */}
+      <div className="ios-fadeUp ios-d3" style={{ marginBottom: 24 }}>
+        <div style={{ font: `600 18px ${FONT}`, color: TEXT, marginBottom: 12 }}>My Journal</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {JOURNAL_ENTRIES.map(entry => (
+            <div key={entry.id} className="ios-card" style={{
+              background: SURFACE, borderRadius: CARD_RADIUS, padding: CARD_PAD,
+              boxShadow: CARD_SHADOW,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8 }}>
+                {entry.type === 'photo' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={TEXT3} strokeWidth="1.5" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>}
+                {entry.type === 'voice' && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={TEXT3} strokeWidth="1.5" strokeLinecap="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>}
+                <div style={{ flex: 1 }}>
+                  <div style={{ font: `400 14px/${1.55} ${FONT}`, color: TEXT }}>{entry.text}</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ font: `400 11px ${FONT}`, color: TEXT3 }}>{entry.time}</span>
+                <span style={{ font: `400 12px ${FONT}`, color: TEXT3, display: 'flex', alignItems: 'center', gap: 3 }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill={TEXT3} stroke="none"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg> {entry.hearts}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Journal input */}
+        <div style={{
+          marginTop: 10, padding: '10px 14px', borderRadius: 22,
+          background: SURFACE, border: `1px solid ${BORDER}`,
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          <span style={{ font: `400 14px ${FONT}`, color: TEXT3, flex: 1 }}>Write something...</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={TEXT3} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+          </svg>
+        </div>
+      </div>
+
+      {/* Soundscapes */}
+      <div className="ios-fadeUp ios-d4" style={{ marginBottom: 24 }}>
+        <div style={{ font: `600 18px ${FONT}`, color: TEXT, marginBottom: 12 }}>Soundscapes</div>
+        <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4 }} className="ios-scroll">
+          {SOUNDSCAPES.map(s => (
+            <div key={s.id} className="ios-card" style={{
+              minWidth: 90, padding: '16px 12px', borderRadius: CARD_RADIUS,
+              background: SURFACE, boxShadow: CARD_SHADOW,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+              cursor: 'pointer', flexShrink: 0,
+            }}>
+              <span style={{ font: `300 20px ${FONT}`, color: ACCENT, letterSpacing: '-0.5px' }}>{s.label[0]}</span>
+              <span style={{ font: `500 12px ${FONT}`, color: TEXT, letterSpacing: '0.02em' }}>{s.label}</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill={TEXT3} stroke="none">
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Audio Library */}
+      <div className="ios-fadeUp ios-d5" style={{ marginBottom: 24 }}>
+        <div style={{ font: `600 18px ${FONT}`, color: TEXT, marginBottom: 12 }}>From Your Practitioners</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {AUDIO_LIBRARY.map(item => (
+            <div key={item.id} className="ios-card" style={{
+              background: SURFACE, borderRadius: CARD_RADIUS, padding: CARD_PAD,
+              boxShadow: CARD_SHADOW,
+              display: 'flex', alignItems: 'center', gap: 12,
+            }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 12,
+                background: ACCENT_LIGHT, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill={ACCENT} stroke="none">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ font: `500 15px ${FONT}`, color: TEXT, marginBottom: 2 }}>{item.title}</div>
+                <div style={{ font: `400 12px ${FONT}`, color: TEXT3 }}>{item.practitioner} ({item.role}) &middot; {item.duration}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Daily Micro-Lesson */}
+      <div className="ios-fadeUp ios-d6" style={{ marginBottom: 24 }}>
+        <div style={{ font: `600 18px ${FONT}`, color: TEXT, marginBottom: 12 }}>Daily Micro-Lesson</div>
+        <div className="ios-card" style={{
+          background: SURFACE, borderRadius: CARD_RADIUS, padding: CARD_PAD + 4,
+          boxShadow: CARD_SHADOW,
+        }}>
+          <div style={{ font: `600 11px ${FONT}`, color: ACCENT, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 6 }}>Today's Lesson</div>
+          <div style={{ font: `600 16px ${FONT}`, color: TEXT, marginBottom: 8 }}>Why habits are neural pathways</div>
+          <div style={{ font: `400 14px/${1.6} ${FONT}`, color: TEXT2, marginBottom: 12 }}>
+            Think of a new habit like dragging your finger through wet sand — the first time takes effort, but each repetition deepens the groove until the path becomes automatic. Your brain works the same way...
+          </div>
+          <span style={{ font: `500 13px ${FONT}`, color: ACCENT, cursor: 'pointer' }}>Read more</span>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderCoach = () => (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 52px - env(safe-area-inset-bottom, 8px))' }}>
       {/* Header */}
@@ -1749,14 +2071,14 @@ export default function Portal() {
       {/* Integrations */}
       <SectionLabel className="ios-fadeUp ios-d5">Integrations</SectionLabel>
       <Card className="ios-fadeUp ios-d5" style={{ marginBottom: 20, padding: 0 }}>
-        <ProfileToggleRow label="Apple Health" icon="🍎" defaultOn />
-        <ProfileToggleRow label="Fitbit" icon="⌚" last />
+        <ProfileToggleRow label="Apple Health" defaultOn />
+        <ProfileToggleRow label="Fitbit" last />
       </Card>
 
       {/* App Settings */}
       <SectionLabel className="ios-fadeUp ios-d6">App Settings</SectionLabel>
       <Card className="ios-fadeUp ios-d6" style={{ marginBottom: 20, padding: 0 }}>
-        <ProfileToggleRow label="Push Notifications" icon="🔔" defaultOn />
+        <ProfileToggleRow label="Push Notifications" defaultOn />
         <ProfileRow label="Units" value="Imperial (lbs)" />
         <ProfileRow label="Theme" value="Light" last />
       </Card>
@@ -1764,7 +2086,7 @@ export default function Portal() {
       {/* About */}
       <SectionLabel>About</SectionLabel>
       <Card style={{ marginBottom: 20, padding: 0 }}>
-        <ProfileRow label="FORGE Personal Training" value="" />
+        <ProfileRow label="Stoa" value="" />
         <ProfileRow label="Terms of Service" value="" chevron />
         <ProfileRow label="Privacy Policy" value="" chevron last />
       </Card>
@@ -1832,7 +2154,7 @@ export default function Portal() {
   const bottomTabs = [
     { id: 'home', label: 'Home', Icon: IconHome },
     { id: 'train', label: 'Train', Icon: IconTrain },
-    { id: 'coach', label: 'Coach', Icon: IconCoach },
+    { id: 'mind', label: 'Mind', Icon: IconMind },
     { id: 'progress', label: 'Progress', Icon: IconProgress },
     { id: 'profile', label: 'Profile', Icon: IconProfile },
   ];
@@ -1853,7 +2175,7 @@ export default function Portal() {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         background: BG,
       }}>
-        <div style={{ font: `600 17px ${FONT}`, color: TEXT, letterSpacing: '-0.2px' }}>FORGE</div>
+        <div style={{ font: `600 17px ${FONT}`, color: TEXT, letterSpacing: '-0.2px' }}>Stoa</div>
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => setShowClientDropdown(!showClientDropdown)}
@@ -1915,7 +2237,7 @@ export default function Portal() {
       <div style={{ overflowY: 'auto' }}>
         {activeTab === 'home' && renderHome()}
         {activeTab === 'train' && renderTrain()}
-        {activeTab === 'coach' && renderCoach()}
+        {activeTab === 'mind' && renderMind()}
         {activeTab === 'progress' && renderProgress()}
         {activeTab === 'profile' && renderProfile()}
       </div>

@@ -256,21 +256,21 @@ function seedNutritionData() {
 const MEAL_PLANS = [
   {
     name: 'High Protein Cut',
-    icon: '🥩',
+    icon: null,
     macros: { calories: 2000, protein: 200, carbs: 150, fat: 70 },
     description: 'High protein, moderate carb, low fat for fat loss while preserving muscle.',
     meals: ['Egg whites + oatmeal', '8oz chicken + rice + veggies', '6oz salmon + sweet potato + greens', 'Protein shake + almonds'],
   },
   {
     name: 'Lean Bulk',
-    icon: '💪',
+    icon: null,
     macros: { calories: 3200, protein: 220, carbs: 380, fat: 100 },
     description: 'Caloric surplus with high protein for maximum muscle growth.',
     meals: ['4 eggs + bagel + fruit', '10oz steak + large rice + broccoli', 'Pasta + ground turkey + sauce', 'PB sandwich + mass gainer'],
   },
   {
     name: 'Balanced',
-    icon: '⚖️',
+    icon: null,
     macros: { calories: 2200, protein: 150, carbs: 250, fat: 75 },
     description: 'Even macro split for general fitness and sustainable eating.',
     meals: ['Greek yogurt parfait', 'Turkey sandwich + fruit', 'Grilled fish + brown rice + salad', 'Trail mix + protein bar'],
@@ -529,10 +529,10 @@ export default function Nutrition() {
   };
 
   const mealTypes = [
-    { key: 'breakfast', label: 'Breakfast', icon: '🌅' },
-    { key: 'lunch', label: 'Lunch', icon: '☀️' },
-    { key: 'dinner', label: 'Dinner', icon: '🌙' },
-    { key: 'snacks', label: 'Snacks', icon: '🍎' },
+    { key: 'breakfast', label: 'Breakfast', icon: null },
+    { key: 'lunch', label: 'Lunch', icon: null },
+    { key: 'dinner', label: 'Dinner', icon: null },
+    { key: 'snacks', label: 'Snacks', icon: null },
   ];
 
   const client = clients.find(c => c.id === selectedClient);

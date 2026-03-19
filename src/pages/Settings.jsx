@@ -110,9 +110,9 @@ export default function Settings() {
           <div style={{ ...s.cardStyle, padding: 28 }}>
             <div style={{ font: `600 16px ${s.HEADING}`, color: s.text, marginBottom: 20 }}>Business Info</div>
             {[
-              { key: 'businessName', label: 'Business Name', placeholder: 'FORGE Performance Training' },
-              { key: 'tagline', label: 'Tagline', placeholder: 'Train Hard. Train Smart. Get Results.' },
-              { key: 'email', label: 'Email', placeholder: 'hello@forgetraining.com' },
+              { key: 'businessName', label: 'Business Name', placeholder: 'Stoa' },
+              { key: 'tagline', label: 'Tagline', placeholder: 'Your whole wellness life. One app.' },
+              { key: 'email', label: 'Email', placeholder: 'hello@getstoa.io' },
               { key: 'phone', label: 'Phone', placeholder: '(480) 555-0100' },
               { key: 'founder', label: 'Founder / Head Trainer', placeholder: 'Marcus Cole' },
             ].map(f => (

@@ -32,7 +32,40 @@ const VirtualSessions = lazy(() => import('./pages/VirtualSessions'));
 const Community = lazy(() => import('./pages/Community'));
 
 function Loader() {
-  return <div style={{ padding: 60, textAlign: 'center', color: '#999', font: "400 14px 'Inter', sans-serif" }}>Loading...</div>;
+  return (
+    <div style={{ padding: '48px 24px', maxWidth: 800, margin: '0 auto' }}>
+      {/* Skeleton header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 32 }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: 12, background: '#E8E3DD',
+          animation: 'skeletonPulse 1.4s ease-in-out infinite',
+        }} />
+        <div>
+          <div style={{
+            width: 140, height: 14, borderRadius: 8, background: '#E8E3DD', marginBottom: 8,
+            animation: 'skeletonPulse 1.4s ease-in-out infinite',
+          }} />
+          <div style={{
+            width: 90, height: 10, borderRadius: 6, background: '#E8E3DD',
+            animation: 'skeletonPulse 1.4s ease-in-out 0.15s infinite',
+          }} />
+        </div>
+      </div>
+      {/* Skeleton cards */}
+      {[0, 1, 2].map(i => (
+        <div key={i} style={{
+          height: 100, borderRadius: 16, background: '#E8E3DD', marginBottom: 16,
+          animation: `skeletonPulse 1.4s ease-in-out ${0.1 * i}s infinite`,
+        }} />
+      ))}
+      <style>{`
+        @keyframes skeletonPulse {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 0.8; }
+        }
+      `}</style>
+    </div>
+  );
 }
 
 export default function App() {

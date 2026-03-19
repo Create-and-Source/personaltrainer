@@ -36,7 +36,7 @@ export default function Reviews() {
   const [toast, setToast] = useState(null);
 
   const settings = getSettings();
-  const businessName = settings.businessName || 'FORGE Performance Training';
+  const businessName = settings.businessName || 'Stoa';
   const reviews = getReviews();
 
   const completed = reviews.filter(r => r.status === 'completed');
