@@ -566,11 +566,11 @@ export default function WorkoutBuilder() {
   };
 
   const glass = {
-    background: 'rgba(255,255,255,0.6)',
+    background: s.card,
     backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255,255,255,0.65)',
+    border: `1px solid ${s.borderLight}`,
     borderRadius: 18,
-    boxShadow: '0 4px 24px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
+    boxShadow: s.shadow,
     transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
   };
 
@@ -867,14 +867,14 @@ export default function WorkoutBuilder() {
                 {/* Expanded exercise list */}
                 {isExpanded && (
                   <div style={{
-                    borderTop: '1px solid rgba(0,0,0,0.04)',
+                    borderTop: `1px solid ${s.borderLight}`,
                     animation: 'wbFadeInUp 0.3s cubic-bezier(0.16,1,0.3,1)',
                   }}>
                     {/* Exercise header */}
                     <div style={{
                       display: 'grid', gridTemplateColumns: '2fr 0.6fr 0.6fr 1fr 0.6fr',
                       gap: 8, padding: '10px 24px',
-                      borderBottom: '1px solid rgba(0,0,0,0.04)',
+                      borderBottom: `1px solid ${s.borderLight}`,
                     }}>
                       {['Exercise', 'Sets', 'Reps', 'Weight', 'Rest'].map(h => (
                         <span key={h} style={{ font: `500 10px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.5, color: s.text3 }}>{h}</span>
@@ -884,7 +884,7 @@ export default function WorkoutBuilder() {
                       <div key={ei} className="wb-exercise-row" style={{
                         display: 'grid', gridTemplateColumns: '2fr 0.6fr 0.6fr 1fr 0.6fr',
                         gap: 8, padding: '12px 24px',
-                        borderBottom: ei < w.exercises.length - 1 ? '1px solid rgba(0,0,0,0.03)' : 'none',
+                        borderBottom: ei < w.exercises.length - 1 ? `1px solid ${s.borderLight}` : 'none',
                         transition: 'background 0.15s',
                       }}>
                         <div>
@@ -900,7 +900,7 @@ export default function WorkoutBuilder() {
                     {/* Actions */}
                     <div style={{
                       padding: '14px 24px', display: 'flex', gap: 10,
-                      borderTop: '1px solid rgba(0,0,0,0.04)',
+                      borderTop: `1px solid ${s.borderLight}`,
                       background: 'rgba(0,0,0,0.01)',
                     }}>
                       <button onClick={(e) => { e.stopPropagation(); setShowAssign(w.id); setAssignClient(''); }} style={s.pillAccent}>
@@ -1317,7 +1317,7 @@ export default function WorkoutBuilder() {
           }}>
             {/* Modal header */}
             <div style={{
-              padding: '24px 28px', borderBottom: '1px solid rgba(0,0,0,0.06)',
+              padding: '24px 28px', borderBottom: `1px solid ${s.borderLight}`,
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               background: `linear-gradient(135deg, #fff 0%, ${s.accentLight} 100%)`,
             }}>
@@ -1443,7 +1443,7 @@ export default function WorkoutBuilder() {
                     {/* File info + delete */}
                     <div style={{
                       padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      background: 'rgba(0,0,0,0.02)',
+                      background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)',
                     }}>
                       <div>
                         <div style={{ font: `500 12px ${s.FONT}`, color: s.text2 }}>{cxMediaName}</div>
@@ -1463,7 +1463,7 @@ export default function WorkoutBuilder() {
 
             {/* Modal footer */}
             <div style={{
-              padding: '16px 28px', borderTop: '1px solid rgba(0,0,0,0.06)',
+              padding: '16px 28px', borderTop: `1px solid ${s.borderLight}`,
               display: 'flex', justifyContent: 'flex-end', gap: 10,
               background: 'rgba(0,0,0,0.015)',
             }}>
@@ -1631,7 +1631,7 @@ export default function WorkoutBuilder() {
           }}>
             {/* Modal header */}
             <div style={{
-              padding: '24px 28px', borderBottom: '1px solid rgba(0,0,0,0.06)',
+              padding: '24px 28px', borderBottom: `1px solid ${s.borderLight}`,
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               background: `linear-gradient(135deg, #fff 0%, ${s.accentLight} 100%)`,
             }}>
@@ -1709,13 +1709,13 @@ export default function WorkoutBuilder() {
 
                 {bExercises.length > 0 && (
                   <div style={{
-                    border: '1px solid rgba(0,0,0,0.06)', borderRadius: 14, overflow: 'hidden',
-                    background: 'rgba(255,255,255,0.5)',
+                    border: `1px solid ${s.borderLight}`, borderRadius: 14, overflow: 'hidden',
+                    background: s.card,
                   }}>
                     {bExercises.map((ex, idx) => (
                       <div key={ex._key} style={{
                         padding: '14px 16px',
-                        borderBottom: idx < bExercises.length - 1 ? '1px solid rgba(0,0,0,0.04)' : 'none',
+                        borderBottom: idx < bExercises.length - 1 ? `1px solid ${s.borderLight}` : 'none',
                         background: idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.01)',
                       }}>
                         {/* Row 1: Name + order + delete */}
@@ -1801,7 +1801,7 @@ export default function WorkoutBuilder() {
 
             {/* Modal footer */}
             <div style={{
-              padding: '16px 28px', borderTop: '1px solid rgba(0,0,0,0.06)',
+              padding: '16px 28px', borderTop: `1px solid ${s.borderLight}`,
               display: 'flex', justifyContent: 'flex-end', gap: 10,
               background: 'rgba(0,0,0,0.015)',
             }}>
@@ -1833,7 +1833,7 @@ export default function WorkoutBuilder() {
             overflow: 'hidden',
           }}>
             <div style={{
-              padding: '24px 28px', borderBottom: '1px solid rgba(0,0,0,0.06)',
+              padding: '24px 28px', borderBottom: `1px solid ${s.borderLight}`,
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             }}>
               <h2 style={{ font: `600 18px ${s.FONT}`, color: s.text, margin: 0 }}>Assign to Client</h2>
@@ -1888,7 +1888,7 @@ export default function WorkoutBuilder() {
 
             {!assignSuccess && (
               <div style={{
-                padding: '16px 28px', borderTop: '1px solid rgba(0,0,0,0.06)',
+                padding: '16px 28px', borderTop: `1px solid ${s.borderLight}`,
                 display: 'flex', justifyContent: 'flex-end', gap: 10,
                 background: 'rgba(0,0,0,0.015)',
               }}>

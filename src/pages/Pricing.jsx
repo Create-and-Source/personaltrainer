@@ -10,15 +10,15 @@ export default function Pricing() {
   const [showDetail, setShowDetail] = useState(null);
 
   const glass = {
-    background: 'rgba(255,255,255,0.6)',
+    background: s.card,
     backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255,255,255,0.65)',
+    border: `1px solid ${s.borderLight}`,
     borderRadius: 20,
-    boxShadow: '0 4px 24px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
+    boxShadow: s.shadow,
   };
 
   return (
-    <div className="pricing-page" style={{ minHeight: '100vh', background: '#F5F3F0', padding: '40px 20px' }}>
+    <div className="pricing-page" style={{ minHeight: '100vh', background: s.bg, padding: '40px 20px' }}>
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
 
         {/* Header */}
@@ -47,7 +47,7 @@ export default function Pricing() {
             ].map(c => (
               <div key={c.name} style={{
                 display: 'grid', gridTemplateColumns: '140px 100px 1fr 1fr', gap: 12, padding: '12px 16px',
-                borderRadius: 12, background: 'rgba(255,255,255,0.4)', border: '1px solid rgba(0,0,0,0.04)',
+                borderRadius: 12, background: s.card, border: `1px solid ${s.borderLight}`,
                 alignItems: 'center',
               }}>
                 <span style={{ font: `600 14px ${s.FONT}`, color: s.text }}>{c.name}</span>
@@ -78,8 +78,8 @@ export default function Pricing() {
               { tool: 'Instagram DMs from phone (lead management)', cost: 'Free but chaos — lost leads' },
             ].map((item, i) => (
               <div key={i} style={{ display: 'contents' }}>
-                <span style={{ font: `400 13px ${s.FONT}`, color: s.text, padding: '8px 0', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>{item.tool}</span>
-                <span style={{ font: `500 13px ${s.MONO}`, color: s.text, padding: '8px 0', borderBottom: '1px solid rgba(0,0,0,0.04)', textAlign: 'right' }}>{item.cost}</span>
+                <span style={{ font: `400 13px ${s.FONT}`, color: s.text, padding: '8px 0', borderBottom: `1px solid ${s.borderLight}` }}>{item.tool}</span>
+                <span style={{ font: `500 13px ${s.MONO}`, color: s.text, padding: '8px 0', borderBottom: `1px solid ${s.borderLight}`, textAlign: 'right' }}>{item.cost}</span>
               </div>
             ))}
           </div>
@@ -103,7 +103,7 @@ export default function Pricing() {
             ))}
           </div>
 
-          <div style={{ marginTop: 16, padding: 16, background: 'rgba(0,0,0,0.03)', borderRadius: 12, font: `400 13px ${s.FONT}`, color: s.text2, textAlign: 'center' }}>
+          <div style={{ marginTop: 16, padding: 16, background: s.dark ? '#252529' : 'rgba(0,0,0,0.03)', borderRadius: 12, font: `400 13px ${s.FONT}`, color: s.text2, textAlign: 'center' }}>
             And they STILL don't have: DM Inbox, Client Portal, Retention Engine, Waitlist, Aftercare Automation, or Referral Tracking.
           </div>
         </div>
@@ -147,7 +147,7 @@ export default function Pricing() {
               <div key={f.name} style={{
                 padding: '10px 14px', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10,
                 background: f.star ? `${s.accent}08` : 'rgba(0,0,0,0.02)',
-                border: f.star ? `1px solid ${s.accent}20` : '1px solid rgba(0,0,0,0.03)',
+                border: f.star ? `1px solid ${s.accent}20` : `1px solid ${s.borderLight}`,
               }}>
                 <span style={{ color: f.star ? s.accent : s.success, fontSize: 14, flexShrink: 0 }}>{f.star ? '★' : '✓'}</span>
                 <span style={{ font: `${f.star ? '500' : '400'} 12px ${s.FONT}`, color: f.star ? s.text : s.text2 }}>{f.name}</span>
@@ -175,7 +175,7 @@ export default function Pricing() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <div style={{ padding: 20, borderRadius: 14, background: 'rgba(0,0,0,0.03)' }}>
+            <div style={{ padding: 20, borderRadius: 14, background: s.dark ? '#252529' : 'rgba(0,0,0,0.03)' }}>
               <div style={{ font: `600 15px ${s.FONT}`, color: s.text, marginBottom: 8 }}>Why $1,500 works</div>
               <ul style={{ font: `400 13px ${s.FONT}`, color: s.text2, lineHeight: 1.8, paddingLeft: 16 }}>
                 <li>Cheaper than their current Frankenstack ($1,375 avg)</li>
@@ -186,7 +186,7 @@ export default function Pricing() {
                 <li>Client portal drives retention = more revenue</li>
               </ul>
             </div>
-            <div style={{ padding: 20, borderRadius: 14, background: 'rgba(0,0,0,0.03)' }}>
+            <div style={{ padding: 20, borderRadius: 14, background: s.dark ? '#252529' : 'rgba(0,0,0,0.03)' }}>
               <div style={{ font: `600 15px ${s.FONT}`, color: s.text, marginBottom: 8 }}>The business math</div>
               <ul style={{ font: `400 13px ${s.FONT}`, color: s.text2, lineHeight: 1.8, paddingLeft: 16 }}>
                 <li>5 clients = $90K/year (manageable)</li>
@@ -204,7 +204,7 @@ export default function Pricing() {
         <div style={{ ...glass, padding: 32, marginBottom: 24 }}>
           <h2 style={{ font: `600 20px ${s.FONT}`, color: s.text, marginBottom: 16 }}>5. The Pitch (What Tovah Says)</h2>
           <div style={{
-            padding: 24, borderRadius: 16, background: 'rgba(0,0,0,0.03)',
+            padding: 24, borderRadius: 16, background: s.dark ? '#252529' : 'rgba(0,0,0,0.03)',
             font: `400 15px ${s.FONT}`, color: s.text, lineHeight: 1.8, fontStyle: 'italic',
             borderLeft: `4px solid ${s.accent}`,
           }}>
@@ -236,13 +236,13 @@ export default function Pricing() {
             ].map(item => (
               <div key={item.task} style={{
                 display: 'grid', gridTemplateColumns: '50px 1fr auto', gap: 12, padding: '14px 18px',
-                borderRadius: 12, background: 'rgba(255,255,255,0.4)', border: '1px solid rgba(0,0,0,0.04)',
+                borderRadius: 12, background: s.card, border: `1px solid ${s.borderLight}`,
                 alignItems: 'center',
               }}>
                 <span style={{
                   padding: '4px 10px', borderRadius: 8, textAlign: 'center',
                   font: `600 10px ${s.MONO}`, textTransform: 'uppercase',
-                  background: item.priority === 'P0' ? '#FEF2F2' : item.priority === 'P1' ? '#FFF7ED' : item.priority === 'P2' ? '#F0FDF4' : '#F5F5F5',
+                  background: item.priority === 'P0' ? (s.dark ? 'rgba(220,38,38,0.12)' : '#FEF2F2') : item.priority === 'P1' ? (s.dark ? 'rgba(234,88,12,0.12)' : '#FFF7ED') : item.priority === 'P2' ? (s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4') : (s.dark ? '#252529' : '#F5F5F5'),
                   color: item.priority === 'P0' ? s.danger : item.priority === 'P1' ? s.warning : item.priority === 'P2' ? s.success : s.text3,
                 }}>{item.priority}</span>
                 <div>

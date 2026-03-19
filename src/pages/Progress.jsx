@@ -313,7 +313,7 @@ function Modal({ show, onClose, title, children, s }) {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <h3 style={{ font: `600 18px ${s.FONT}`, color: s.text, margin: 0 }}>{title}</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#999', fontSize: 20 }}>x</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: s.text3, fontSize: 20 }}>x</button>
         </div>
         {children}
       </div>
@@ -559,7 +559,7 @@ export default function Progress() {
             <div className="prog-card-hover" onClick={() => setShowMetricsModal(true)} style={{
               ...glass, padding: '22px 20px', cursor: 'pointer',
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              background: `linear-gradient(135deg, ${s.accentLight} 0%, rgba(255,255,255,0.6) 100%)`,
+              background: `linear-gradient(135deg, ${s.accentLight} 0%, ${s.card} 100%)`,
               border: `1.5px dashed ${s.accent}40`,
               animation: 'progFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) 400ms backwards',
             }}>
@@ -585,7 +585,7 @@ export default function Progress() {
                 </div>
                 <div style={{
                   padding: '4px 12px', borderRadius: 100,
-                  background: (progressData[progressData.length - 1].weight - progressData[0].weight) < 0 ? '#F0FDF4' : '#FEF2F2',
+                  background: (progressData[progressData.length - 1].weight - progressData[0].weight) < 0 ? (s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4') : (s.dark ? 'rgba(220,38,38,0.12)' : '#FEF2F2'),
                   font: `600 12px ${s.FONT}`,
                   color: (progressData[progressData.length - 1].weight - progressData[0].weight) < 0 ? s.success : s.danger,
                 }}>
@@ -624,8 +624,8 @@ export default function Progress() {
                       padding: '20px 18px',
                       borderRadius: 14,
                       background: recent
-                        ? 'linear-gradient(135deg, rgba(184,150,12,0.06) 0%, rgba(255,255,255,0.8) 100%)'
-                        : 'rgba(255,255,255,0.5)',
+                        ? `linear-gradient(135deg, rgba(184,150,12,0.06) 0%, ${s.card} 100%)`
+                        : s.card,
                       border: recent ? '1.5px solid rgba(184,150,12,0.25)' : `1px solid ${s.borderLight}`,
                       backdropFilter: 'blur(8px)',
                       animation: `progFadeInUp 0.4s cubic-bezier(0.16,1,0.3,1) ${600 + idx * 60}ms backwards`,

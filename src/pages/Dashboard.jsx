@@ -447,7 +447,7 @@ export default function Dashboard() {
           animation: 'dashFadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) 400ms backwards',
         }}>
           <div style={{
-            padding: '18px 22px', borderBottom: '1px solid rgba(0,0,0,0.04)',
+            padding: '18px 22px', borderBottom: `1px solid ${s.borderLight}`,
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
             <span style={{ font: `600 15px ${s.FONT}`, color: s.text }}>Upcoming Sessions</span>
@@ -493,7 +493,7 @@ export default function Dashboard() {
                     <span style={{
                       display: 'inline-block', padding: '2px 8px', borderRadius: 100,
                       font: `500 9px ${s.FONT}`, textTransform: 'uppercase', letterSpacing: 0.5,
-                      background: a.status === 'confirmed' ? '#F0FDF4' : a.status === 'pending' ? '#FFFBEB' : 'rgba(0,0,0,0.04)',
+                      background: a.status === 'confirmed' ? (s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4') : a.status === 'pending' ? (s.dark ? 'rgba(251,191,36,0.12)' : '#FFFBEB') : s.borderLight,
                       color: statusColor,
                     }}>{a.status}</span>
                   </div>
@@ -521,7 +521,7 @@ export default function Dashboard() {
               </div>
               <div style={{
                 padding: '4px 10px', borderRadius: 100,
-                background: '#F0FDF4', font: `500 11px ${s.FONT}`, color: s.success,
+                background: s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4', font: `500 11px ${s.FONT}`, color: s.success,
               }}>+12%</div>
             </div>
             <MiniSparkline accent={s.accent} />

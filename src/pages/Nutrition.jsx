@@ -353,11 +353,11 @@ function MealSection({ title, mealData, onAddFood, onScanBarcode, delay = 0, ico
         </div>
       </button>
       {expanded && (
-        <div style={{ borderTop: '1px solid rgba(0,0,0,0.04)' }}>
+        <div style={{ borderTop: `1px solid ${s.borderLight}` }}>
           {items.map((item, i) => (
             <div key={i} className="nutr-meal-row" style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '12px 20px 12px 56px', borderBottom: i < items.length - 1 ? '1px solid rgba(0,0,0,0.03)' : 'none',
+              padding: '12px 20px 12px 56px', borderBottom: i < items.length - 1 ? `1px solid ${s.borderLight}` : 'none',
               transition: 'background 0.15s',
             }}>
               <div>
@@ -502,7 +502,7 @@ function FoodSearchModal({ open, onClose, onAdd, mealName, onSwitchToBarcode }) 
               <button onClick={() => { onClose(); onSwitchToBarcode(); }} title="Scan barcode" style={{
                 position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
                 background: 'none', border: 'none', cursor: 'pointer', padding: 6,
-                color: '#999', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: s.text3, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 borderRadius: 6, transition: 'color 0.15s',
               }}
               onMouseEnter={e => e.currentTarget.style.color = '#333'}
@@ -536,7 +536,7 @@ function FoodSearchModal({ open, onClose, onAdd, mealName, onSwitchToBarcode }) 
             return (
               <div key={food.fdcId} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '12px 0', borderBottom: '1px solid rgba(0,0,0,0.04)',
+                padding: '12px 0', borderBottom: `1px solid ${s.borderLight}`,
               }}>
                 <div style={{ flex: 1, minWidth: 0, marginRight: 12 }}>
                   <div style={{ font: `500 13px ${s.FONT}`, color: s.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -841,7 +841,7 @@ function BarcodeScannerModal({ open, onClose, onAdd, mealName }) {
             <div style={{ animation: 'nutrFadeInUp 0.3s ease' }}>
               <div style={{
                 display: 'flex', gap: 16, marginBottom: 20,
-                background: 'rgba(0,0,0,0.02)', borderRadius: 16, padding: 16,
+                background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)', borderRadius: 16, padding: 16,
               }}>
                 {product.image && (
                   <img src={product.image} alt={product.name} style={{
@@ -881,7 +881,7 @@ function BarcodeScannerModal({ open, onClose, onAdd, mealName }) {
                   { label: 'Sugar', value: product.sugar, unit: 'g', color: '#EF4444' },
                 ].map((item, i) => (
                   <div key={i} style={{
-                    background: 'rgba(0,0,0,0.02)', borderRadius: 10, padding: '10px 12px', textAlign: 'center',
+                    background: s.dark ? '#252529' : 'rgba(0,0,0,0.02)', borderRadius: 10, padding: '10px 12px', textAlign: 'center',
                   }}>
                     <div style={{ font: `700 16px ${s.MONO}`, color: item.color }}>{item.value}{item.unit === 'kcal' ? '' : item.unit}</div>
                     <div style={{ font: `400 10px ${s.FONT}`, color: s.text3, marginTop: 2 }}>{item.label}</div>

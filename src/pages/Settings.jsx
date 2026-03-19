@@ -185,7 +185,7 @@ export default function Settings() {
               {PRESETS.map(p => (
                 <button key={p.id} onClick={() => setTheme(p)} style={{
                   padding: '14px 10px', borderRadius: 12, cursor: 'pointer',
-                  background: s.cardSolid, border: theme.id === p.id ? `2.5px solid ${p.accent}` : '1.5px solid #E5E5E5',
+                  background: s.cardSolid, border: theme.id === p.id ? `2.5px solid ${p.accent}` : `1.5px solid ${s.borderLight}`,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
                 }}>
                   <div style={{ width: 32, height: 32, borderRadius: '50%', background: p.accent }} />
@@ -239,7 +239,7 @@ export default function Settings() {
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
                       <span style={{ font: `600 14px ${s.FONT}`, color: s.text }}>{p.name}</span>
-                      {p.badge && <span style={{ padding: '2px 8px', borderRadius: 100, background: '#F0FDF4', color: s.success, font: `500 9px ${s.FONT}` }}>{p.badge}</span>}
+                      {p.badge && <span style={{ padding: '2px 8px', borderRadius: 100, background: s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4', color: s.success, font: `500 9px ${s.FONT}` }}>{p.badge}</span>}
                     </div>
                     <div style={{ font: `400 12px ${s.FONT}`, color: s.text2 }}>{p.desc}</div>
                     <div style={{ font: `400 11px ${s.MONO}`, color: s.text3, marginTop: 2 }}>{p.fee}</div>

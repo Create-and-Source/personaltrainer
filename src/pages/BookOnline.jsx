@@ -301,11 +301,11 @@ export default function BookOnline() {
 
   // Shared glass style
   const glass = {
-    background: 'rgba(255,255,255,0.55)',
+    background: s.card,
     backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-    border: '1px solid rgba(255,255,255,0.7)',
+    border: `1px solid ${s.borderLight}`,
     borderRadius: 20,
-    boxShadow: '0 8px 32px rgba(0,0,0,0.06), 0 1.5px 4px rgba(0,0,0,0.03)',
+    boxShadow: s.shadow,
     transition: 'all 0.35s cubic-bezier(0.16,1,0.3,1)',
   };
 
@@ -340,8 +340,8 @@ export default function BookOnline() {
       <button onClick={() => window.location.href = '/'} style={{
         position: 'fixed', top: 16, left: 16, zIndex: 100,
         padding: '6px 16px', borderRadius: 100, border: '1px solid rgba(0,0,0,0.08)',
-        background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)',
-        font: `400 12px ${s.FONT}`, color: '#888', cursor: 'pointer',
+        background: s.card, backdropFilter: 'blur(12px)',
+        font: `400 12px ${s.FONT}`, color: s.text3, cursor: 'pointer',
       }}>← Home</button>
       {/* Background orbs */}
       <div style={{
@@ -421,9 +421,9 @@ export default function BookOnline() {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 13, fontWeight: 600, fontFamily: s.MONO,
                     cursor: n < step ? 'pointer' : 'default',
-                    background: n === step ? s.accent : n < step ? `${s.accent}18` : 'rgba(255,255,255,0.5)',
+                    background: n === step ? s.accent : n < step ? `${s.accent}18` : s.card,
                     color: n === step ? s.accentText : n < step ? s.accent : s.text3,
-                    border: n === step ? 'none' : `1.5px solid ${n < step ? `${s.accent}30` : 'rgba(0,0,0,0.06)'}`,
+                    border: n === step ? 'none' : `1.5px solid ${n < step ? `${s.accent}30` : s.borderLight}`,
                     boxShadow: n === step ? `0 4px 16px ${s.accent}40` : 'none',
                     transition: 'all 0.35s cubic-bezier(0.16,1,0.3,1)',
                   }}
@@ -433,7 +433,7 @@ export default function BookOnline() {
                 {n < 3 && (
                   <div style={{
                     width: 40, height: 2,
-                    background: n < step ? `${s.accent}30` : 'rgba(0,0,0,0.06)',
+                    background: n < step ? `${s.accent}30` : s.borderLight,
                     borderRadius: 1,
                     transition: 'background 0.35s',
                   }} />
@@ -506,7 +506,7 @@ export default function BookOnline() {
                 onMouseLeave={e => {
                   e.currentTarget.style.transform = 'translateY(0)';
                   e.currentTarget.style.boxShadow = glass.boxShadow;
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.7)';
+                  e.currentTarget.style.borderColor = s.borderLight;
                 }}
               >
                 {/* Badge */}
@@ -582,7 +582,7 @@ export default function BookOnline() {
                 onMouseLeave={e => {
                   e.currentTarget.style.transform = 'translateY(0)';
                   e.currentTarget.style.boxShadow = glass.boxShadow;
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.7)';
+                  e.currentTarget.style.borderColor = s.borderLight;
                 }}
               >
                 {/* Badge */}
@@ -645,12 +645,12 @@ export default function BookOnline() {
                     ...s.input,
                     paddingLeft: 44,
                     borderRadius: 100,
-                    background: 'rgba(255,255,255,0.6)',
+                    background: s.card,
                     backdropFilter: 'blur(16px)',
                     fontSize: 14,
                   }}
                   onFocus={e => { e.target.style.borderColor = `${s.accent}40`; e.target.style.boxShadow = `0 0 0 3px ${s.accent}12`; }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.06)'; e.target.style.boxShadow = 'none'; }}
+                  onBlur={e => { e.target.style.borderColor = s.borderLight; e.target.style.boxShadow = 'none'; }}
                 />
                 <span style={{
                   position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
@@ -673,7 +673,7 @@ export default function BookOnline() {
                   style={{
                     ...s.pill,
                     flexShrink: 0,
-                    background: activeCategory === cat.label ? s.accent : 'rgba(255,255,255,0.5)',
+                    background: activeCategory === cat.label ? s.accent : s.card,
                     color: activeCategory === cat.label ? s.accentText : s.text2,
                     border: activeCategory === cat.label ? 'none' : '1px solid rgba(0,0,0,0.06)',
                     boxShadow: activeCategory === cat.label ? `0 2px 12px ${s.accent}33` : 'none',
@@ -708,7 +708,7 @@ export default function BookOnline() {
                       cursor: 'pointer',
                       border: selected
                         ? `2px solid ${s.accent}`
-                        : '1px solid rgba(255,255,255,0.7)',
+                        : `1px solid ${s.borderLight}`,
                       boxShadow: selected
                         ? `0 8px 32px ${s.accent}18, 0 1.5px 4px rgba(0,0,0,0.03)`
                         : glass.boxShadow,
@@ -775,7 +775,7 @@ export default function BookOnline() {
                       </span>
                       <span style={{
                         fontSize: 12, color: s.text3,
-                        background: 'rgba(0,0,0,0.03)',
+                        background: (s.dark ? '#252529' : 'rgba(0,0,0,0.03)'),
                         padding: '3px 10px', borderRadius: 100,
                       }}>
                         {svc.duration} min
@@ -869,7 +869,7 @@ export default function BookOnline() {
                         cursor: 'pointer',
                         flex: '1 1 200px',
                         minWidth: 180,
-                        border: sel ? `2px solid ${s.accent}` : '1px solid rgba(255,255,255,0.7)',
+                        border: sel ? `2px solid ${s.accent}` : `1px solid ${s.borderLight}`,
                         background: sel ? `${s.accent}08` : glass.background,
                         boxShadow: sel ? `0 8px 32px ${s.accent}18` : glass.boxShadow,
                       }}
@@ -924,17 +924,17 @@ export default function BookOnline() {
                           width: 64, padding: '12px 0',
                           borderRadius: 16, textAlign: 'center',
                           cursor: 'pointer',
-                          background: sel ? s.accent : 'rgba(255,255,255,0.5)',
+                          background: sel ? s.accent : s.card,
                           border: sel ? 'none' : '1px solid rgba(0,0,0,0.05)',
                           boxShadow: sel ? `0 4px 16px ${s.accent}35` : 'none',
                           transition: 'all 0.25s cubic-bezier(0.16,1,0.3,1)',
                           backdropFilter: 'blur(8px)',
                         }}
                         onMouseEnter={e => {
-                          if (!sel) e.currentTarget.style.background = 'rgba(255,255,255,0.8)';
+                          if (!sel) e.currentTarget.style.background = s.card;
                         }}
                         onMouseLeave={e => {
-                          if (!sel) e.currentTarget.style.background = 'rgba(255,255,255,0.5)';
+                          if (!sel) e.currentTarget.style.background = s.card;
                         }}
                       >
                         <div style={{
@@ -986,8 +986,8 @@ export default function BookOnline() {
                           background: sel
                             ? `${s.accent}12`
                             : slot.available
-                              ? 'rgba(255,255,255,0.5)'
-                              : 'rgba(0,0,0,0.03)',
+                              ? s.card
+                              : (s.dark ? '#252529' : 'rgba(0,0,0,0.03)'),
                           color: sel ? s.accent : slot.available ? s.text : s.text3,
                           fontSize: 13,
                           fontWeight: sel ? 600 : 500,
@@ -999,10 +999,10 @@ export default function BookOnline() {
                           textDecoration: slot.available ? 'none' : 'line-through',
                         }}
                         onMouseEnter={e => {
-                          if (slot.available && !sel) e.currentTarget.style.background = 'rgba(255,255,255,0.8)';
+                          if (slot.available && !sel) e.currentTarget.style.background = s.card;
                         }}
                         onMouseLeave={e => {
-                          if (slot.available && !sel) e.currentTarget.style.background = 'rgba(255,255,255,0.5)';
+                          if (slot.available && !sel) e.currentTarget.style.background = s.card;
                         }}
                       >
                         {slot.label}
@@ -1058,7 +1058,7 @@ export default function BookOnline() {
               ...glass,
               padding: 24,
               marginBottom: 28,
-              background: `linear-gradient(135deg, rgba(255,255,255,0.65), ${s.accent}06)`,
+              background: `linear-gradient(135deg, ${s.card}, ${s.accent}06)`,
             }}>
               <div style={{
                 fontSize: 11, fontFamily: s.MONO, textTransform: 'uppercase',
@@ -1072,27 +1072,27 @@ export default function BookOnline() {
                   <span style={{ fontSize: 13, color: s.text3 }}>Session</span>
                   <span style={{ fontSize: 14, fontWeight: 600, color: s.text }}>{selectedService?.name}</span>
                 </div>
-                <div style={{ height: 1, background: 'rgba(0,0,0,0.04)' }} />
+                <div style={{ height: 1, background: s.borderLight }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: 13, color: s.text3 }}>Trainer</span>
                   <span style={{ fontSize: 14, fontWeight: 500, color: s.text }}>{selectedProvider?.name}</span>
                 </div>
-                <div style={{ height: 1, background: 'rgba(0,0,0,0.04)' }} />
+                <div style={{ height: 1, background: s.borderLight }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: 13, color: s.text3 }}>Date</span>
                   <span style={{ fontSize: 14, fontWeight: 500, color: s.text }}>{fmtDateLong(selectedDate)}</span>
                 </div>
-                <div style={{ height: 1, background: 'rgba(0,0,0,0.04)' }} />
+                <div style={{ height: 1, background: s.borderLight }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: 13, color: s.text3 }}>Time</span>
                   <span style={{ fontSize: 14, fontWeight: 500, color: s.text }}>{formatTime(selectedTime)}</span>
                 </div>
-                <div style={{ height: 1, background: 'rgba(0,0,0,0.04)' }} />
+                <div style={{ height: 1, background: s.borderLight }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: 13, color: s.text3 }}>Duration</span>
                   <span style={{ fontSize: 14, fontWeight: 500, color: s.text }}>{selectedService?.duration} min</span>
                 </div>
-                <div style={{ height: 1, background: 'rgba(0,0,0,0.04)' }} />
+                <div style={{ height: 1, background: s.borderLight }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: 13, color: s.text3 }}>Price</span>
                   <span style={{ fontSize: 18, fontWeight: 700, color: s.accent }}>{fmt(selectedService?.price || 0)}</span>
@@ -1122,7 +1122,7 @@ export default function BookOnline() {
                       borderColor: formErrors.name ? '#DC2626' : undefined,
                     }}
                     onFocus={e => { e.target.style.borderColor = `${s.accent}40`; e.target.style.boxShadow = `0 0 0 3px ${s.accent}12`; }}
-                    onBlur={e => { e.target.style.borderColor = formErrors.name ? '#DC2626' : 'rgba(0,0,0,0.06)'; e.target.style.boxShadow = 'none'; }}
+                    onBlur={e => { e.target.style.borderColor = formErrors.name ? '#DC2626' : s.borderLight; e.target.style.boxShadow = 'none'; }}
                   />
                 </div>
                 <div>
@@ -1137,7 +1137,7 @@ export default function BookOnline() {
                       borderColor: formErrors.email ? '#DC2626' : undefined,
                     }}
                     onFocus={e => { e.target.style.borderColor = `${s.accent}40`; e.target.style.boxShadow = `0 0 0 3px ${s.accent}12`; }}
-                    onBlur={e => { e.target.style.borderColor = formErrors.email ? '#DC2626' : 'rgba(0,0,0,0.06)'; e.target.style.boxShadow = 'none'; }}
+                    onBlur={e => { e.target.style.borderColor = formErrors.email ? '#DC2626' : s.borderLight; e.target.style.boxShadow = 'none'; }}
                   />
                 </div>
                 <div>
@@ -1152,7 +1152,7 @@ export default function BookOnline() {
                       borderColor: formErrors.phone ? '#DC2626' : undefined,
                     }}
                     onFocus={e => { e.target.style.borderColor = `${s.accent}40`; e.target.style.boxShadow = `0 0 0 3px ${s.accent}12`; }}
-                    onBlur={e => { e.target.style.borderColor = formErrors.phone ? '#DC2626' : 'rgba(0,0,0,0.06)'; e.target.style.boxShadow = 'none'; }}
+                    onBlur={e => { e.target.style.borderColor = formErrors.phone ? '#DC2626' : s.borderLight; e.target.style.boxShadow = 'none'; }}
                   />
                 </div>
                 <div>
@@ -1168,7 +1168,7 @@ export default function BookOnline() {
                       minHeight: 80,
                     }}
                     onFocus={e => { e.target.style.borderColor = `${s.accent}40`; e.target.style.boxShadow = `0 0 0 3px ${s.accent}12`; }}
-                    onBlur={e => { e.target.style.borderColor = 'rgba(0,0,0,0.06)'; e.target.style.boxShadow = 'none'; }}
+                    onBlur={e => { e.target.style.borderColor = s.borderLight; e.target.style.boxShadow = 'none'; }}
                   />
                 </div>
               </div>
@@ -1176,7 +1176,7 @@ export default function BookOnline() {
               {Object.keys(formErrors).length > 0 && (
                 <div style={{
                   marginTop: 12, fontSize: 12, color: '#DC2626',
-                  background: '#FEF2F2', padding: '8px 14px', borderRadius: 10,
+                  background: s.dark ? 'rgba(220,38,38,0.12)' : '#FEF2F2', padding: '8px 14px', borderRadius: 10,
                 }}>
                   Please fill in all required fields.
                 </div>
@@ -1256,7 +1256,7 @@ export default function BookOnline() {
               padding: 28,
               textAlign: 'left',
               marginBottom: 28,
-              background: `linear-gradient(135deg, rgba(255,255,255,0.7), ${s.accent}06)`,
+              background: `linear-gradient(135deg, ${s.card}, ${s.accent}06)`,
             }}>
               <div style={{
                 fontSize: 11, fontFamily: s.MONO, textTransform: 'uppercase',
@@ -1285,7 +1285,7 @@ export default function BookOnline() {
                         {value}
                       </span>
                     </div>
-                    {i < 5 && <div style={{ height: 1, background: 'rgba(0,0,0,0.04)', marginTop: 16 }} />}
+                    {i < 5 && <div style={{ height: 1, background: s.borderLight, marginTop: 16 }} />}
                   </div>
                 ))}
               </div>

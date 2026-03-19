@@ -127,11 +127,11 @@ export default function Members() {
   const activeMembers = members.filter(p => p.membershipTier && p.membershipTier !== 'None').length;
 
   const glass = {
-    background: 'rgba(255,255,255,0.6)',
+    background: s.card,
     backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255,255,255,0.65)',
+    border: `1px solid ${s.borderLight}`,
     borderRadius: 18,
-    boxShadow: '0 4px 24px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
+    boxShadow: s.shadow,
     transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
   };
 
@@ -552,7 +552,7 @@ export default function Members() {
             <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients..."
-            style={{ ...s.input, paddingLeft: 40, background: 'rgba(255,255,255,0.5)', borderRadius: 100 }} />
+            style={{ ...s.input, paddingLeft: 40, background: s.card, borderRadius: 100 }} />
         </div>
 
         {/* Filter pills */}
@@ -561,7 +561,7 @@ export default function Members() {
             <button key={f} className="mem-filter-pill" onClick={() => setFilter(f)} style={{
               padding: '7px 16px', borderRadius: 100, border: 'none', cursor: 'pointer',
               font: `500 12px ${s.FONT}`,
-              background: filter === f ? s.accent : 'rgba(255,255,255,0.6)',
+              background: filter === f ? s.accent : s.card,
               color: filter === f ? s.accentText : s.text2,
               boxShadow: filter === f ? `0 2px 10px ${s.accent}30` : '0 1px 4px rgba(0,0,0,0.04)',
               backdropFilter: 'blur(8px)',
@@ -574,13 +574,13 @@ export default function Members() {
         {/* Sort */}
         <select value={sort} onChange={e => setSort(e.target.value)} style={{
           ...s.input, width: 'auto', minWidth: 130, cursor: 'pointer',
-          borderRadius: 100, padding: '9px 16px', background: 'rgba(255,255,255,0.5)',
+          borderRadius: 100, padding: '9px 16px', background: s.card,
         }}>
           {sortOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
 
         {/* View toggle */}
-        <div className="mem-view-toggle" style={{ display: 'flex', gap: 0, background: 'rgba(0,0,0,0.04)', borderRadius: 10, overflow: 'hidden', flexShrink: 0 }}>
+        <div className="mem-view-toggle" style={{ display: 'flex', gap: 0, background: s.borderLight, borderRadius: 10, overflow: 'hidden', flexShrink: 0 }}>
           {[['cards', 'Cards'], ['table', 'Table']].map(([v, l]) => (
             <button key={v} onClick={() => setViewMode(v)} style={{
               padding: '8px 16px', background: viewMode === v ? 'rgba(255,255,255,0.8)' : 'transparent', border: 'none',
@@ -668,7 +668,7 @@ export default function Members() {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                  <tr style={{ borderBottom: `1px solid ${s.borderLight}` }}>
                     {['Client', 'Contact', 'Membership', 'Sessions', 'Total Spent', 'Last Session', ''].map(h => (
                       <th key={h} style={{ padding: '14px 18px', font: `500 10px ${s.MONO}`, textTransform: 'uppercase', letterSpacing: 1.2, color: s.text3, textAlign: 'left' }}>{h}</th>
                     ))}
@@ -680,7 +680,7 @@ export default function Members() {
                     const isActive = detail?.id === p.id;
                     return (
                       <tr key={p.id} className="mem-row-hover" onClick={() => setDetail(p)} style={{
-                        borderBottom: '1px solid rgba(0,0,0,0.03)', cursor: 'pointer',
+                        borderBottom: `1px solid ${s.borderLight}`, cursor: 'pointer',
                         background: isActive ? s.accentLight : 'transparent',
                         animation: `memFadeInUp 0.3s ease ${idx * 30}ms backwards`,
                       }}>
@@ -745,7 +745,7 @@ export default function Members() {
             }}>
               <button onClick={() => setDetail(null)} style={{
                 position: 'absolute', top: 12, right: 14,
-                background: 'rgba(255,255,255,0.6)', border: 'none', cursor: 'pointer',
+                background: s.card, border: 'none', cursor: 'pointer',
                 width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: s.text3, fontSize: 16, backdropFilter: 'blur(8px)',
               }}>x</button>
@@ -819,7 +819,7 @@ export default function Members() {
                 return (
                   <div key={a.id} style={{
                     padding: '10px 12px', marginBottom: 6, borderRadius: 10,
-                    background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.03)',
+                    background: s.card, border: `1px solid ${s.borderLight}`,
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   }}>
                     <div>
@@ -831,7 +831,7 @@ export default function Members() {
                     <span style={{
                       padding: '2px 8px', borderRadius: 100,
                       font: `500 9px ${s.FONT}`, textTransform: 'uppercase', color: statusColor,
-                      background: a.status === 'completed' ? '#F0FDF4' : a.status === 'confirmed' ? s.accentLight : '#FFFBEB',
+                      background: a.status === 'completed' ? (s.dark ? 'rgba(74,222,128,0.12)' : '#F0FDF4') : a.status === 'confirmed' ? s.accentLight : (s.dark ? 'rgba(251,191,36,0.12)' : '#FFFBEB'),
                     }}>{a.status}</span>
                   </div>
                 );

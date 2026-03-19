@@ -392,7 +392,7 @@ export default function Schedule() {
                                   <span style={{ font: `500 10px ${s.MONO}`, color: cc.text + '99' }}>{formatGridTime(cls.time)}</span>
                                   <span style={{
                                     font: `600 10px ${s.FONT}`, padding: '2px 6px', borderRadius: 100,
-                                    background: spotsLeft <= 3 ? '#FEE2E2' : spotsLeft <= 6 ? '#FEF3C7' : `${cc.border}15`,
+                                    background: spotsLeft <= 3 ? (s.dark ? 'rgba(220,38,38,0.12)' : '#FEE2E2') : spotsLeft <= 6 ? (s.dark ? 'rgba(251,191,36,0.12)' : '#FEF3C7') : `${cc.border}15`,
                                     color: spotsLeft <= 3 ? '#991B1B' : spotsLeft <= 6 ? '#92400E' : cc.text,
                                   }}>{spotsLeft} left</span>
                                 </div>
@@ -407,7 +407,7 @@ export default function Schedule() {
               })}
 
               {/* Legend */}
-              <div style={{ padding: '16px 12px', display: 'flex', flexWrap: 'wrap', gap: 16, borderTop: '1px solid rgba(0,0,0,0.04)' }}>
+              <div style={{ padding: '16px 12px', display: 'flex', flexWrap: 'wrap', gap: 16, borderTop: `1px solid ${s.borderLight}` }}>
                 {['Strength', 'Cardio', 'Group', 'Performance', 'Wellness', 'Private', 'Assessment'].map(cat => {
                   const cc = categoryColor(cat);
                   return (
@@ -464,7 +464,7 @@ export default function Schedule() {
                   <div style={{ marginBottom: 16 }}>
                     <div style={{ font: `500 10px ${s.MONO}`, color: s.text3, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>Enrolled Clients</div>
                     {cls.attendees.map((a, i) => (
-                      <div key={i} style={{ padding: '6px 0', borderBottom: i < cls.attendees.length - 1 ? '1px solid rgba(0,0,0,0.04)' : 'none', display: 'flex', justifyContent: 'space-between' }}>
+                      <div key={i} style={{ padding: '6px 0', borderBottom: i < cls.attendees.length - 1 ? `1px solid ${s.borderLight}` : 'none', display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ font: `400 13px ${s.FONT}`, color: s.text }}>{a.patientName}</span>
                         <span style={{ font: `400 11px ${s.FONT}`, color: statusColor(a.status), textTransform: 'capitalize' }}>{a.status}</span>
                       </div>
