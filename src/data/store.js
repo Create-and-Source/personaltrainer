@@ -90,16 +90,16 @@ export function updateSettings(updates) { set('ms_settings', { ...getSettings(),
 
 // ── Init seed data ──
 export function initStore() {
-  const alreadyInit = localStorage.getItem('pt_initialized_v3');
+  const alreadyInit = localStorage.getItem('pt_initialized_v4');
 
   // Clear old legacy data if present
   if (!alreadyInit) {
     // Clear ALL old data for clean re-seed
-    ['ms_patients','ms_appointments','ms_class_packages','ms_inventory','ms_providers','ms_services','ms_locations','ms_retention_alerts','ms_settings','ms_emails','ms_texts','ms_social_posts','ms_checkins','ms_social_connections','ms_prs','ms_initialized','pt_initialized_v1','ms_workouts','ms_workout_assignments'].forEach(k => localStorage.removeItem(k));
-    // Also clear progress data
+    ['ms_patients','ms_appointments','ms_class_packages','ms_inventory','ms_providers','ms_services','ms_locations','ms_retention_alerts','ms_settings','ms_emails','ms_texts','ms_social_posts','ms_checkins','ms_social_connections','ms_prs','ms_initialized','pt_initialized_v1','pt_initialized_v2','pt_initialized_v3','ms_workouts','ms_workout_assignments','pt_inbox_inapp','pt_inbox_ig','pt_inbox_tt','ms_habits'].forEach(k => localStorage.removeItem(k));
+    // Also clear progress / nutrition / habit data
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && (key.startsWith('ms_progress_') || key.startsWith('ms_measurements_'))) {
+      if (key && (key.startsWith('ms_progress_') || key.startsWith('ms_measurements_') || key.startsWith('ms_nutrition_') || key.startsWith('ms_macro_targets_') || key.startsWith('ms_habit_logs_') || key.startsWith('ms_prs_') || key.startsWith('ms_body_scans_'))) {
         localStorage.removeItem(key);
         i--;
       }
@@ -140,53 +140,51 @@ export function initStore() {
     { id: 'SVC-16', name: 'Youth Athletic Training', category: 'Performance', duration: 45, price: 6500, unit: 'per session', description: 'Age-appropriate strength, speed, and agility training for young athletes ages 12-17' },
   ]);
 
-  // Clients (30) — mixed gender, diverse goals
-  const firstNames = ['James', 'Sarah', 'Marcus', 'Emily', 'David', 'Priya', 'Chris', 'Maria', 'Tyler', 'Lauren', 'Jordan', 'Aisha', 'Ryan', 'Nicole', 'Brandon', 'Megan', 'Alex', 'Tiffany', 'Kevin', 'Ashley', 'Nathan', 'Rachel', 'Jake', 'Courtney', 'Andre', 'Samantha', 'Victor', 'Kelsey', 'Omar', 'Brittany'];
-  const lastNames = ['Thompson', 'Chen', 'Williams', 'Patel', 'Garcia', 'Singh', 'Brooks', 'Martinez', 'Foster', 'Johnson', 'Rivera', 'Osei', 'Mitchell', 'Anderson', 'Clarke', 'Taylor', 'Morales', 'Kim', 'Hall', 'Davis', 'Santos', 'Lewis', 'Cooper', 'Wright', 'Diallo', 'Baker', 'Nguyen', 'Torres', 'Hassan', 'Moore'];
-  const goals = ['Build muscle', 'Lose weight', 'Get stronger', 'Improve endurance', 'Athletic performance', 'Post-rehab', 'General fitness', 'Body recomposition', 'Train for marathon', 'Gain confidence'];
-  const membershipTiers = ['Drop-in', 'Drop-in', '10-Session Pack', 'Unlimited Monthly', 'Premium Monthly'];
-  const sessionNames = ['1-on-1 Training', 'Strength Training', 'HIIT Session', 'Boot Camp', 'Boxing & Conditioning', 'Functional Training', 'Small Group Training', 'Olympic Lifting', 'Mobility & Recovery', 'Athletic Performance'];
-  const patients = firstNames.map((fn, i) => ({
-    id: `CLT-${1000 + i}`,
-    firstName: fn,
-    lastName: lastNames[i],
-    email: `${fn.toLowerCase()}.${lastNames[i].toLowerCase()}@email.com`,
-    phone: `(480) 555-${String(1000 + i).slice(1)}`,
-    dob: `${1970 + Math.floor(Math.random() * 35)}-${String(1 + Math.floor(Math.random() * 12)).padStart(2, '0')}-${String(1 + Math.floor(Math.random() * 28)).padStart(2, '0')}`,
-    goals: goals[Math.floor(Math.random() * goals.length)],
-    notes: '',
-    membershipTier: membershipTiers[Math.floor(Math.random() * membershipTiers.length)],
-    totalSpent: Math.floor(Math.random() * 80000),
-    visitCount: Math.floor(1 + Math.random() * 80),
-    lastVisit: d(-Math.floor(Math.random() * 120)),
-    favoriteClass: sessionNames[Math.floor(Math.random() * sessionNames.length)],
-    createdAt: d(-Math.floor(30 + Math.random() * 365)),
-  }));
+  // Clients (5) — complete demo data for each
+  const patients = [
+    { id: 'CLT-1000', firstName: 'James', lastName: 'Thompson', email: 'james.thompson@email.com', phone: '(480) 555-0100', dob: '1998-03-15', goals: 'Build muscle', notes: 'Cutting phase — tracking macros closely. Responds well to progressive overload.', membershipTier: '10-Session Pack', totalSpent: 420000, visitCount: 45, lastVisit: d(-1), favoriteClass: 'Strength Training', createdAt: d(-180) },
+    { id: 'CLT-1001', firstName: 'Sarah', lastName: 'Chen', email: 'sarah.chen@email.com', phone: '(480) 555-0101', dob: '1994-07-22', goals: 'Lose weight', notes: 'Fat loss program — great consistency. Loves HIIT and group energy.', membershipTier: 'Unlimited Monthly', totalSpent: 380000, visitCount: 38, lastVisit: d(-2), favoriteClass: 'HIIT Session', createdAt: d(-150) },
+    { id: 'CLT-1002', firstName: 'Marcus', lastName: 'Williams', email: 'marcus.williams@email.com', phone: '(480) 555-0102', dob: '2002-01-10', goals: 'Athletic performance', notes: 'Most active client. Former college athlete, training for competitive CrossFit.', membershipTier: 'Premium Monthly', totalSpent: 510000, visitCount: 52, lastVisit: d(0), favoriteClass: 'Athletic Performance', createdAt: d(-240) },
+    { id: 'CLT-1003', firstName: 'Emily', lastName: 'Patel', email: 'emily.patel@email.com', phone: '(480) 555-0103', dob: '1996-11-05', goals: 'Prenatal fitness', notes: 'Prenatal program — currently month 6. Focus on core stability and safe movement.', membershipTier: 'Unlimited Monthly', totalSpent: 240000, visitCount: 20, lastVisit: d(-3), favoriteClass: 'Prenatal Fitness', createdAt: d(-120) },
+    { id: 'CLT-1004', firstName: 'David', lastName: 'Garcia', email: 'david.garcia@email.com', phone: '(480) 555-0104', dob: '1991-05-28', goals: 'Post-rehab', notes: 'Recovering from ACL surgery (right knee). Cleared for barbell work. Building back strength.', membershipTier: '10-Session Pack', totalSpent: 280000, visitCount: 28, lastVisit: d(-2), favoriteClass: 'Functional Training', createdAt: d(-100) },
+  ];
   set('ms_patients', patients);
 
-  // Sessions (next 14 days + past 7 days)
-  const svcIds = ['SVC-1', 'SVC-2', 'SVC-3', 'SVC-4', 'SVC-6', 'SVC-7', 'SVC-8', 'SVC-10', 'SVC-11'];
-  const provIds = ['PRV-1'];
-  const statuses = ['confirmed', 'confirmed', 'confirmed', 'pending', 'completed'];
+  // Sessions (next 14 days + past 7 days) — 4-6 per day, all 5 clients appearing regularly
+  const clientSvcMap = {
+    'CLT-1000': ['SVC-4', 'SVC-1', 'SVC-9'],   // James: Strength, 1-on-1, Nutrition
+    'CLT-1001': ['SVC-3', 'SVC-7', 'SVC-4'],    // Sarah: HIIT, Boot Camp, Strength
+    'CLT-1002': ['SVC-11', 'SVC-5', 'SVC-4'],   // Marcus: Athletic Perf, Olympic, Strength
+    'CLT-1003': ['SVC-15', 'SVC-8', 'SVC-10'],  // Emily: Prenatal, Mobility, Functional
+    'CLT-1004': ['SVC-10', 'SVC-8', 'SVC-4'],   // David: Functional, Mobility, Strength
+  };
+  const timeSlots = [
+    [6, 0], [7, 0], [8, 0], [9, 30], [11, 0], [12, 0], [14, 0], [15, 30], [17, 0], [18, 0],
+  ];
   const appts = [];
   for (let dayOff = -7; dayOff <= 14; dayOff++) {
-    const numAppts = 3 + Math.floor(Math.random() * 6);
+    // Pick 4-6 sessions per day, cycling through all 5 clients
+    const numAppts = 4 + (Math.abs(dayOff * 7) % 3); // deterministic 4-6
+    const dayClients = [...patients].sort((a, b) => {
+      const ha = (a.id.charCodeAt(4) * 31 + dayOff * 17) % 100;
+      const hb = (b.id.charCodeAt(4) * 31 + dayOff * 17) % 100;
+      return ha - hb;
+    });
     for (let j = 0; j < numAppts; j++) {
-      const hour = 5 + Math.floor(Math.random() * 14);
-      const min = [0, 15, 30, 45][Math.floor(Math.random() * 4)];
-      const pat = patients[Math.floor(Math.random() * patients.length)];
-      const svc = svcIds[Math.floor(Math.random() * svcIds.length)];
-      const prov = provIds[Math.floor(Math.random() * provIds.length)];
-      const status = dayOff < 0 ? 'completed' : statuses[Math.floor(Math.random() * statuses.length)];
+      const pat = dayClients[j % dayClients.length];
+      const svcs = clientSvcMap[pat.id];
+      const svc = svcs[(dayOff + j + 10) % svcs.length];
+      const slot = timeSlots[(j * 2 + Math.abs(dayOff)) % timeSlots.length];
+      const status = dayOff < 0 ? 'completed' : dayOff === 0 ? 'confirmed' : ['confirmed', 'confirmed', 'confirmed', 'pending'][j % 4];
       appts.push({
         id: `SES-${2000 + appts.length}`,
         patientId: pat.id,
         patientName: `${pat.firstName} ${pat.lastName}`,
         serviceId: svc,
-        providerId: prov,
+        providerId: 'PRV-1',
         date: d(dayOff),
-        time: t(hour, min),
-        duration: [45, 60][Math.floor(Math.random() * 2)],
+        time: t(slot[0], slot[1]),
+        duration: [45, 60][j % 2],
         status,
         notes: '',
         createdAt: new Date().toISOString(),
@@ -239,58 +237,22 @@ export function initStore() {
       { serviceId: 'SVC-8', name: 'Mobility Check-in', status: 'upcoming', date: d(14), notes: '' },
       { serviceId: 'SVC-4', name: 'Strength Building #2', status: 'upcoming', date: d(28), notes: '' },
     ], createdAt: d(-40), providerId: 'PRV-1' },
-    { id: 'TP-5', patientId: 'CLT-1005', patientName: 'Priya Singh', name: '30-Day Kickstart Challenge', sessions: [
-      { serviceId: 'SVC-3', name: 'Day 1 — HIIT Intro', status: 'completed', date: d(-21), notes: 'Challenge kickoff! Great energy' },
-      { serviceId: 'SVC-4', name: 'Day 3 — Upper Body', status: 'completed', date: d(-19), notes: 'First time with dumbbells over 15lbs' },
-      { serviceId: 'SVC-7', name: 'Day 6 — Boot Camp', status: 'completed', date: d(-16), notes: 'Kept up with the whole class' },
-      { serviceId: 'SVC-6', name: 'Day 9 — Boxing', status: 'completed', date: d(-13), notes: 'Loved the boxing — great stress relief' },
-      { serviceId: 'SVC-8', name: 'Day 12 — Recovery', status: 'completed', date: d(-10), notes: 'Active recovery, foam rolling' },
-      { serviceId: 'SVC-4', name: 'Day 15 — Lower Body', status: 'completed', date: d(-7), notes: 'Halfway point — squat PR!' },
-      { serviceId: 'SVC-3', name: 'Day 18 — HIIT Advanced', status: 'in-progress', date: d(-4), notes: '' },
-      { serviceId: 'SVC-10', name: 'Day 21 — Functional', status: 'upcoming', date: d(-1), notes: '' },
-      { serviceId: 'SVC-4', name: 'Day 24 — Full Body', status: 'upcoming', date: d(2), notes: '' },
-      { serviceId: 'SVC-11', name: 'Day 27 — Performance', status: 'upcoming', date: d(5), notes: '' },
-      { serviceId: 'SVC-3', name: 'Day 30 — Final HIIT', status: 'upcoming', date: d(8), notes: '' },
-    ], createdAt: d(-22), providerId: 'PRV-1' },
-    { id: 'TP-6', patientId: 'CLT-1010', patientName: 'Lauren Johnson', name: 'Marathon Prep Program', sessions: [
-      { serviceId: 'SVC-4', name: 'Strength for Runners #1', status: 'completed', date: d(-60), notes: 'Lower body emphasis, single-leg work' },
-      { serviceId: 'SVC-11', name: 'Speed & Agility #1', status: 'completed', date: d(-45), notes: 'Ladder drills, sprint intervals' },
-      { serviceId: 'SVC-8', name: 'Runner\'s Mobility', status: 'completed', date: d(-30), notes: 'Hip flexors and IT band focus' },
-      { serviceId: 'SVC-4', name: 'Strength for Runners #2', status: 'in-progress', date: d(-7), notes: 'Added plyometrics, hill simulation' },
-      { serviceId: 'SVC-11', name: 'Speed & Agility #2', status: 'upcoming', date: d(14), notes: '' },
-      { serviceId: 'SVC-9', name: 'Race Day Nutrition Plan', status: 'upcoming', date: d(45), notes: '' },
-    ], createdAt: d(-65), providerId: 'PRV-1' },
+    { id: 'TP-5', patientId: 'CLT-1002', patientName: 'Marcus Williams', name: 'Athletic Performance Block', sessions: [
+      { serviceId: 'SVC-11', name: 'Speed & Agility #1', status: 'completed', date: d(-42), notes: 'Ladder drills, cone sprints — explosive' },
+      { serviceId: 'SVC-5', name: 'Olympic Lifting — Clean', status: 'completed', date: d(-35), notes: 'Power cleans 185x3, technique improving' },
+      { serviceId: 'SVC-4', name: 'Heavy Strength Day #1', status: 'completed', date: d(-28), notes: 'Squat 345x3, bench 235x5 — solid' },
+      { serviceId: 'SVC-11', name: 'Speed & Agility #2', status: 'completed', date: d(-21), notes: '40-yard dash PR: 4.65s' },
+      { serviceId: 'SVC-5', name: 'Olympic Lifting — Snatch', status: 'completed', date: d(-14), notes: 'Hang snatch 135x3, great hip extension' },
+      { serviceId: 'SVC-4', name: 'Heavy Strength Day #2', status: 'in-progress', date: d(-2), notes: 'Testing new maxes this week' },
+      { serviceId: 'SVC-11', name: 'Speed & Agility #3', status: 'upcoming', date: d(5), notes: '' },
+      { serviceId: 'SVC-5', name: 'Olympic Lifting — Complex', status: 'upcoming', date: d(12), notes: '' },
+      { serviceId: 'SVC-4', name: 'Heavy Strength Day #3', status: 'upcoming', date: d(19), notes: '' },
+    ], createdAt: d(-45), providerId: 'PRV-1' },
   ];
   set('ms_class_packages', programs);
 
-  // Retention Alerts
-  const alerts = [];
-  patients.forEach((p, idx) => {
-    const daysSince = Math.floor((today - new Date(p.lastVisit)) / (1000 * 60 * 60 * 24));
-    if (daysSince > 30) {
-      const sessions = ['1-on-1 Training', 'HIIT Session', 'Strength Training', 'Boot Camp', 'Boxing & Conditioning', 'Mobility & Recovery'];
-      const sn = sessions[Math.floor(Math.random() * sessions.length)];
-      const isHigh = daysSince > 90;
-      const isMedium = daysSince > 60 && daysSince <= 90;
-      const statusRoll = idx % 5;
-      const contacted = statusRoll === 1 || statusRoll === 3;
-      const dismissed = statusRoll === 4 && !isHigh;
-      alerts.push({
-        id: `RET-${alerts.length}`,
-        patientId: p.id,
-        patientName: `${p.firstName} ${p.lastName}`,
-        lastVisit: p.lastVisit,
-        daysSince,
-        lastService: sn,
-        suggestedAction: isHigh ? `${sn} follow-up overdue — send re-engagement offer` : isMedium ? `Time for ${sn} — invite back for a session` : `${sn} check-in — keep the momentum going`,
-        priority: isHigh ? 'high' : isMedium ? 'medium' : 'low',
-        status: dismissed ? 'dismissed' : contacted ? 'contacted' : 'pending',
-        contacted,
-        contactedAt: contacted ? d(-Math.floor(Math.random() * 10)) : null,
-      });
-    }
-  });
-  set('ms_retention_alerts', alerts);
+  // Retention Alerts — none! All 5 clients are active (visited within 7 days)
+  set('ms_retention_alerts', []);
 
   // Social media connections
   set('ms_social_connections', { instagram: true, facebook: true, x: false, linkedin: false, tiktok: true });
@@ -305,7 +267,7 @@ export function initStore() {
     founder: 'Marcus Cole',
   });
 
-  localStorage.setItem('pt_initialized_v3', 'true');
+  localStorage.setItem('pt_initialized_v4', 'true');
 }
 
 // Seeds data for keys that are empty — runs every load to fill gaps
@@ -317,20 +279,20 @@ function seedIfEmpty(d, today) {
 
   // Seed Sent Emails
   if (get('ms_emails', []).length === 0) set('ms_emails', [
-    { id: 'EM-1', subject: 'March Newsletter — New Training Programs Dropping', body: 'Hey team, here is what is new this month at FORGE Performance Training...', audience: 'All Clients', status: 'Sent', recipientCount: 30, sentDate: d(-3) + 'T10:00:00Z' },
-    { id: 'EM-2', subject: 'Bring a Friend Week — Free Guest Pass', body: 'Bring a friend to any session this week — on us. Let them experience the FORGE difference...', audience: 'Clients', status: 'Sent', recipientCount: 12, sentDate: d(-7) + 'T14:00:00Z' },
-    { id: 'EM-3', subject: 'Your Session is Tomorrow!', body: 'Hi [Client], reminder about your upcoming training session with [Trainer]...', audience: 'Upcoming Sessions', status: 'Sent', recipientCount: 8, sentDate: d(-1) + 'T09:00:00Z' },
-    { id: 'EM-4', subject: 'We Miss You — Come Back & Save 20%', body: 'It has been a while since your last session. Here is 20% off your next training package...', audience: 'Lapsed Clients', status: 'Sent', recipientCount: 15, sentDate: d(-14) + 'T11:00:00Z' },
-    { id: 'EM-5', subject: 'Welcome to FORGE!', body: 'Welcome to the FORGE family. Here is what to expect at your first session and how to prep...', audience: 'New Clients', status: 'Sent', recipientCount: 3, sentDate: d(-21) + 'T16:00:00Z' },
+    { id: 'EM-1', subject: 'March Newsletter — New Training Programs Dropping', body: 'Hey team, here is what is new this month at FORGE Performance Training...', audience: 'All Clients', status: 'Sent', recipientCount: 5, sentDate: d(-3) + 'T10:00:00Z' },
+    { id: 'EM-2', subject: 'Bring a Friend Week — Free Guest Pass', body: 'Bring a friend to any session this week — on us. Let them experience the FORGE difference...', audience: 'Clients', status: 'Sent', recipientCount: 5, sentDate: d(-7) + 'T14:00:00Z' },
+    { id: 'EM-3', subject: 'Your Session is Tomorrow!', body: 'Hi [Client], reminder about your upcoming training session with [Trainer]...', audience: 'Upcoming Sessions', status: 'Sent', recipientCount: 4, sentDate: d(-1) + 'T09:00:00Z' },
+    { id: 'EM-4', subject: 'Spring Shred Promo — 6-Week Challenge', body: 'New 6-week challenge starting next Monday. Training + nutrition coaching included. Limited spots!', audience: 'All Clients', status: 'Sent', recipientCount: 5, sentDate: d(-14) + 'T11:00:00Z' },
+    { id: 'EM-5', subject: 'Welcome to FORGE!', body: 'Welcome to the FORGE family. Here is what to expect at your first session and how to prep...', audience: 'New Clients', status: 'Sent', recipientCount: 1, sentDate: d(-21) + 'T16:00:00Z' },
   ]);
 
   // Seed Sent Text Messages
   if (get('ms_texts', []).length === 0) set('ms_texts', [
-    { id: 'TXT-1', message: 'Hey! Reminder: your training session is tomorrow at 7am with Marcus. Reply C to confirm or R to reschedule.', audience: 'upcoming', recipientCount: 6, template: 'reminder', status: 'Sent', sentDate: d(-1) + 'T08:00:00Z' },
-    { id: 'TXT-2', message: 'Great work crushing that HIIT session yesterday! Remember to stretch and refuel with protein within 30 min. Reply with any questions.', audience: 'all', recipientCount: 4, template: 'followup', status: 'Sent', sentDate: d(-2) + 'T10:00:00Z' },
-    { id: 'TXT-3', message: 'New 6-Week Shred program launching Monday! Limited spots. First session FREE for current clients. Reply BOOK to reserve.', audience: 'all', recipientCount: 30, template: 'promo', status: 'Sent', sentDate: d(-5) + 'T12:00:00Z' },
-    { id: 'TXT-4', message: 'Thanks for training with us! Love your FORGE experience? Leave us a quick Google review: [link]', audience: 'all', recipientCount: 8, template: 'review', status: 'Sent', sentDate: d(-3) + 'T15:00:00Z' },
-    { id: 'TXT-5', message: 'Hey! It has been a while — we would love to get you back under the bar. Enjoy 20% off a 10-session pack. Reply BOOK to schedule.', audience: 'lapsed', recipientCount: 12, template: 'reactivation', status: 'Sent', sentDate: d(-10) + 'T11:00:00Z' },
+    { id: 'TXT-1', message: 'Hey! Reminder: your training session is tomorrow at 7am with Marcus. Reply C to confirm or R to reschedule.', audience: 'upcoming', recipientCount: 4, template: 'reminder', status: 'Sent', sentDate: d(-1) + 'T08:00:00Z' },
+    { id: 'TXT-2', message: 'Great work crushing that HIIT session yesterday! Remember to stretch and refuel with protein within 30 min. Reply with any questions.', audience: 'all', recipientCount: 5, template: 'followup', status: 'Sent', sentDate: d(-2) + 'T10:00:00Z' },
+    { id: 'TXT-3', message: 'New 6-Week Shred program launching Monday! Limited spots. First session FREE for current clients. Reply BOOK to reserve.', audience: 'all', recipientCount: 5, template: 'promo', status: 'Sent', sentDate: d(-5) + 'T12:00:00Z' },
+    { id: 'TXT-4', message: 'Thanks for training with us! Love your FORGE experience? Leave us a quick Google review: [link]', audience: 'all', recipientCount: 5, template: 'review', status: 'Sent', sentDate: d(-3) + 'T15:00:00Z' },
+    { id: 'TXT-5', message: 'Spring Shred starts next week! 6 weeks of training + nutrition coaching. Reply BOOK to lock in your spot.', audience: 'all', recipientCount: 5, template: 'promo', status: 'Sent', sentDate: d(-10) + 'T11:00:00Z' },
   ]);
 
   // Seed Social Media Posts

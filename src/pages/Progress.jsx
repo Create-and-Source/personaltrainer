@@ -72,25 +72,24 @@ const ICO = {
   download: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
 };
 
-/* ── Seed progress data for 3 clients ── */
+/* ── Seed progress data for all 5 clients ── */
 function seedProgressData() {
   const clients = getPatients();
-  if (clients.length < 3) return;
-  const ids = [clients[0].id, clients[1].id, clients[2].id];
-  const names = [
-    `${clients[0].firstName} ${clients[0].lastName}`,
-    `${clients[1].firstName} ${clients[1].lastName}`,
-    `${clients[2].firstName} ${clients[2].lastName}`,
-  ];
+  if (clients.length < 5) return;
 
-  // Weight + body metrics over 12 weeks
-  const weightBases = [195, 155, 215];
-  const weightTrends = [-0.6, -0.9, 0.3]; // lbs per week change
-  const bfBases = [22, 28, 18];
-  const bfTrends = [-0.3, -0.5, -0.15];
-  const heightsInches = [71, 64, 73];
+  // CLT-1000 James: 195→188 (cutting), BF 22→17
+  // CLT-1001 Sarah: 155→143 (fat loss), BF 28→24
+  // CLT-1002 Marcus: 175→180 (gaining muscle), BF 14→12
+  // CLT-1003 Emily: 140→138 (prenatal, slight decrease), BF 24→23
+  // CLT-1004 David: 215→210 (post-rehab, losing slowly), BF 18→16.5
+  const weightBases = [195, 155, 175, 140, 215];
+  const weightTrends = [-0.6, -0.9, 0.4, -0.15, -0.4];
+  const bfBases = [22, 28, 14, 24, 18];
+  const bfTrends = [-0.4, -0.35, -0.15, -0.08, -0.12];
+  const heightsInches = [71, 64, 73, 65, 70];
 
-  ids.forEach((id, ci) => {
+  clients.slice(0, 5).forEach((client, ci) => {
+    const id = client.id;
     const progressKey = `ms_progress_${id}`;
     if (localStorage.getItem(progressKey)) return;
 
@@ -111,6 +110,7 @@ function seedProgressData() {
     const prKey = `ms_prs_${id}`;
     if (!localStorage.getItem(prKey)) {
       const prSets = [
+        // James — solid intermediate lifter, cutting
         [
           { lift: 'Bench Press', current: 225, previous: 205, unit: 'lbs', date: d(-7), recent: true },
           { lift: 'Squat', current: 315, previous: 295, unit: 'lbs', date: d(-14), recent: false },
@@ -119,6 +119,7 @@ function seedProgressData() {
           { lift: 'Pull-ups', current: 18, previous: 15, unit: 'reps', date: d(-10), recent: true },
           { lift: 'Mile Run', current: '6:42', previous: '7:05', unit: 'min', date: d(-28), recent: false },
         ],
+        // Sarah — beginner progressing fast
         [
           { lift: 'Bench Press', current: 115, previous: 95, unit: 'lbs', date: d(-3), recent: true },
           { lift: 'Squat', current: 165, previous: 145, unit: 'lbs', date: d(-10), recent: true },
@@ -127,13 +128,32 @@ function seedProgressData() {
           { lift: 'Pull-ups', current: 5, previous: 2, unit: 'reps', date: d(-5), recent: true },
           { lift: 'Mile Run', current: '8:15', previous: '9:30', unit: 'min', date: d(-14), recent: false },
         ],
+        // Marcus — strong athlete, big numbers
         [
-          { lift: 'Bench Press', current: 275, previous: 265, unit: 'lbs', date: d(-21), recent: false },
-          { lift: 'Squat', current: 365, previous: 355, unit: 'lbs', date: d(-4), recent: true },
-          { lift: 'Deadlift', current: 455, previous: 445, unit: 'lbs', date: d(-12), recent: false },
-          { lift: 'OHP', current: 185, previous: 175, unit: 'lbs', date: d(-8), recent: true },
-          { lift: 'Pull-ups', current: 22, previous: 20, unit: 'reps', date: d(-15), recent: false },
-          { lift: 'Mile Run', current: '7:20', previous: '7:45', unit: 'min', date: d(-30), recent: false },
+          { lift: 'Bench Press', current: 245, previous: 235, unit: 'lbs', date: d(-6), recent: true },
+          { lift: 'Squat', current: 365, previous: 345, unit: 'lbs', date: d(-3), recent: true },
+          { lift: 'Deadlift', current: 425, previous: 405, unit: 'lbs', date: d(-10), recent: true },
+          { lift: 'OHP', current: 175, previous: 165, unit: 'lbs', date: d(-8), recent: true },
+          { lift: 'Power Clean', current: 225, previous: 210, unit: 'lbs', date: d(-4), recent: true },
+          { lift: '40-Yard Dash', current: '4.65', previous: '4.78', unit: 'sec', date: d(-14), recent: false },
+        ],
+        // Emily — prenatal, lighter loads, bodyweight focus
+        [
+          { lift: 'Goblet Squat', current: 55, previous: 45, unit: 'lbs', date: d(-10), recent: true },
+          { lift: 'Hip Thrust', current: 135, previous: 115, unit: 'lbs', date: d(-7), recent: true },
+          { lift: 'Deadlift', current: 135, previous: 115, unit: 'lbs', date: d(-21), recent: false },
+          { lift: 'Plank Hold', current: '90', previous: '60', unit: 'sec', date: d(-5), recent: true },
+          { lift: 'Wall Sit', current: '75', previous: '60', unit: 'sec', date: d(-14), recent: false },
+          { lift: 'Band Pull-apart', current: 30, previous: 20, unit: 'reps', date: d(-3), recent: true },
+        ],
+        // David — post-rehab, rebuilding
+        [
+          { lift: 'Bench Press', current: 185, previous: 165, unit: 'lbs', date: d(-7), recent: true },
+          { lift: 'Squat', current: 185, previous: 155, unit: 'lbs', date: d(-4), recent: true },
+          { lift: 'Deadlift', current: 225, previous: 195, unit: 'lbs', date: d(-12), recent: false },
+          { lift: 'Leg Extension', current: 120, previous: 90, unit: 'lbs', date: d(-3), recent: true },
+          { lift: 'Single-Leg RDL', current: 65, previous: 45, unit: 'lbs', date: d(-8), recent: true },
+          { lift: 'TRX Row', current: 20, previous: 15, unit: 'reps', date: d(-14), recent: false },
         ],
       ];
       localStorage.setItem(prKey, JSON.stringify(prSets[ci]));
@@ -143,6 +163,7 @@ function seedProgressData() {
     const measKey = `ms_measurements_${id}`;
     if (!localStorage.getItem(measKey)) {
       const measSets = [
+        // James — gaining muscle, losing waist
         [
           { area: 'Chest', current: 42.5, start: 40.0, unit: 'in' },
           { area: 'Waist', current: 33.0, start: 35.5, unit: 'in' },
@@ -153,6 +174,7 @@ function seedProgressData() {
           { area: 'Left Thigh', current: 24.0, start: 22.5, unit: 'in' },
           { area: 'Shoulders', current: 48.0, start: 46.0, unit: 'in' },
         ],
+        // Sarah — losing inches everywhere
         [
           { area: 'Chest', current: 34.0, start: 34.5, unit: 'in' },
           { area: 'Waist', current: 26.5, start: 29.0, unit: 'in' },
@@ -163,15 +185,38 @@ function seedProgressData() {
           { area: 'Left Thigh', current: 20.5, start: 22.0, unit: 'in' },
           { area: 'Shoulders', current: 38.0, start: 38.0, unit: 'in' },
         ],
+        // Marcus — gaining size, athletic build
+        [
+          { area: 'Chest', current: 44.0, start: 42.5, unit: 'in' },
+          { area: 'Waist', current: 32.0, start: 32.5, unit: 'in' },
+          { area: 'Hips', current: 39.0, start: 38.5, unit: 'in' },
+          { area: 'Right Arm', current: 16.5, start: 15.5, unit: 'in' },
+          { area: 'Left Arm', current: 16.0, start: 15.0, unit: 'in' },
+          { area: 'Right Thigh', current: 25.5, start: 24.5, unit: 'in' },
+          { area: 'Left Thigh', current: 25.0, start: 24.0, unit: 'in' },
+          { area: 'Shoulders', current: 50.0, start: 48.5, unit: 'in' },
+        ],
+        // Emily — prenatal, slight changes
+        [
+          { area: 'Chest', current: 35.5, start: 34.0, unit: 'in' },
+          { area: 'Waist', current: 32.0, start: 27.0, unit: 'in' },
+          { area: 'Hips', current: 38.5, start: 36.0, unit: 'in' },
+          { area: 'Right Arm', current: 11.5, start: 11.0, unit: 'in' },
+          { area: 'Left Arm', current: 11.0, start: 11.0, unit: 'in' },
+          { area: 'Right Thigh', current: 22.0, start: 21.5, unit: 'in' },
+          { area: 'Left Thigh', current: 21.5, start: 21.0, unit: 'in' },
+          { area: 'Shoulders', current: 38.0, start: 37.5, unit: 'in' },
+        ],
+        // David — post-rehab, rebuilding
         [
           { area: 'Chest', current: 46.0, start: 44.5, unit: 'in' },
-          { area: 'Waist', current: 35.0, start: 34.0, unit: 'in' },
-          { area: 'Hips', current: 40.0, start: 39.5, unit: 'in' },
-          { area: 'Right Arm', current: 17.0, start: 16.5, unit: 'in' },
-          { area: 'Left Arm', current: 16.5, start: 16.0, unit: 'in' },
-          { area: 'Right Thigh', current: 26.5, start: 25.5, unit: 'in' },
-          { area: 'Left Thigh', current: 26.0, start: 25.0, unit: 'in' },
-          { area: 'Shoulders', current: 52.0, start: 50.5, unit: 'in' },
+          { area: 'Waist', current: 35.0, start: 36.0, unit: 'in' },
+          { area: 'Hips', current: 40.0, start: 40.5, unit: 'in' },
+          { area: 'Right Arm', current: 15.5, start: 15.0, unit: 'in' },
+          { area: 'Left Arm', current: 15.0, start: 14.5, unit: 'in' },
+          { area: 'Right Thigh', current: 24.0, start: 22.0, unit: 'in' },
+          { area: 'Left Thigh', current: 25.5, start: 25.0, unit: 'in' },
+          { area: 'Shoulders', current: 48.0, start: 47.0, unit: 'in' },
         ],
       ];
       localStorage.setItem(measKey, JSON.stringify(measSets[ci]));
@@ -181,20 +226,24 @@ function seedProgressData() {
 
 /* ── Simulated API data per client index ── */
 const INBODY_DATA = [
-  { weight: 183, bodyFat: 17, smm: 82.5, bmi: 24.2, tbw: 52.3, vfl: 8, bmr: 1890, score: 78 },
-  { weight: 142, bodyFat: 24, smm: 54.2, bmi: 24.4, tbw: 38.1, vfl: 5, bmr: 1380, score: 72 },
-  { weight: 218, bodyFat: 15, smm: 98.6, bmi: 26.8, tbw: 59.7, vfl: 10, bmr: 2120, score: 82 },
+  { weight: 188, bodyFat: 17, smm: 82.5, bmi: 24.2, tbw: 52.3, vfl: 8, bmr: 1890, score: 78 },
+  { weight: 143, bodyFat: 24, smm: 54.2, bmi: 24.4, tbw: 38.1, vfl: 5, bmr: 1380, score: 72 },
+  { weight: 180, bodyFat: 12, smm: 86.4, bmi: 23.1, tbw: 55.8, vfl: 6, bmr: 2050, score: 85 },
+  { weight: 138, bodyFat: 23, smm: 48.3, bmi: 22.9, tbw: 36.2, vfl: 4, bmr: 1340, score: 70 },
+  { weight: 210, bodyFat: 16, smm: 92.1, bmi: 27.8, tbw: 56.4, vfl: 9, bmr: 1980, score: 76 },
 ];
 
 const STYKU_DATA = [
   { chest: 43.5, waist: 32, hips: 38.5, thighL: 25, thighR: 25, armL: 16, armR: 16.5, neck: 16, calf: 15.5 },
   { chest: 34.5, waist: 27, hips: 36.5, thighL: 21.5, thighR: 21, armL: 11.5, armR: 11.5, neck: 13, calf: 14 },
-  { chest: 46.5, waist: 35.5, hips: 40, thighL: 27, thighR: 27, armL: 17, armR: 17.5, neck: 17.5, calf: 16.5 },
+  { chest: 44, waist: 32, hips: 39, thighL: 25.5, thighR: 25.5, armL: 16, armR: 16.5, neck: 16.5, calf: 15.5 },
+  { chest: 35.5, waist: 32, hips: 38.5, thighL: 22, thighR: 22, armL: 11.5, armR: 11, neck: 13, calf: 13.5 },
+  { chest: 46, waist: 35, hips: 40, thighL: 24, thighR: 25.5, armL: 15.5, armR: 15, neck: 16.5, calf: 16 },
 ];
 
 function getClientIndex(clientId, clients) {
   const idx = clients.findIndex(c => c.id === clientId);
-  return idx >= 0 ? idx % 3 : 0;
+  return idx >= 0 ? idx % 5 : 0;
 }
 
 /* ── Import Body Scan Modal ── */

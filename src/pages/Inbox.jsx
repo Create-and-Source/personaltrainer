@@ -6,7 +6,7 @@ import { useStyles, getAvatarGradient } from '../theme';
 
 const SEED_INAPP = [
   {
-    id: 'c1', name: 'Marcus Johnson', unread: 2,
+    id: 'c1', name: 'James Thompson', unread: 2,
     messages: [
       { id: 'm1', from: 'client', text: 'Hey! Just finished the leg day workout you programmed. Those Bulgarian splits are no joke', ts: '2026-03-17T09:14:00' },
       { id: 'm2', from: 'trainer', text: 'Haha love to hear it! How did the weight feel on the RDLs?', ts: '2026-03-17T09:22:00' },
@@ -16,39 +16,39 @@ const SEED_INAPP = [
     ],
   },
   {
-    id: 'c2', name: 'Alyssa Chen', unread: 1,
+    id: 'c2', name: 'Sarah Chen', unread: 1,
     messages: [
-      { id: 'm1', from: 'trainer', text: "Hey Alyssa! Just checking in — how's the meal prep going this week?", ts: '2026-03-16T14:00:00' },
+      { id: 'm1', from: 'trainer', text: "Hey Sarah! Just checking in — how's the meal prep going this week?", ts: '2026-03-16T14:00:00' },
       { id: 'm2', from: 'client', text: 'Going great! I actually enjoyed that turkey meatball recipe you shared', ts: '2026-03-16T14:20:00' },
       { id: 'm3', from: 'trainer', text: "Awesome! Your consistency is showing — the progress pics from last week were incredible", ts: '2026-03-16T14:25:00' },
       { id: 'm4', from: 'client', text: "Thank you!! Can we move Wednesday's session to Thursday this week? I have a work thing", ts: '2026-03-18T10:05:00' },
     ],
   },
   {
-    id: 'c3', name: 'Derek Williams', unread: 0,
+    id: 'c3', name: 'Marcus Williams', unread: 0,
     messages: [
       { id: 'm1', from: 'client', text: 'Quick question — should I still take creatine on rest days?', ts: '2026-03-15T16:40:00' },
       { id: 'm2', from: 'trainer', text: 'Yes! Creatine works through saturation so you want to take it daily, even rest days. 5g with plenty of water.', ts: '2026-03-15T17:00:00' },
-      { id: 'm3', from: 'client', text: 'Got it, thanks coach! See you Thursday', ts: '2026-03-15T17:05:00' },
+      { id: 'm3', from: 'client', text: 'Got it, thanks coach! See you Thursday for the Olympic lifting session', ts: '2026-03-15T17:05:00' },
     ],
   },
   {
-    id: 'c4', name: 'Priya Patel', unread: 3,
+    id: 'c4', name: 'Emily Patel', unread: 3,
     messages: [
-      { id: 'm1', from: 'client', text: 'I just hit a 225 deadlift!!!', ts: '2026-03-17T17:30:00' },
-      { id: 'm2', from: 'trainer', text: "LET'S GOOO!! That's your 2-plate milestone! I knew you had it in you!", ts: '2026-03-17T17:35:00' },
-      { id: 'm3', from: 'client', text: 'I literally screamed in the gym lol. Everyone was staring', ts: '2026-03-17T17:37:00' },
-      { id: 'm4', from: 'client', text: 'Also I took a video — can I post it and tag you?', ts: '2026-03-17T17:38:00' },
-      { id: 'm5', from: 'trainer', text: "Absolutely! Tag me and I'll repost. So proud of you!", ts: '2026-03-17T17:40:00' },
+      { id: 'm1', from: 'client', text: 'Hey coach! The prenatal stretches you showed me have been a lifesaver for my lower back', ts: '2026-03-17T17:30:00' },
+      { id: 'm2', from: 'trainer', text: "So glad to hear that! The hip openers and cat-cow are your best friends right now", ts: '2026-03-17T17:35:00' },
+      { id: 'm3', from: 'client', text: 'Also wanted to ask — is it okay to keep doing the hip thrusts? They feel fine but I want to be safe', ts: '2026-03-17T17:37:00' },
+      { id: 'm4', from: 'client', text: 'My OB said exercise is great, just to check with you on specific movements', ts: '2026-03-17T17:38:00' },
+      { id: 'm5', from: 'trainer', text: "Absolutely, hip thrusts are great during pregnancy! We'll just modify the angle as you progress. Keep it up Emily!", ts: '2026-03-17T17:40:00' },
     ],
   },
   {
-    id: 'c5', name: 'Tyler Brooks', unread: 0,
+    id: 'c5', name: 'David Garcia', unread: 0,
     messages: [
-      { id: 'm1', from: 'trainer', text: "Tyler — your updated program is in the app. We're shifting to a PPL split starting next week.", ts: '2026-03-14T11:00:00' },
-      { id: 'm2', from: 'client', text: "Just looked at it — looks intense! What's the deal with the tempo work on bench?", ts: '2026-03-14T12:15:00' },
-      { id: 'm3', from: 'trainer', text: '3-second eccentric to build time under tension. Your sticking point is off the chest so this will help a lot.', ts: '2026-03-14T12:20:00' },
-      { id: 'm4', from: 'client', text: "Makes sense. I'm in — let's get this bench to 275", ts: '2026-03-14T12:25:00' },
+      { id: 'm1', from: 'trainer', text: "David — your updated program is in the app. We're adding light barbell work starting next week now that your knee is cleared.", ts: '2026-03-14T11:00:00' },
+      { id: 'm2', from: 'client', text: "Just looked at it — excited to get back under the bar! How should the squat feel on the right knee?", ts: '2026-03-14T12:15:00' },
+      { id: 'm3', from: 'trainer', text: 'Start light — just the bar. Focus on depth and control. Any sharp pain means we back off. Dull tightness is normal.', ts: '2026-03-14T12:20:00' },
+      { id: 'm4', from: 'client', text: "Makes sense. Can't wait to get my squat numbers back up. Thanks coach", ts: '2026-03-14T12:25:00' },
     ],
   },
 ];

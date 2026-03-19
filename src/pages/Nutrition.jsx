@@ -83,24 +83,25 @@ const MACRO_COLORS = {
 /* ── Seed meal data ── */
 function seedNutritionData() {
   const clients = getPatients();
-  const c1 = clients[0]; // James Thompson
-  const c2 = clients[1]; // Sarah Chen
+  if (clients.length < 5) return;
 
-  if (!c1 || !c2) return;
+  // Macro targets for all 5 clients
+  const targetMap = {
+    [clients[0].id]: { calories: 2800, protein: 200, carbs: 300, fat: 90 },   // James — cutting/building
+    [clients[1].id]: { calories: 1800, protein: 140, carbs: 180, fat: 60 },   // Sarah — fat loss
+    [clients[2].id]: { calories: 2800, protein: 200, carbs: 300, fat: 90 },   // Marcus — bulking
+    [clients[3].id]: { calories: 2000, protein: 120, carbs: 220, fat: 65 },   // Emily — prenatal
+    [clients[4].id]: { calories: 2200, protein: 170, carbs: 230, fat: 70 },   // David — maintenance/rehab
+  };
 
-  // Macro targets
-  const targets1 = { calories: 2800, protein: 200, carbs: 300, fat: 90 };
-  const targets2 = { calories: 1800, protein: 140, carbs: 180, fat: 60 };
+  Object.entries(targetMap).forEach(([id, targets]) => {
+    if (!localStorage.getItem(`ms_macro_targets_${id}`)) {
+      localStorage.setItem(`ms_macro_targets_${id}`, JSON.stringify(targets));
+    }
+  });
 
-  if (!localStorage.getItem(`ms_macro_targets_${c1.id}`)) {
-    localStorage.setItem(`ms_macro_targets_${c1.id}`, JSON.stringify(targets1));
-  }
-  if (!localStorage.getItem(`ms_macro_targets_${c2.id}`)) {
-    localStorage.setItem(`ms_macro_targets_${c2.id}`, JSON.stringify(targets2));
-  }
-
-  // Meal logs — today + 6 days back
-  if (!localStorage.getItem(`ms_nutrition_${c1.id}`)) {
+  // James — high protein muscle building meals
+  if (!localStorage.getItem(`ms_nutrition_${clients[0].id}`)) {
     const meals = {};
     for (let i = 0; i < 7; i++) {
       const date = d(-i);
@@ -128,10 +129,11 @@ function seedNutritionData() {
         ],
       };
     }
-    localStorage.setItem(`ms_nutrition_${c1.id}`, JSON.stringify(meals));
+    localStorage.setItem(`ms_nutrition_${clients[0].id}`, JSON.stringify(meals));
   }
 
-  if (!localStorage.getItem(`ms_nutrition_${c2.id}`)) {
+  // Sarah — clean eating, lower cal
+  if (!localStorage.getItem(`ms_nutrition_${clients[1].id}`)) {
     const meals = {};
     for (let i = 0; i < 7; i++) {
       const date = d(-i);
@@ -156,7 +158,97 @@ function seedNutritionData() {
         ],
       };
     }
-    localStorage.setItem(`ms_nutrition_${c2.id}`, JSON.stringify(meals));
+    localStorage.setItem(`ms_nutrition_${clients[1].id}`, JSON.stringify(meals));
+  }
+
+  // Marcus — high calorie bulking athlete
+  if (!localStorage.getItem(`ms_nutrition_${clients[2].id}`)) {
+    const meals = {};
+    for (let i = 0; i < 7; i++) {
+      const date = d(-i);
+      const factor = 0.85 + Math.random() * 0.3;
+      meals[date] = {
+        breakfast: [
+          { name: 'Egg White Omelette (6 whites + 2 whole)', calories: Math.round(340 * factor), protein: 36, carbs: 4, fat: 12 },
+          { name: 'Bagel w/ Cream Cheese', calories: Math.round(380 * factor), protein: 12, carbs: 58, fat: 10 },
+          { name: 'Orange Juice', calories: 120, protein: 2, carbs: 28, fat: 0 },
+        ],
+        lunch: [
+          { name: 'Double Chicken Burrito Bowl', calories: Math.round(650 * factor), protein: 58, carbs: 65, fat: 16 },
+          { name: 'Tortilla Chips + Guac', calories: 220, protein: 3, carbs: 20, fat: 14 },
+        ],
+        dinner: [
+          { name: 'Steak (10oz Sirloin)', calories: Math.round(500 * factor), protein: 62, carbs: 0, fat: 24 },
+          { name: 'Mashed Potatoes', calories: Math.round(240 * factor), protein: 4, carbs: 36, fat: 10 },
+          { name: 'Steamed Asparagus', calories: 40, protein: 4, carbs: 6, fat: 0 },
+        ],
+        snacks: [
+          { name: 'Mass Gainer Shake', calories: 420, protein: 50, carbs: 48, fat: 8 },
+          { name: 'PB&J Sandwich', calories: 380, protein: 14, carbs: 46, fat: 16 },
+          { name: 'Banana', calories: 105, protein: 1, carbs: 27, fat: 0 },
+        ],
+      };
+    }
+    localStorage.setItem(`ms_nutrition_${clients[2].id}`, JSON.stringify(meals));
+  }
+
+  // Emily — prenatal, balanced and nutrient-dense
+  if (!localStorage.getItem(`ms_nutrition_${clients[3].id}`)) {
+    const meals = {};
+    for (let i = 0; i < 7; i++) {
+      const date = d(-i);
+      const factor = 0.85 + Math.random() * 0.3;
+      meals[date] = {
+        breakfast: [
+          { name: 'Greek Yogurt Parfait w/ Granola', calories: Math.round(320 * factor), protein: 20, carbs: 42, fat: 8 },
+          { name: 'Prenatal Smoothie (berries, spinach, flax)', calories: Math.round(220 * factor), protein: 10, carbs: 34, fat: 6 },
+        ],
+        lunch: [
+          { name: 'Grilled Salmon Salad', calories: Math.round(380 * factor), protein: 34, carbs: 12, fat: 22 },
+          { name: 'Whole Grain Roll', calories: 150, protein: 5, carbs: 28, fat: 2 },
+        ],
+        dinner: [
+          { name: 'Baked Chicken Thigh', calories: Math.round(280 * factor), protein: 28, carbs: 0, fat: 16 },
+          { name: 'Brown Rice (3/4 cup)', calories: Math.round(165 * factor), protein: 4, carbs: 34, fat: 1 },
+          { name: 'Steamed Spinach + Lemon', calories: 45, protein: 5, carbs: 6, fat: 1 },
+        ],
+        snacks: [
+          { name: 'Cottage Cheese w/ Berries', calories: 180, protein: 18, carbs: 16, fat: 4 },
+          { name: 'Trail Mix (1/4 cup)', calories: 170, protein: 5, carbs: 14, fat: 10 },
+        ],
+      };
+    }
+    localStorage.setItem(`ms_nutrition_${clients[3].id}`, JSON.stringify(meals));
+  }
+
+  // David — maintenance/rehab, balanced
+  if (!localStorage.getItem(`ms_nutrition_${clients[4].id}`)) {
+    const meals = {};
+    for (let i = 0; i < 7; i++) {
+      const date = d(-i);
+      const factor = 0.85 + Math.random() * 0.3;
+      meals[date] = {
+        breakfast: [
+          { name: 'Whole Eggs (3) + Toast', calories: Math.round(380 * factor), protein: 22, carbs: 28, fat: 18 },
+          { name: 'Turkey Sausage (2 links)', calories: Math.round(140 * factor), protein: 14, carbs: 2, fat: 8 },
+          { name: 'Black Coffee', calories: 5, protein: 0, carbs: 1, fat: 0 },
+        ],
+        lunch: [
+          { name: 'Chicken Caesar Wrap', calories: Math.round(420 * factor), protein: 36, carbs: 32, fat: 16 },
+          { name: 'Mixed Fruit Cup', calories: 80, protein: 1, carbs: 20, fat: 0 },
+        ],
+        dinner: [
+          { name: 'Grilled Tilapia (8oz)', calories: Math.round(280 * factor), protein: 46, carbs: 0, fat: 6 },
+          { name: 'Roasted Sweet Potato Wedges', calories: Math.round(200 * factor), protein: 3, carbs: 40, fat: 4 },
+          { name: 'Coleslaw', calories: 100, protein: 1, carbs: 12, fat: 5 },
+        ],
+        snacks: [
+          { name: 'Protein Shake', calories: 250, protein: 35, carbs: 10, fat: 4 },
+          { name: 'Rice Cakes w/ PB', calories: 190, protein: 6, carbs: 22, fat: 8 },
+        ],
+      };
+    }
+    localStorage.setItem(`ms_nutrition_${clients[4].id}`, JSON.stringify(meals));
   }
 }
 
