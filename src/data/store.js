@@ -90,7 +90,7 @@ export function updateSettings(updates) { set('ms_settings', { ...getSettings(),
 
 // ── Init seed data ──
 export function initStore() {
-  const alreadyInit = localStorage.getItem('pt_initialized_v4');
+  const alreadyInit = localStorage.getItem('pt_initialized_v5');
 
   // Clear old legacy data if present
   if (!alreadyInit) {
@@ -267,7 +267,7 @@ export function initStore() {
     founder: 'Marcus Cole',
   });
 
-  localStorage.setItem('pt_initialized_v4', 'true');
+  localStorage.setItem('pt_initialized_v5', 'true');
 }
 
 // Seeds data for keys that are empty — runs every load to fill gaps
