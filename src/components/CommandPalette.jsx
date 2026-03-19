@@ -6,33 +6,31 @@ import { getPatients, getServices } from '../data/store';
 // ── Page registry (all 22 admin pages) ──
 const PAGES = [
   { path: '/admin', label: 'Dashboard', section: 'Overview' },
-  { path: '/admin/checkin', label: 'Check-In', section: 'Overview' },
-  { path: '/admin/patients', label: 'Clients', section: 'Clients' },
+  { path: '/admin/virtual', label: 'Virtual Sessions', section: 'Overview' },
+  { path: '/admin/members', label: 'Clients', section: 'Clients' },
   { path: '/admin/schedule', label: 'Schedule', section: 'Clients' },
-  { path: '/admin/treatments', label: 'Training Programs', section: 'Clients' },
-  { path: '/admin/charts', label: 'Progress Tracking', section: 'Clients' },
-  { path: '/admin/photos', label: 'Before & After', section: 'Clients' },
-  { path: '/admin/waivers', label: 'Waivers', section: 'Clients' },
-  { path: '/admin/aftercare', label: 'Aftercare', section: 'Clients' },
+  { path: '/admin/classes', label: 'Training Programs', section: 'Clients' },
+  { path: '/admin/workouts', label: 'Workout Builder', section: 'Clients' },
+  { path: '/admin/progress', label: 'Progress Tracking', section: 'Clients' },
+  { path: '/admin/nutrition', label: 'Nutrition', section: 'Clients' },
+  { path: '/admin/habits', label: 'Habits', section: 'Clients' },
   { path: '/admin/memberships', label: 'Memberships', section: 'Billing' },
-  { path: '/admin/wallet', label: 'Client Wallet', section: 'Billing' },
   { path: '/admin/referrals', label: 'Referrals', section: 'Billing' },
   { path: '/admin/retention', label: 'Retention', section: 'Client Success' },
   { path: '/admin/reviews', label: 'Reviews', section: 'Client Success' },
-  { path: '/admin/inbox', label: 'DM Inbox', section: 'Marketing' },
-  { path: '/admin/email', label: 'Email', section: 'Marketing' },
-  { path: '/admin/texts', label: 'Text Messages', section: 'Marketing' },
-  { path: '/admin/social', label: 'Social Media', section: 'Marketing' },
-  { path: '/admin/reports', label: 'Reports', section: 'Reporting' },
+  { path: '/admin/challenges', label: 'Challenges', section: 'Client Success' },
+  { path: '/admin/community', label: 'Community', section: 'Client Success' },
+  { path: '/admin/inbox', label: 'Messages', section: 'Marketing' },
+  { path: '/admin/automations', label: 'Automations', section: 'Marketing' },
   { path: '/admin/settings', label: 'Settings', section: 'System' },
 ];
 
 const QUICK_ACTIONS = [
-  { id: 'action-new-patient', label: 'New Client', subtitle: 'Add a new client record', path: '/admin/patients', icon: 'user-plus' },
+  { id: 'action-new-patient', label: 'New Client', subtitle: 'Add a new client record', path: '/admin/members', icon: 'user-plus' },
   { id: 'action-book-apt', label: 'Book Session', subtitle: 'Schedule a new training session', path: '/admin/schedule', icon: 'calendar-plus' },
-  { id: 'action-send-email', label: 'Send Email', subtitle: 'Compose a marketing email', path: '/admin/email', icon: 'mail' },
-  { id: 'action-send-text', label: 'Send Text', subtitle: 'Send SMS to clients', path: '/admin/texts', icon: 'message' },
-  { id: 'action-new-chart', label: 'New Program', subtitle: 'Start a training program', path: '/admin/charts', icon: 'clipboard' },
+  { id: 'action-send-msg', label: 'Send Message', subtitle: 'Message a client', path: '/admin/inbox', icon: 'message' },
+  { id: 'action-new-workout', label: 'Create Workout', subtitle: 'Build a workout template', path: '/admin/workouts', icon: 'clipboard' },
+  { id: 'action-new-program', label: 'New Program', subtitle: 'Start a training program', path: '/admin/classes', icon: 'clipboard' },
 ];
 
 // ── SVG Icons ──

@@ -139,51 +139,7 @@ function generateNotifications() {
     });
   }
 
-  // 5. Pending waivers
-  const waivers = lsGet('ms_waivers', []);
-  const pendingWaivers = waivers.filter(w => w.status === 'pending');
-  if (pendingWaivers.length > 0) {
-    // Show individual notifications for first 2, then a summary
-    pendingWaivers.slice(0, 2).forEach(w => {
-      notifications.push({
-        id: `notif-waiver-${w.id}`,
-        type: 'waiver',
-        icon: 'waiver',
-        text: `${w.patientName || 'A client'} has unsigned waivers`,
-        link: '/admin/waivers',
-        time: w.createdAt || now,
-        color: '#D97706',
-      });
-    });
-    if (pendingWaivers.length > 2) {
-      notifications.push({
-        id: 'notif-waivers-extra',
-        type: 'waiver',
-        icon: 'waiver',
-        text: `${pendingWaivers.length - 2} more pending waiver${pendingWaivers.length - 2 !== 1 ? 's' : ''}`,
-        link: '/admin/waivers',
-        time: now,
-        color: '#D97706',
-      });
-    }
-  }
-
-  // 6. Waitlist
-  const waitlist = lsGet('ms_waitlist', []);
-  const waiting = waitlist.filter(w => w.status === 'waiting');
-  if (waiting.length > 0) {
-    notifications.push({
-      id: 'notif-waitlist',
-      type: 'waitlist',
-      icon: 'waitlist',
-      text: `${waiting.length} client${waiting.length !== 1 ? 's' : ''} on waitlist`,
-      link: '/admin/waitlist',
-      time: now,
-      color: '#7C3AED',
-    });
-  }
-
-  // 7. Reviews
+  // 5. Reviews
   const reviews = lsGet('ms_reviews', []);
   const pendingReviews = reviews.filter(r => r.status === 'pending' || r.status === 'requested');
   if (pendingReviews.length > 0) {
